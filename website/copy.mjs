@@ -1,0 +1,56 @@
+export const copy = {
+  'zh-CN': {
+    title: 'Shader Tab — 给新标签页一点呼吸感', description: '动态 shader 背景，轻盈的玻璃控件，随手可达的书签。让每次打开新标签页，都慢下来一点。',
+    home: '/', otherLanguage: '/en/', otherName: 'EN', navEffects: '背景', navDetails: '功能', navHelp: '使用指南', navDownload: '获取扩展',
+    eyebrow: '为每一次新的开始', heading: '打开新标签，<br>留一点<span>空白。</span>', intro: '光慢慢流动，书签恰好在手边。<br>一个会呼吸的新标签页，让浏览从容一点。', primary: '在 Chrome 中安装', secondary: '探索背景', version: 'Chrome 扩展 · 支持 8 种语言',
+    scene: '一点光，一点秩序。', live: '真实 shader 实时预览', try: '移动鼠标，轻轻拨动背景', effectGroup: '选择预览背景', theme: '切换预览明暗', pause: '暂停动画', play: '播放动画', day: '日间', night: '夜间', static: '静态预览', source: '背景来源',
+    facts: [['06', '种背景效果'], ['53', '种变体组合'], ['08', '种界面语言']],
+    detailLabel: '少一点打扰', detailTitle: '只留下你需要的。',
+    features: [
+      ['01', '书签，伸手就到。', '收藏常用的网页，沿文件夹浏览 Chrome 书签。图标读取浏览器已有缓存，熟悉的地方一眼就能找到。', 'bookmarks'],
+      ['02', '每次打开，都有新意。', '从细腻颗粒到像素涟漪，六类背景随机出现。动效缓慢起伏，鼠标移开后，控件也轻轻隐去。', 'motion'],
+      ['03', '偏好，留在你这里。', '无需账户。收藏和设置存于当前浏览器，扩展不上传书签、不放广告，也不添加追踪器。', 'privacy'],
+    ],
+    installLabel: '开始使用', installTitle: '给下一次打开，<br>换一种心情。', installIntro: '从 Chrome 网上应用店安装，打开新标签页即可开始。', installSteps: [
+      ['打开 Chrome 网上应用店', '前往 Shader Tab 的商店页面，查看介绍与权限说明。'],
+      ['添加到 Chrome', '点击「添加至 Chrome」，确认安装扩展。'],
+      ['打开一个新标签页', '背景已就位。移动鼠标，在左下角设置中选择语言、背景和常用书签。'],
+    ], update: '商店安装后，后续版本由 Chrome 更新。收藏与设置保存在当前浏览器；卸载扩展会清除这些本地数据。', size: '无需账户 · 无广告',
+    faqTitle: '你可能想知道', faq: [
+      ['需要注册账号吗？', '不需要。Shader Tab 不设账号，下载安装后即可使用。收藏与偏好只保存于当前浏览器配置，不通过扩展跨设备同步。'],
+      ['会上传我的书签吗？', '扩展只在本地读取、展示和搜索 Chrome 书签，不向开发者或第三方服务器上传书签、收藏或使用记录。网站的托管服务会处理提供网页所必需的请求信息，详见隐私政策。'],
+      ['背景会一直占用资源吗？', '扩展的背景动效设有帧率与分辨率上限；页面隐藏时停止绘制，持续隐藏后释放 GPU 上下文。开启系统「减少动态效果」时使用静态背景。'],
+      ['可以调整语言和显示内容吗？', '可以。在设置中切换简体中文、繁体中文、英文、日文、韩文、法文、德文或西班牙文，也可独立隐藏常用书签与系统书签入口。'],
+      ['为什么更新后出现两个 Shader Tab？', '手动安装时，从不同目录加载会被 Chrome 识别为不同扩展。请保留原安装目录并覆盖更新。两个扩展的收藏互不共享，卸载前请确认数据。'],
+    ],
+    closing: '下一页，慢一点。', privacy: '隐私政策', licenses: '第三方许可', contact: '联系支持', footerNote: '用光、像素和一点留白，重新想象新标签页。', copyright: '© 2026 Shader Tab', legalPrivacy: '/privacy.html', legalLicenses: '/licenses.html',
+    demoBookmarks: '示例书签', demoSettings: '在扩展设置中选择收藏、语言与背景', demoTitle: '交互背景演示 · 示例入口', demoHint: '安装扩展后，可连接你的 Chrome 书签。',
+  },
+  en: {
+    title: 'Shader Tab — A little room to breathe', description: 'Living shader backgrounds, quiet glass controls, and your bookmarks within reach. A calmer start to every new tab.',
+    home: '/en/', otherLanguage: '/', otherName: '中文', navEffects: 'Backgrounds', navDetails: 'Features', navHelp: 'Get started', navDownload: 'Get the extension',
+    eyebrow: 'A FRESH START, EVERY TAB', heading: 'A little room<br>to <span>breathe.</span>', intro: 'Light in motion. Your favorite places within reach.<br>A calmer way to open your next tab.', primary: 'Add to Chrome', secondary: 'Explore backgrounds', version: 'Chrome extension · 8 languages',
+    scene: 'A little light. A little order.', live: 'Live shader preview', try: 'Move your pointer. Let the light follow.', effectGroup: 'Choose a preview background', theme: 'Switch preview appearance', pause: 'Pause animation', play: 'Play animation', day: 'Light', night: 'Dark', static: 'Still preview', source: 'Background source',
+    facts: [['06', 'background effects'], ['53', 'variant combinations'], ['08', 'interface languages']],
+    detailLabel: 'LESS IN THE WAY', detailTitle: 'Just what you came for.',
+    features: [
+      ['01', 'Your places, within reach.', 'Pin the pages you return to. Explore your Chrome bookmark folders, with familiar icons from the browser’s existing cache.', 'bookmarks'],
+      ['02', 'A new view, every time.', 'From fine grain to pixel ripples, six background families bring a little variety. Motion stays slow. Controls gently disappear when you step away.', 'motion'],
+      ['03', 'Your preferences stay yours.', 'No account needed. Favorites and settings stay in your browser. The extension does not upload bookmarks, serve ads, or add trackers.', 'privacy'],
+    ],
+    installLabel: 'MAKE IT YOURS', installTitle: 'A fresh feeling.<br>One new tab away.', installIntro: 'Install from the Chrome Web Store, then open a new tab. That’s it.', installSteps: [
+      ['Visit the Chrome Web Store', 'Open the Shader Tab listing to read about its features and permissions.'],
+      ['Add it to Chrome', 'Choose “Add to Chrome” and confirm the extension installation.'],
+      ['Open a new tab', 'Your background is ready. Move your pointer and open Settings in the lower-left corner to choose languages, backgrounds, and favorites.'],
+    ], update: 'Chrome handles updates for store installations. Favorites and settings stay in your current browser; uninstalling the extension clears this local data.', size: 'No account · No ads',
+    faqTitle: 'A few good questions', faq: [
+      ['Do I need an account?', 'No. Install Shader Tab and start using it. Favorites and preferences stay in your current browser profile; the extension does not sync them across devices.'],
+      ['Does it upload my bookmarks?', 'The extension reads, displays, and searches Chrome bookmarks locally. It does not upload bookmarks, favorites, or usage records to the developer or third-party servers. This website’s hosting provider processes request information needed to serve pages. See our privacy policy.'],
+      ['Will animations keep using resources?', 'The extension caps frame rate and resolution. Hidden tabs stop drawing and release the GPU context after a delay. With your system’s reduced-motion setting enabled, the background stays still.'],
+      ['Can I change the language and controls?', 'Yes. Choose Simplified Chinese, Traditional Chinese, English, Japanese, Korean, French, German, or Spanish in Settings. Favorites and Chrome bookmark controls can each be hidden independently.'],
+      ['Why do I see two copies after an update?', 'Loading unpacked files from a different folder can create a separate Chrome extension. Update the original folder instead. The two installations do not share favorites; check your data before uninstalling either.'],
+    ],
+    closing: 'A softer start to what’s next.', privacy: 'Privacy policy', licenses: 'Third-party licenses', contact: 'Get in touch', footerNote: 'A new tab, reimagined with light, pixels, and a little space.', copyright: '© 2026 Shader Tab', legalPrivacy: '/locales/en/privacy.html', legalLicenses: '/locales/en/licenses.html',
+    demoBookmarks: 'Example bookmarks', demoSettings: 'Choose favorites, language, and backgrounds in the extension settings', demoTitle: 'Interactive background demo · Example controls', demoHint: 'Install the extension to connect your Chrome bookmarks.',
+  },
+};

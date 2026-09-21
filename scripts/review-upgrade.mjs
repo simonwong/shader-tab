@@ -1,0 +1,30 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import assert from 'node:assert/strict';
+const project=resolve(import.meta.dirname,'..');
+const previous=process.argv[2] ?? '0.3.13';
+const current=JSON.parse(readFileSync(join(project,'package.json'),'utf8')).version;
+const temp=mkdtempSync('/private/tmp/shader-upgrade-');
+const extension=join(temp,'extension'),profile=join(temp,'profile');mkdirSync(extension);
+let session='shader-upgrade-'+process.pid;
+const run=(...args)=>{const r=JSON.parse(execFileSync('agent-browser',['--session',session,'--json',...args],{encoding:'utf8',timeout:60000}));if(!r.success)throw Error(JSON.stringify(r.error));return r.data;};
+const evaluate=code=>run('eval',code).result;
+try {
+ execFileSync('unzip',['-q',join(project,`.output/shader-tab-${previous}-chrome.zip`),'-d',extension]);
+ run('--profile',profile,'--extension',extension,'open','chrome://newtab');
+ run('wait','--fn',"document.querySelector('main')?.dataset.mode==='extension'");
+ const before=evaluate(`(async()=>{const b=await chrome.bookmarks.create({parentId:'1',title:'Upgrade persistence fixture',url:'https://example.invalid/upgrade'});await chrome.storage.local.set({'favorites:v2':[b.id],'preference:v1:appearance':'night'});return {id:chrome.runtime.id,version:chrome.runtime.getManifest().version,favorite:b.id};})()`);
+ execFileSync('unzip',['-oq',join(project,`.output/shader-tab-${current}-chrome.zip`),'-d',extension]);
+ run('close');
+ session+='-updated';
+ run('--profile',profile,'--extension',extension,'open','chrome://newtab');
+ run('wait','--fn',`typeof chrome!=='undefined'&&chrome.runtime?.id&&chrome.runtime.getManifest().version==='${current}'&&document.querySelector('main')?.dataset.mode==='extension'`);
+ const after=evaluate(`(async()=>({id:chrome.runtime.id,version:chrome.runtime.getManifest().version,storage:await chrome.storage.local.get(['favorites:v2','preference:v1:appearance'])}))()`);
+ assert.equal(before.version,previous);assert.equal(after.id,before.id);
+ assert.deepEqual(after.storage['favorites:v2'],[before.favorite]);assert.equal(after.storage['preference:v1:appearance'],'night');
+ run('press','Tab');run('hover','[aria-controls="favorites-tray"]');
+ run('wait','--fn',"document.querySelector('.favorites-tray a')?.title==='Upgrade persistence fixture'");
+ writeFileSync(join(project,`artifacts/upgrade-${previous}-to-${current}.json`),JSON.stringify({before,after,renderedFavorite:true},null,2));
+ console.log('Same-directory extension upgrade with browser restart retained extension ID, favorites, theme and rendered favorite.');
+} finally {try{run('close');}finally{rmSync(temp,{recursive:true,force:true});}}

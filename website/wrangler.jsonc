@@ -1,0 +1,15 @@
+{
+  "name": "shader-tab-site",
+  "compatibility_date": "2026-09-21",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../.output/site",
+    "html_handling": "none",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "shadertab.simonwong.cn", "custom_domain": true }
+  ],
+  "observability": { "enabled": false }
+}

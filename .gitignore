@@ -1,0 +1,17 @@
+node_modules/
+.wxt/
+.output/
+artifacts/
+.DS_Store
+*.local
+
+.env*
+!.env.example
+.dev.vars*
+.wrangler/
+.sites-runtime/
+website/index.html
+website/en/index.html
+design/
+
+.pnpm-store/

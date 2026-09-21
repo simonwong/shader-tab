@@ -1,0 +1,6 @@
+{
+  "tool": "built-in image_gen",
+  "source": "image_gen output used for shader-tab-icon-master.png",
+  "prompt": "Use case: precise-object-edit / logo-brand. Produce the icon-only production asset from the attached approved SHADER TAB logo. Remove ALL text and remove the off-white background entirely. Preserve the exact orange round disc dissolving into the five purple square pixels from the reference, with the exact same arrangement, relative sizes, colors, internal negative spaces, and sharp flat edges. Do not redesign the mark. No letters or number anywhere. A genuinely transparent alpha background, including the empty gaps between the pixels. Square canvas, centered icon occupying 82 percent of canvas width and height with even transparent padding. Retain the gentle existing orange and purple color treatment. No tile, no rounded-square container, no shadows, no glow, no border, no decorative additions. This must be a clean isolated logo symbol ready to downsample as a Chrome extension favicon.",
+  "approvedWordmark": "shader-tab-logo-uppercase.png"
+}
