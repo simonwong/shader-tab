@@ -51,7 +51,7 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 
 ## 安装与使用
 
-**Chrome 商店版即将上线。** 正式安装链接将在[官网](https://shadertab.simonwong.cn/#install)提供。
+[**从 Chrome 网上应用店安装**](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)
 
 安装后打开新标签页，移动鼠标显示控件：左下角是设置，底部中央是收藏与书签目录，右下角可访问当前背景的参考来源。
 

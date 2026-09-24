@@ -51,7 +51,7 @@ These are actual extension screenshots. Explore the motion on the [live demo](ht
 
 ## Get Shader Tab
 
-**Coming to the Chrome Web Store.** The official installation link will appear on the [website](https://shadertab.simonwong.cn/en/#install) when available.
+[**Install from the Chrome Web Store**](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)
 
 Once installed, open a new tab. Move your pointer to reveal the controls: Settings in the lower-left corner, favorites and bookmark folders at the bottom center, and the current background’s source at the lower right.
 
