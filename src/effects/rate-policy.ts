@@ -82,6 +82,7 @@ export interface RateMonitor {
 }
 
 const INPUT_EVENTS = ['pointermove', 'pointerdown', 'wheel', 'keydown'] as const;
+const now = () => performance.now();
 
 /**
  * Watches input, focus and battery state and calls `onChange` whenever the
@@ -89,7 +90,6 @@ const INPUT_EVENTS = ['pointermove', 'pointerdown', 'wheel', 'keydown'] as const
  * plan when a threshold can next be crossed.
  */
 export function createRateMonitor(onChange: (plan: RatePlan) => void): RateMonitor {
-  const now = () => performance.now();
   let lastInput = now();
   let unfocusedSince: number | undefined = document.hasFocus() ? undefined : now();
   let pointerUntil = 0;

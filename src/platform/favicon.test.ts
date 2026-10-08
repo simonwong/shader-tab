@@ -17,7 +17,7 @@ it('keeps bookmark query parameters inside the local Chrome favicon request', ()
 });
 
 it('does not request icons for unsafe URLs or browser previews', () => {
-  vi.stubGlobal('chrome', { runtime: { id: 'fixture', getURL: vi.fn() } });
+  vi.stubGlobal('chrome', { runtime: { id: 'fixture', getURL: vi.fn<(path: string) => string>() } });
   for (const page of ['javascript:alert(1)', 'file:///tmp/a', 'chrome://settings', 'invalid']) expect(faviconUrl(page)).toBeUndefined();
   expect(chrome.runtime.getURL).not.toHaveBeenCalled();
   vi.stubGlobal('chrome', undefined);

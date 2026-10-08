@@ -16,16 +16,20 @@ function fakeEvent() {
 let store: Record<string, unknown>;
 let tree: BookmarkNode[];
 const storage = {
-  get: vi.fn(async (keys: string[] | null) => structuredClone(keys === null ? store : Object.fromEntries(keys.filter(key => key in store).map(key => [key, store[key]])))),
-  set: vi.fn(async (items: Record<string, unknown>) => { Object.assign(store, structuredClone(items)); }),
-  remove: vi.fn(async (keys: string[]) => { for (const key of keys) delete store[key]; }),
+  get: vi.fn<(keys: string[] | null) => Promise<Record<string, unknown>>>(async keys => structuredClone(keys === null ? store : Object.fromEntries(keys.filter(key => key in store).map(key => [key, store[key]])))),
+  set: vi.fn<(items: Record<string, unknown>) => Promise<void>>(async items => { Object.assign(store, structuredClone(items)); }),
+  remove: vi.fn<(keys: string[]) => Promise<void>>(async keys => { for (const key of keys) delete store[key]; }),
 };
 const bookmarks = {
-  getTree: vi.fn(async () => structuredClone(tree)),
+  getTree: vi.fn<() => Promise<BookmarkNode[]>>(async () => structuredClone(tree)),
   onCreated: fakeEvent(), onRemoved: fakeEvent(), onChanged: fakeEvent(), onMoved: fakeEvent(),
   onChildrenReordered: fakeEvent(), onImportBegan: fakeEvent(), onImportEnded: fakeEvent(),
 };
-const tabs = { getCurrent: vi.fn(async () => ({ id: 7 })), update: vi.fn(async () => ({})), create: vi.fn(async () => ({})) };
+const tabs = {
+  getCurrent: vi.fn<() => Promise<{ id: number }>>(async () => ({ id: 7 })),
+  update: vi.fn<(...args: unknown[]) => Promise<object>>(async () => ({})),
+  create: vi.fn<(properties: unknown) => Promise<object>>(async () => ({})),
+};
 
 beforeEach(() => {
   store = {};
@@ -86,7 +90,7 @@ it('applies functional preference updates to the latest stored value', async () 
 });
 
 it('refreshes once after a bookmark import instead of once per created bookmark', async () => {
-  const listener = vi.fn();
+  const listener = vi.fn<() => void>();
   const stop = (await platform()).watchBookmarks(listener);
   bookmarks.onImportBegan.fire();
   for (let i = 0; i < 50; i++) bookmarks.onCreated.fire();

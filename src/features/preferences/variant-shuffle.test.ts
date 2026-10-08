@@ -16,7 +16,8 @@ it.each(EFFECT_IDS)('%s draws all variants per round without repeating at the bo
     for (let i = 0; i < draws.length; i += choices.length) {
       expect(draws.slice(i, i + choices.length).toSorted()).toEqual([...choices].toSorted());
     }
-    if (choices.length > 1) for (let i = 1; i < draws.length; i++) expect(draws[i]).not.toBe(draws[i - 1]);
+    const repeats = draws.filter((variant, i) => i > 0 && variant === draws[i - 1]);
+    expect(repeats).toHaveLength(choices.length > 1 ? 0 : draws.length - 1);
   }
 });
 

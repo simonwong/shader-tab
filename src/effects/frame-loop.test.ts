@@ -21,7 +21,7 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 it.each([[20, 20], [30, 30], [15, 15], [10, 10], [5, 5]])('draws %i fps on a 60 Hz display without losing a vsync per frame', (fps, expected) => {
-  const draw = vi.fn();
+  const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, fps);
   loop.start();
   vi.advanceTimersByTime(1000); // warm-up
@@ -35,7 +35,7 @@ it.each([[20, 20], [30, 30], [15, 15], [10, 10], [5, 5]])('draws %i fps on a 60 
 
 it.each([120, 144])('averages 20 fps on a %i Hz display', hz => {
   vi.stubGlobal('requestAnimationFrame', vsyncRaf(0, 1000 / hz));
-  const draw = vi.fn();
+  const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, 20);
   loop.start();
   vi.advanceTimersByTime(1000);
@@ -56,7 +56,7 @@ it('keeps an even cadence on whole vsyncs', () => {
 });
 
 it('sleeps on a timer at low rates instead of waking every vsync', () => {
-  const draw = vi.fn();
+  const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, 5);
   loop.start();
   vi.advanceTimersByTime(2000);
@@ -67,7 +67,7 @@ it('sleeps on a timer at low rates instead of waking every vsync', () => {
 });
 
 it('keeps one clock and stops all work when paused', () => {
-  const draw = vi.fn();
+  const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, 8);
   loop.start(); loop.start();
   vi.advanceTimersByTime(1000);
@@ -85,7 +85,7 @@ it('keeps one clock and stops all work when paused', () => {
 });
 
 it('changing frame rate inside a draw never creates duplicate loops', () => {
-  const draw = vi.fn(() => loop.setFps(8));
+  const draw = vi.fn<(time: number) => void>(() => loop.setFps(8));
   const loop = createFrameLoop(draw, 30);
   loop.start();
   vi.advanceTimersByTime(2000);
@@ -96,7 +96,7 @@ it('changing frame rate inside a draw never creates duplicate loops', () => {
 
 it('caps work even when rAF timestamps lag the callback clock', () => {
   vi.stubGlobal('requestAnimationFrame', vsyncRaf(40));
-  const draw = vi.fn();
+  const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, 30);
   loop.start();
   vi.advanceTimersByTime(1000);
@@ -106,7 +106,7 @@ it('caps work even when rAF timestamps lag the callback clock', () => {
 });
 
 it('holds the frame at 0 fps and resumes immediately when a rate returns', () => {
-  const draw = vi.fn();
+  const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, 20);
   loop.start();
   vi.advanceTimersByTime(500);
@@ -122,7 +122,7 @@ it('holds the frame at 0 fps and resumes immediately when a rate returns', () =>
 });
 
 it('raising the rate during a long low-rate sleep takes effect on the next vsync', () => {
-  const draw = vi.fn();
+  const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, 5);
   loop.start();
   vi.advanceTimersByTime(VSYNC + 1);

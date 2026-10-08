@@ -26,6 +26,8 @@ import { useOptimistic, useSaveQueue } from './use-saves';
 // A new lazy component per attempt: React caches a failed import, so a retry needs a fresh one.
 const loadSettings = () => lazy(() => import('../../features/settings/SettingsDialog').then(module => ({ default: module.SettingsDialog })));
 
+const NO_FAVORITES: FavoriteRef[] = [];
+
 const sameOrder = (a: readonly { id: string }[], b: readonly { id: string }[]) =>
   a.length === b.length && a.every((item, index) => item.id === b[index]!.id);
 
@@ -40,6 +42,7 @@ export function App({ platform, boot }: Props) {
   const savedFavorites = useLiveQuery(platform.getFavorites, platform.watchFavorites);
   const savedPreferences = useLiveQuery(platform.getPreferences, platform.watchPreferences);
   const saves = useSaveQueue();
+  const { run: runSave, setError: setSaveError } = saves;
   const preferenceEdits = useOptimistic<Partial<Preferences>>(savedPreferences.data);
   const favoriteEdits = useOptimistic<FavoriteRef[]>(savedFavorites.data);
 
@@ -60,6 +63,9 @@ export function App({ platform, boot }: Props) {
   const [settings, setSettings] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [SettingsDialog, setSettingsDialog] = useState(loadSettings);
+  // A new key remounts the settings boundary, so reopening after a failure tries again.
+  const [settingsAttempt, setSettingsAttempt] = useState(0);
+  const settingsFailed = useRef(false);
   const [notice, setNotice] = useState<Error>();
   const settingsButton = useRef<HTMLButtonElement>(null);
   const favoritesButton = useRef<HTMLButtonElement>(null);
@@ -69,7 +75,7 @@ export function App({ platform, boot }: Props) {
     platform,
     preferences,
     ready: preferencesReady,
-    onDrawError: () => saves.setError(new MessageError('randomFailed')),
+    onDrawError: () => setSaveError(new MessageError('randomFailed')),
   });
   const onboarding = preferencesReady && preferences.onboarding && !settings;
   const dock = useDockPanels(preferences);
@@ -82,7 +88,7 @@ export function App({ platform, boot }: Props) {
     [tree.data, preferences.bookmarkSort, locale],
   );
   const menu = useMemo(() => rootMenu(sortedTree, t('untitledFolder')), [sortedTree, t]);
-  const favoriteRefs = favoriteEdits.values.at(-1) ?? savedFavorites.data ?? [];
+  const favoriteRefs = favoriteEdits.values.at(-1) ?? savedFavorites.data ?? NO_FAVORITES;
   const favorites = useMemo(() => resolveFavorites(favoriteRefs, bookmarks), [favoriteRefs, bookmarks]);
   const readError = tree.error || savedFavorites.error || savedPreferences.error;
   const ready = tree.data !== undefined && savedFavorites.data !== undefined && preferencesReady;
@@ -93,7 +99,9 @@ export function App({ platform, boot }: Props) {
 
   // Latest values for handlers that may run twice before the next render (fast double clicks).
   const latest = useRef({ preferences, favoriteRefs });
-  latest.current = { preferences, favoriteRefs };
+  useLayoutEffect(() => {
+    latest.current = { preferences, favoriteRefs };
+  });
 
   useEffect(() => {
     document.title = platform.mode === 'preview' ? t('previewTitle') : t('newTab');
@@ -122,6 +130,11 @@ export function App({ platform, boot }: Props) {
     const fromFavorites = document.activeElement instanceof HTMLElement && document.activeElement.closest('.favorites-tray');
     settingsReturnFocus.current = fromFavorites ? favoritesButton.current : settingsButton.current;
     closeNow();
+    if (settingsFailed.current) {
+      settingsFailed.current = false;
+      setSettingsDialog(loadSettings());
+      setSettingsAttempt(attempt => attempt + 1);
+    }
     setSettingsLoaded(true);
     setSettings(true);
   }, [closeNow]);
@@ -135,31 +148,33 @@ export function App({ platform, boot }: Props) {
     },
   });
 
+  const { begin: beginPreferenceEdit } = preferenceEdits;
   const onPreferenceChange = useCallback((update: PreferenceUpdate) => {
     const patch = resolvePreferenceUpdate(latest.current.preferences, update);
     if (!Object.keys(patch).length) return;
     latest.current.preferences = { ...latest.current.preferences, ...patch };
-    const settle = preferenceEdits.begin(patch);
-    void saves.run(() => platform.updatePreferences(update)).then(settle);
-  }, [platform, preferenceEdits.begin, saves.run]);
+    const settle = beginPreferenceEdit(patch);
+    void runSave(() => platform.updatePreferences(update)).then(settle);
+  }, [platform, beginPreferenceEdit, runSave]);
 
+  const { begin: beginFavoriteEdit } = favoriteEdits;
   const onFavoriteChange = useCallback(async (action: FavoriteAction) => {
     const current = latest.current.favoriteRefs;
     let next: FavoriteRef[];
     try {
       next = changeFavorites(current, action, bookmarks);
     } catch (error) {
-      saves.setError(error instanceof Error ? error : new MessageError('saveFailed'));
+      setSaveError(error instanceof Error ? error : new MessageError('saveFailed'));
       return false;
     }
     // A repeated click (adding twice, removing twice) changes nothing and is not saved again.
     if (sameOrder(next, resolveFavorites(current, bookmarks))) return true;
     latest.current.favoriteRefs = next;
-    const settle = favoriteEdits.begin(next);
-    const saved = await saves.run(() => platform.updateFavorites(action));
+    const settle = beginFavoriteEdit(next);
+    const saved = await runSave(() => platform.updateFavorites(action));
     settle(saved);
     return saved;
-  }, [platform, bookmarks, favoriteEdits.begin, saves]);
+  }, [platform, bookmarks, beginFavoriteEdit, runSave, setSaveError]);
 
   const onOpenUrl = useCallback((url: string, background: boolean) => {
     platform.openUrl(url, background).catch((error: unknown) => {
@@ -218,7 +233,7 @@ export function App({ platform, boot }: Props) {
         <p>{t('firstRunHint')}</p>
         <button className="small-button" onClick={() => onPreferenceChange({ onboarding: false })}>{t('gotIt')}</button>
       </GlassPanel>}
-      {settingsLoaded && <SettingsBoundary open={settings} onClose={closeSettings} onReset={() => setSettingsDialog(loadSettings())}>
+      {settingsLoaded && <SettingsBoundary key={settingsAttempt} open={settings} onClose={closeSettings} onError={() => { settingsFailed.current = true; }}>
         <Suspense fallback={settings ? <SettingsLoading onClose={closeSettings} /> : null}>
           <SettingsDialog
             open={settings}

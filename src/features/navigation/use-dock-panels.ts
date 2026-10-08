@@ -37,12 +37,11 @@ export function useDockPanels({ showFavorites, showBookmarks }: { showFavorites:
 
   useEffect(() => () => clearTimeout(closeTimer.current), []);
 
-  useEffect(() => {
-    if (panel === 'favorites' && !showFavorites || panel === 'all' && !showBookmarks) {
-      setPanel(null);
-      setInside(false);
-    }
-  }, [panel, showFavorites, showBookmarks]);
+  // A panel whose button was just hidden closes (adjusting state during render, not in an effect).
+  if (panel === 'favorites' && !showFavorites || panel === 'all' && !showBookmarks) {
+    setPanel(null);
+    setInside(false);
+  }
 
   useEffect(() => {
     const pointer = () => { keyboardMode.current = false; };

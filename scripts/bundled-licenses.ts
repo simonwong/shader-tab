@@ -40,8 +40,8 @@ export function bundledLicenses(): Plugin {
       const missing = [];
       const inventory = [];
       const sections = [];
-      for (const [key, { directory, info }] of [...packages].sort(([a], [b]) => a.localeCompare(b))) {
-        const files = (await readdir(directory)).filter(file => /^(licen[cs]e|copying|notice)(\.|$|-)/i.test(file)).sort();
+      for (const [key, { directory, info }] of [...packages].toSorted(([a], [b]) => a.localeCompare(b))) {
+        const files = (await readdir(directory)).filter(file => /^(licen[cs]e|copying|notice)(\.|$|-)/i.test(file)).toSorted();
         const texts = await Promise.all(files.map(async file => `${file}\n${await readFile(join(directory, file), 'utf8')}`));
         if (!texts.length && fallbacks[info.name]) texts.push(await readFile(resolve(fallbacks[info.name]!), 'utf8'));
         if (!texts.length) { missing.push(key); continue; }

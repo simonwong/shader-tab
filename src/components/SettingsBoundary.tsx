@@ -5,8 +5,8 @@ import { createPortal } from 'react-dom';
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Called when settings reopen after a failure, before rendering the children again. */
-  onReset?: () => void;
+  /** Called once the children fail; the parent retries by remounting the boundary with a new key. */
+  onError?: () => void;
   children: ReactNode;
 }
 
@@ -22,12 +22,7 @@ export function SettingsLoading({ onClose }: Pick<Props, 'onClose'>) {
 export class SettingsBoundary extends Component<Props, { failed: boolean }> {
   override state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  override componentDidUpdate(previous: Props) {
-    if (this.state.failed && this.props.open && !previous.open) {
-      this.props.onReset?.();
-      this.setState({ failed: false });
-    }
-  }
+  override componentDidCatch() { this.props.onError?.(); }
   override render() {
     if (!this.state.failed) return this.props.children;
     if (!this.props.open) return null;

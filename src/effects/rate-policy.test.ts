@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   BATTERY_DENSITY, IDLE_FREEZE_MS, IDLE_SLOW_MS, POINTER_BURST_MS, RATES, UNFOCUSED_GRACE_MS,
-  createRateMonitor, planRate, type RateConditions,
+  createRateMonitor, planRate, type RateConditions, type RatePlan,
 } from './rate-policy';
 
 const awake: RateConditions = { idleMs: 0, unfocusedMs: 0, onBattery: false, dialogOpen: false, pointerActive: false };
@@ -74,7 +74,7 @@ describe('createRateMonitor', () => {
   });
 
   it('input while awake postpones the idle step without re-planning per event', () => {
-    const onChange = vi.fn();
+    const onChange = vi.fn<(plan: RatePlan) => void>();
     const monitor = createRateMonitor(onChange);
     vi.advanceTimersByTime(IDLE_SLOW_MS - 1000);
     win.dispatchEvent(new Event('keydown'));

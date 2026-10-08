@@ -9,7 +9,7 @@
  * outward. Everything is drawn by one fragment shader over a fullscreen
  * triangle: one draw call per frame, no offscreen buffers.
  */
-import { getEffect, THEME_BRIGHTNESS, type Theme } from '../presets';
+import { getEffect, THEME_BRIGHTNESS } from '../presets';
 import { releaseCanvas } from './surface';
 import { bindFullscreenTriangle, deleteProgram, linkProgram, loseContext, type LinkedProgram } from './webgl';
 import type { DriverFactory, Pointer } from './types';
@@ -180,6 +180,12 @@ function rgb(hex: string): [number, number, number] {
   return [(value >> 16 & 255) / 255, (value >> 8 & 255) / 255, (value & 255) / 255];
 }
 
+/** Pointer coordinates (-1..1, y up) to shader UV (0..1, y down), written into `out`. */
+function toUv(pointer: Pointer, out: { x: number; y: number }) {
+  out.x = (pointer.x + 1) * .5;
+  out.y = 1 - (pointer.y + 1) * .5;
+}
+
 export const createDriver: DriverFactory = (host, { theme, variant }) => {
   const canvas = document.createElement('canvas');
   const options: WebGLContextAttributes = { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' };
@@ -228,10 +234,6 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
     let lastMove = -Infinity;
     let hoverStrength = 0;
 
-    const toUv = (pointer: Pointer, out: { x: number; y: number }) => {
-      out.x = (pointer.x + 1) * .5;
-      out.y = 1 - (pointer.y + 1) * .5;
-    };
     const emit = (x: number, y: number, strength: number) => {
       const offset = nextRipple * 4;
       rippleData[offset] = x;

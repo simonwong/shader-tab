@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -41,8 +41,8 @@ export function FavoriteSettings({ bookmarks, tree, favorites, disabled, onChang
   const [query, setQuery] = useState('');
   const ids = useMemo(() => favorites.map(bookmark => bookmark.id), [favorites]);
   // Local order so a drop lands immediately; it follows saved data and rolls back if the save fails.
-  const [order, setOrder] = useState(ids);
-  useEffect(() => setOrder(ids), [ids]);
+  const [moved, setMoved] = useState<{ from: string[]; order: string[] }>();
+  const order = moved?.from === ids ? moved.order : ids;
   const byId = useMemo(() => new Map(favorites.map(bookmark => [bookmark.id, bookmark])), [favorites]);
   const rows = order.flatMap(id => byId.get(id) ?? []);
   const titleOf = (id: unknown) => byId.get(String(id))?.title ?? '';
@@ -60,8 +60,8 @@ export function FavoriteSettings({ bookmarks, tree, favorites, disabled, onChang
     const from = order.indexOf(id);
     const to = event.over ? order.indexOf(String(event.over.id)) : -1;
     if (from < 0 || to < 0 || from === to) return;
-    setOrder(arrayMove(order, from, to));
-    void onChange({ type: 'move', id, toIndex: to }).then(saved => { if (!saved) setOrder(ids); });
+    setMoved({ from: ids, order: arrayMove(order, from, to) });
+    void onChange({ type: 'move', id, toIndex: to }).then(saved => { if (!saved) setMoved(undefined); });
   }
 
   return <section className="settings-column favorites-settings" aria-labelledby="favorites-heading">
