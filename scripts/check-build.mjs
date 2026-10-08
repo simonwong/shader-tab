@@ -55,7 +55,7 @@ console.log('Manifest V3, permissions, new-tab entry and production isolation ve
 
 for (const license of ['paper-shaders.txt', 'paper-shaders-NOTICE.txt', 'threeui.txt', 'three.txt', 'shader-gradient.txt', 'react-three-fiber.txt', 'camera-controls.txt', 'glsl-noise.txt']) await access(new URL(`licenses/${license}`, root));
 for (const renderer of ['paper-', 'pixel-blast-', 'arc-', 'crt-', 'shader-gradient-']) assert.ok(chunks.some(file => file.startsWith(renderer)), `Missing lazy renderer: ${renderer}`);
-for (const locale of locales.filter(locale => locale !== 'en')) assert.ok(chunks.some(file => file.startsWith(`${locale}-`)), `Missing lazy locale: ${locale}`);
+for (const locale of locales.filter(code => code !== 'en')) assert.ok(chunks.some(file => file.startsWith(`${locale}-`)), `Missing lazy locale: ${locale}`);
 const assets = await readdir(new URL('assets/', root));
 const styles = await Promise.all(assets.filter(file => file.endsWith('.css')).map(file => readFile(new URL(`assets/${file}`, root), 'utf8')));
 const controlRule = styles.join('\n').match(/\.dock\.glass,\.source-glass\{([^}]+)\}/)?.[1];

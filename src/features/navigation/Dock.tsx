@@ -38,6 +38,7 @@ interface DockProps extends HoverZone {
 /** Bottom dock with the favorites tray and the full bookmark menu. */
 export function Dock(props: DockProps) {
   const { showFavorites, showBookmarks, suspended, panel, onPanelChange, onEnter, onLeave } = props;
+  const { visible, favorites, menu, favoritesButton, onOpenSettings, onOpenUrl } = props;
   const { t } = useI18n();
   const allButton = useRef<HTMLButtonElement>(null);
   const tray = useRef<HTMLDivElement>(null);
@@ -87,14 +88,14 @@ export function Dock(props: DockProps) {
   if (!showFavorites && !showBookmarks) return null;
   return <div
     className="dock-zone bookmark-dock"
-    data-visible={props.visible}
+    data-visible={visible}
     onPointerEnter={() => { wantMenu(); onEnter(); }}
     onPointerLeave={onLeave}
     onFocus={wantMenu}
   >
     <GlassPanel className="dock ui-surface" role="navigation" aria-label={t('bookmarkNavigation')}>
       {showFavorites && <button
-        ref={props.favoritesButton}
+        ref={favoritesButton}
         className="dock-button"
         aria-label={t('favorites')}
         aria-expanded={trayOpen}
@@ -110,10 +111,10 @@ export function Dock(props: DockProps) {
           onOpenChange={open => onPanelChange(current => open ? 'all' : current === 'all' ? null : current)}
           placeholder={allButton}
           onTriggerPointerEnter={openOnHover('all')}
-          entries={props.menu}
+          entries={menu}
           onEnter={onEnter}
           onLeave={onLeave}
-          onOpenUrl={props.onOpenUrl}
+          onOpenUrl={onOpenUrl}
         />
         : <button
           ref={allButton}
@@ -135,20 +136,20 @@ export function Dock(props: DockProps) {
       role="region"
       aria-label={t('favorites')}
     >
-      {props.favorites.length ? <div className="favorite-items">
-        {props.favorites.map(bookmark => <a
+      {favorites.length ? <div className="favorite-items">
+        {favorites.map(bookmark => <a
           key={bookmark.id}
           className="favorite-tile"
           href={bookmark.url}
           title={bookmark.title}
-          onClick={bookmarkClick(bookmark.url, props.onOpenUrl)}
+          onClick={bookmarkClick(bookmark.url, onOpenUrl)}
         >
           <SiteMark bookmark={bookmark} />
           <span className="truncate">{bookmark.title}</span>
         </a>)}
       </div> : <div className="favorites-empty">
         <p>{t('favoritesEmpty')}</p>
-        <button className="small-button" onClick={props.onOpenSettings}>{t('openSettings')}</button>
+        <button className="small-button" onClick={onOpenSettings}>{t('openSettings')}</button>
       </div>}
     </GlassPanel>}
   </div>;

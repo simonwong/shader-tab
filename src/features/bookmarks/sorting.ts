@@ -15,7 +15,7 @@ export function sortBookmarkTree(tree: BookmarkNode[], sort: BookmarkSort, local
   const names = new Intl.Collator(locale, { numeric: true, sensitivity: 'base' });
   const sortChildren = (nodes: BookmarkNode[]): BookmarkNode[] => nodes.map(node => ({
     ...node, ...(node.children ? { children: sortChildren(node.children) } : {}),
-  })).sort((left, right) => {
+  })).toSorted((left, right) => {
     if (Boolean(left.url) !== Boolean(right.url)) return left.url ? 1 : -1;
     if (sort === 'name-asc' || sort === 'name-desc') return names.compare(title(left), title(right)) * (sort === 'name-asc' ? 1 : -1);
     if (!left.url && !right.url) return 0;

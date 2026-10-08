@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 
 interface Handlers {
   /** Cmd/Ctrl + , */
@@ -8,16 +8,15 @@ interface Handlers {
 
 /** Page-wide keyboard shortcuts. Handlers may change every render; the listener is registered once. */
 export function useGlobalShortcuts(handlers: Handlers) {
-  const latest = useRef(handlers);
-  latest.current = handlers;
+  const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === ',') {
+      event.preventDefault();
+      handlers.onOpenSettings();
+    }
+    if (event.key === 'Escape') handlers.onEscape();
+  });
   useEffect(() => {
-    const keyboard = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === ',') {
-        event.preventDefault();
-        latest.current.onOpenSettings();
-      }
-      if (event.key === 'Escape') latest.current.onEscape();
-    };
+    const keyboard = (event: KeyboardEvent) => onKeyDown(event);
     window.addEventListener('keydown', keyboard);
     return () => window.removeEventListener('keydown', keyboard);
   }, []);

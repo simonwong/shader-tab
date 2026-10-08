@@ -34,10 +34,11 @@ interface Stage {
 
 const loadAmbient = () => import('./ambient');
 
+const seconds = (value: string) => value.split(',').map(part => parseFloat(part) || 0);
+
 /** Longest CSS transition on the layer, so the outgoing scene is removed only after the fade. */
 function fadeDuration(element: HTMLElement): number {
   const style = getComputedStyle(element);
-  const seconds = (value: string) => value.split(',').map(part => parseFloat(part) || 0);
   const durations = seconds(style.transitionDuration);
   const delays = seconds(style.transitionDelay);
   return Math.max(0, ...durations.map((duration, index) => (duration + (delays[index] ?? 0)) * 1000));

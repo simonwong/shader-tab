@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { asError } from '../../i18n/core';
 
 interface Edit<T> {
@@ -17,26 +17,29 @@ let nextId = 0;
  * live query delivers newer data, so the UI never flips back in between.
  */
 export function useOptimistic<T>(saved: unknown) {
-  const [edits, setEdits] = useState<Edit<T>[]>([]);
-  const latestSaved = useRef(saved);
-  latestSaved.current = saved;
-
-  useEffect(() => {
-    setEdits(list => {
-      const next = list.filter(edit => !edit.settled || edit.seen === saved);
-      return next.length === list.length ? list : next;
+  // `saved` lives in state next to the edits so a finishing save can record the data it saw.
+  const [state, setState] = useState<{ saved: unknown; edits: Edit<T>[] }>({ saved, edits: [] });
+  if (state.saved !== saved) {
+    // Newer data arrived: drop the settled edits it replaces before this render shows them.
+    setState(current => {
+      const edits = current.edits.filter(edit => !edit.settled || edit.seen === saved);
+      return { saved, edits: edits.length === current.edits.length ? current.edits : edits };
     });
-  }, [saved]);
+  }
 
   const begin = useCallback((value: T) => {
     const id = ++nextId;
-    setEdits(list => [...list, { id, value, settled: false }]);
-    return (saved: boolean) => setEdits(list => saved
-      ? list.map(edit => edit.id === id ? { ...edit, settled: true, seen: latestSaved.current } : edit)
-      : list.filter(edit => edit.id !== id));
+    setState(current => ({ ...current, edits: [...current.edits, { id, value, settled: false }] }));
+    return (ok: boolean) => setState(current => ({
+      ...current,
+      edits: ok
+        ? current.edits.map(edit => edit.id === id ? { ...edit, settled: true, seen: current.saved } : edit)
+        : current.edits.filter(edit => edit.id !== id),
+    }));
   }, []);
 
-  return { values: edits.map(edit => edit.value), begin };
+  const values = useMemo(() => state.edits.map(edit => edit.value), [state.edits]);
+  return { values, begin };
 }
 
 /**

@@ -33,9 +33,9 @@ export function matchLocale(value: string): Locale | undefined {
   if (parts.includes('hant') || parts.some(part => ['tw', 'hk', 'mo'].includes(part))) return 'zh-TW';
   return 'zh-CN';
 }
-export function resolveLocale(language: Language, browserLanguages: readonly string[]): Locale {
+export function resolveLocale(language: Language, preferred: readonly string[]): Locale {
   if (language !== 'auto') return language;
-  for (const tag of browserLanguages) { const locale = matchLocale(tag); if (locale) return locale; }
+  for (const tag of preferred) { const locale = matchLocale(tag); if (locale) return locale; }
   return 'en';
 }
 export function browserLanguages(): string[] {

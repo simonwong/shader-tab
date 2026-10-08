@@ -37,6 +37,7 @@
       observer.disconnect();
     }
   }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  // oxlint-disable-next-line unicorn/consistent-function-scoping -- the IIFE keeps this init script from adding page globals
   const mark = name => performance.getEntriesByName(name, 'mark')[0]?.startTime ?? null;
   window.__glassProbe = {
     reset() { stats.draws = stats.raf = stats.submitMs = 0; stats.longTasks = []; stats.started = performance.now(); },

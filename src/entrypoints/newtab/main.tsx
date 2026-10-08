@@ -5,9 +5,11 @@ import { createPlatform } from '../../platform';
 import { RootBoundary } from '../../components/RootBoundary';
 import { App } from './App';
 import { applyBoot, readBoot } from './boot';
+/* oxlint-disable import/no-unassigned-import -- font faces and global styles are side-effect imports */
 import '@fontsource-variable/space-grotesk';
 import '../../styles/tokens.css';
 import '../../styles/global.css';
+/* oxlint-enable import/no-unassigned-import */
 
 // Runs before anything awaits, so the first paint already has the saved theme, language and background.
 const boot = readBoot();

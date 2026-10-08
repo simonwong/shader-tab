@@ -15,11 +15,11 @@ it('honors a manual language and browser preference order, with English fallback
   for (const value of [null, 1, 'constructor', 'zh-HK', 'EN']) expect(isLanguage(value)).toBe(false);
   expect(isLanguage('auto')).toBe(true);
 });
+const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).toSorted();
 it('has complete nonempty catalogs with matching interpolation fields for every language', () => {
-  const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
   for (const locale of LOCALES) {
     const dictionary = messages[locale]!;
-    expect(Object.keys(dictionary).sort()).toEqual(Object.keys(en).sort());
+    expect(Object.keys(dictionary).toSorted()).toEqual(Object.keys(en).toSorted());
     for (const key of Object.keys(en) as MessageKey[]) {
       expect(dictionary[key].trim()).not.toBe('');
       expect(placeholders(dictionary[key])).toEqual(placeholders(en[key]));

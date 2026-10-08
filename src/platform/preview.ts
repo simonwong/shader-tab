@@ -2,7 +2,7 @@ import { variantIds } from '../effects/variants';
 import { drawStoredVariant, settleVariant } from '../features/preferences/variant-shuffle';
 import { flattenBookmarks, type BookmarkNode } from '../features/bookmarks/model';
 import { FAVORITES_KEY, changeFavorites, readFavorites } from '../features/favorites/model';
-import { PREFERENCE_PREFIX, preferenceEntries, readPreferences, resolvePreferenceUpdate } from '../features/preferences/model';
+import { preferenceEntries, readPreferences, resolvePreferenceUpdate } from '../features/preferences/model';
 import type { Listener, Platform } from './types';
 
 const link = (id: string, title: string, url: string): BookmarkNode => ({ id, title, url: `https://${url}`, dateAdded: 1_700_000_000_000 + Array.from(id).reduce((sum,char)=>sum+char.charCodeAt(0),0) * 86_400_000 });
