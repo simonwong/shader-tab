@@ -109,10 +109,14 @@ pnpm zip
 | [变体清单](docs/effect-variants.md) | 53 种组合与随机规则 |
 | [性能记录](docs/performance.md) | 渲染预算与实测结果 |
 
-## 致谢与许可
+## 致谢
 
 背景使用 [Paper Shaders](https://github.com/paper-design/shaders)、[ThreeUI](https://github.com/MengTo/threeui) 和 [Shader Gradient](https://github.com/ruucm/shadergradient)；图标使用 [Hugeicons](https://github.com/hugeicons/hugeicons)，字体使用 Space Grotesk。
 
-第三方代码和素材保留各自许可，不能将本仓库所有文件一概视为 MIT 授权。详见[许可核对](docs/shader-license-review.md)和[许可原文](public/licenses/)。
-
 问题与建议请[提交 Issue](https://github.com/simonwong/shader-tab/issues)。私人支持联系 [support@simonwong.cn](mailto:support@simonwong.cn)。
+
+## 许可
+
+Shader Tab 自身的代码以 [MIT License](LICENSE) 发布，© 2026 Simon Wong。
+
+第三方代码和素材保留各自许可，MIT License 不覆盖本仓库的全部文件。改编的 Shader 代码见[许可核对](docs/shader-license-review.md)；随扩展分发的许可声明见 [`public/licenses.html`](public/licenses.html) 和 [`public/licenses/`](public/licenses/)。

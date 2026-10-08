@@ -111,10 +111,14 @@ Built with **WXT, React, TypeScript, Three.js, Base UI, and Hugeicons**. The [de
 
 Technical reference documents are currently in Chinese.
 
-## Credits & licensing
+## Credits
 
 Shader Tab uses work from [Paper Shaders](https://github.com/paper-design/shaders), [ThreeUI](https://github.com/MengTo/threeui), and [Shader Gradient](https://github.com/ruucm/shadergradient), alongside [Hugeicons](https://github.com/hugeicons/hugeicons) and Space Grotesk.
 
-Third-party code and assets retain their respective licenses; do not assume every file in this repository is MIT-licensed. See the [license review](docs/shader-license-review.md) and [license texts](public/licenses/).
-
 Found a bug or have an idea? [Open an issue](https://github.com/simonwong/shader-tab/issues). For private support, contact [support@simonwong.cn](mailto:support@simonwong.cn).
+
+## License
+
+Shader Tab's own code is released under the [MIT License](LICENSE), © 2026 Simon Wong.
+
+Third-party code and assets keep their own licenses, so the MIT License does not cover every file in this repository. Adapted shader code is listed in the [license review](docs/shader-license-review.md); the shipped notices are in [`public/licenses.html`](public/licenses.html) and [`public/licenses/`](public/licenses/).
