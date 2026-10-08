@@ -57,6 +57,16 @@ function define(effect: EffectId, ids: readonly string[], spec: VariantSpec | ((
 
 const paper = () => import('./drivers/paper').then(module => module.createDriver);
 
+/*
+ * Render density caps (device pixels per CSS pixel). Grain gradients are soft
+ * colour fields: at 1.25 the backing store has about half the pixels of the
+ * global budget (~2 MP instead of ~4 MP at 1440x900@2x). Their grain is drawn
+ * per render pixel, so 1.0 or lower visibly coarsens it. Dither, pixel, dot
+ * grid (including the ribbon and void fields), particle and CRT variants keep
+ * the global budget; Shader Gradient caps itself in its preset.
+ */
+const GRAIN_DENSITY = 1.25;
+
 const DITHERING_SHAPES = ['simplex', 'warp', 'dots', 'wave', 'ripple', 'swirl', 'sphere'];
 const DITHERING_TYPES = ['random', '2x2', '4x4', '8x8'];
 const RETIRED_DITHERING = new Set(['ripple:4x4']);
@@ -119,7 +129,7 @@ const SHADER_GRADIENT_VARIANTS: Record<string, VariantSpec> = {
 };
 
 export const EFFECT_VARIANTS: Record<EffectId, readonly VariantDef[]> = {
-  'grain-gradient': define('grain-gradient', ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'], { load: paper }),
+  'grain-gradient': define('grain-gradient', ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'], { density: GRAIN_DENSITY, load: paper }),
   // Ripple fills most of the frame with the front colour, so it reads dark in both themes.
   dithering: define('dithering', DITHERING_IDS, id => ({ load: paper, ...(id.startsWith('ripple:') ? { tone: alwaysDark } : {}) })),
   // Pixel Field: an original shader; the `pixel-blast` id is kept for stored preferences.

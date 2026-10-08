@@ -28,7 +28,9 @@ it('describes every variant completely for both themes', () => {
     expect(variant.label).not.toBe('');
     expect(variant.source).toMatch(/^https:\/\//);
     expect(typeof variant.load).toBe('function');
-    expect(variant.density).toBeUndefined();
+    if (variant.density !== undefined) expect(variant.density).toBeGreaterThan(0);
+    // Only soft variants lower their density; pixel, dot and dither patterns keep the full budget.
+    expect(variant.density === undefined).toBe(effect !== 'grain-gradient');
     for (const theme of ['day', 'night'] as const) {
       expect(variant.background(theme)).not.toBe('');
       expect(['light', 'dark']).toContain(variant.tone(theme));
