@@ -1,3 +1,4 @@
+import { THEME_BRIGHTNESS } from '../presets';
 import { mountFullscreenShader } from './webgl';
 import type { DriverFactory } from './types';
 
@@ -20,6 +21,7 @@ function createFieldDriver({ shaders: loadShaders, uniforms }: FieldConfig): Dri
         const time = uniform(uniforms.time);
         const pointer = uniform(uniforms.pointer);
         gl.uniform1f(uniform('lightMode'), theme === 'day' ? 1 : 0);
+        gl.uniform1f(uniform('uDim'), THEME_BRIGHTNESS[theme]);
         return {
           resize(surface) { gl.uniform2f(resolution, surface.pixelWidth, surface.pixelHeight); },
           frame(seconds, mouse) {

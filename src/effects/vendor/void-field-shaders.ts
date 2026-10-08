@@ -1,4 +1,6 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
+// Modified by Shader Tab: the output is clamped and multiplied by uDim (theme
+// brightness).
 export const vertex = `
 attribute vec2 position;
 void main() {
@@ -11,6 +13,7 @@ precision highp float;
 uniform vec2 iResolution;
 uniform float iTime;
 uniform vec2 uMouse;
+uniform float uDim;
 
 vec2 barrel(vec2 uv, float amt) {
     vec2 cc = uv - 0.5;
@@ -58,6 +61,6 @@ void main() {
 
     col *= smoothstep(0.8, 0.2, dist);
 
-    gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(clamp(col, 0.0, 1.0) * uDim, 1.0);
 }
 `;
