@@ -1,6 +1,6 @@
 # Shader 与商店发布许可核对
 
-核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换。范围：shader tab 0.3.9 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。未提交商店，未取得商店审核结论；本记录是许可证文本与实现核对，不是律师意见。
+核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换和发布状态。范围：Shader Tab 0.4.1 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。0.4.1 已在 [Chrome 网上应用店](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)发布。本记录是许可证文本与实现核对，不是律师意见。
 
 ## 结论
 
@@ -33,8 +33,8 @@ React Bits 的 PixelBlast 使用 MIT + Commons Clause 自定义许可，禁止�
 
 - JavaScript、shader、字体及图标本地打包，没有远程执行代码。
 - 本地隐私政策披露书签、favicon 缓存、收藏与偏好的处理、存储、删除及支持邮件用途。联系邮箱为 `support@simonwong.cn`。权限保持 bookmarks、storage、favicon。
-- `docs/store-submission.md` 提供单一用途、权限说明和实际数据处理说明。商店隐私政策字段仍需可公开访问的 HTTPS 地址；扩展内链接不能充当该网址。
-- 发布前仍需将静态政策页面托管、在后台填写披露及上传商店素材。尚未提交商店，也没有商店审核通过结论。
+- `docs/store-submission.md` 提供单一用途、权限说明和实际数据处理说明。商店隐私政策字段使用公开托管的 https://shadertab.simonwong.cn/privacy.html；扩展内链接不能充当该网址。
+- 0.4.1 已通过审核并在 Chrome 网上应用店发布。后续版本改动权限、数据处理或第三方代码时，需同步更新后台披露和本记录。
 
 ## 一手来源
 
