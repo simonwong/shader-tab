@@ -1,7 +1,7 @@
-import{fileURLToPath}from'node:url';
-import{execFileSync}from'node:child_process';import{mkdtemp,rm,mkdir,writeFile}from'node:fs/promises';import assert from'node:assert/strict';
-const root=fileURLToPath(new URL('../',import.meta.url)).replace(/\/$/,''),session=`glass-blur-${process.pid}`,profile=await mkdtemp('/private/tmp/glass-blur-');
-const run=(...args)=>{const r=JSON.parse(execFileSync('agent-browser',['--session',session,'--json',...args],{encoding:'utf8',timeout:60000}));if(!r.success)throw Error(JSON.stringify(r.error));return r.data};const ev=s=>run('eval',s).result;const wait=s=>run('wait','--fn',s);
+import{mkdir,writeFile}from'node:fs/promises';import assert from'node:assert/strict';
+import{browserSession,fromRoot,removeDir,tempDir}from'./lib/browser.mjs';
+const root=fromRoot('.'),profile=await tempDir('glass-blur');
+const{run,evaluate:ev,waitFor:wait,close}=browserSession('glass-blur');
 await mkdir(root+'/artifacts/opacity-review',{recursive:true});
 try{
 run('--profile',profile,'--extension',root+'/.output/chrome-mv3','open','chrome://newtab');run('set','viewport','600','300','2');
@@ -26,4 +26,4 @@ ev('clearInterval(window.__wake)');wait("document.querySelector('.dock-zone').da
 assert.ok(ev("getComputedStyle(document.querySelector('.dock')).backdropFilter.includes('blur(3px)')"));wait("getComputedStyle(document.querySelector('.dock-zone')).visibility==='hidden'");
 run('press','Tab');wait("getComputedStyle(document.querySelector('.dock-zone')).visibility==='visible'");
 const errors=run('errors').errors;assert.deepEqual(errors,[]);await writeFile(root+'/artifacts/opacity-review/checks.json',JSON.stringify({results,fadePreservesBlur:true,keyboardWake:true,errors},null,2));console.log('Day/night blur, fade and keyboard wake passed.');
-}finally{run('close');await rm(profile,{recursive:true,force:true})}
+}finally{close();await removeDir(profile)}

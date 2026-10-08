@@ -1,18 +1,17 @@
-import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-const session=`glass-settings-${process.pid}`,output=resolve('artifacts/settings-review');
-const run=(...args)=>{const r=JSON.parse(execFileSync('agent-browser',['--session',session,'--json',...args],{encoding:'utf8',timeout:60000}));if(!r.success)throw new Error(JSON.stringify(r.error));return r.data;};
-const evaluate=code=>run('eval',code).result;
-const wait=code=>run('wait','--fn',code);
+import { browserSession, fromRoot } from './lib/browser.mjs';
+// Needs `pnpm dev` serving the preview on port 4317.
+const output=fromRoot('artifacts/settings-review');
+const { run, evaluate, waitFor: wait, close: closeBrowser } = browserSession('glass-settings');
 const click=(role,name)=>run('find','role',role,'click','--name',name,'--exact');
 const preference=values=>evaluate(`(()=>{for(const [key,value]of Object.entries(${JSON.stringify(values)}))localStorage.setItem('glass-tab-preview:preference:v1:'+key,JSON.stringify(value));dispatchEvent(new StorageEvent('storage',{key:'glass-tab-preview:preference:v1:activeEffect'}));})()`);
 const settings=()=>{run('press','Control+,');wait('document.querySelector("[role=dialog]") !== null');};
 const close=()=>{run('press','Escape');wait('document.querySelector("[role=dialog]") === null');};
 try {
  await mkdir(output,{recursive:true});
- run('open','--init-script',resolve('scripts/shader-probe.js'),'http://localhost:4317/src/entrypoints/newtab/index.html');
+ run('open','--init-script',fromRoot('scripts/shader-probe.js'),'http://localhost:4317/src/entrypoints/newtab/index.html');
  run('set','viewport','1440','900','2');
  preference({appearance:'day',shuffle:false,activeEffect:'shader-gradient',showFavorites:true,showBookmarks:true});
  wait('document.querySelector("main").dataset.effect === "shader-gradient" && document.querySelector(".ambient-background").dataset.renderer === "live"');
@@ -77,4 +76,4 @@ try {
  const errors=run('errors').errors;assert.equal(errors.length,0);
  await writeFile(resolve(output,'checks.json'),JSON.stringify({date:new Date().toISOString(),timing,controls,searchPath,narrow,treeAdd:true,noHoverPreview:true,visibilityPersisted:true,favoritesPreserved:true,reducedMotion:true,errors},null,2));
  console.log('Settings passed: smaller glass controls, slower motion, no hover preview, nested bookmark search/add, independent persisted visibility and narrow layout.');
-}finally{try{run('close');}catch{}}
+}finally{closeBrowser();}

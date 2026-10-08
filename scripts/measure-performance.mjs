@@ -1,8 +1,7 @@
 import { execFileSync } from 'node:child_process';
-import { mkdir, writeFile, mkdtemp, rm } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { mkdir, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const root = fileURLToPath(new URL('../', import.meta.url));
+import { browserSession, removeDir, root, tempDir } from './lib/browser.mjs';
 // Usage: node scripts/measure-performance.mjs [output name, default "latest"]
 const outputName = process.argv[2] ?? 'latest';
 const COLD_LOADS = 5;
@@ -10,23 +9,17 @@ const median = (values) => {
   const sorted = values.filter(value => value !== null).toSorted((a, b) => a - b);
   return sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
 };
-const profile = await mkdtemp('/private/tmp/glass-tab-performance-');
-const session = `glass-performance-${process.pid}`;
-const run = (...args) => {
-  const result = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding: 'utf8', timeout: 60_000 }));
-  if (!result.success) throw new Error(JSON.stringify(result.error));
-  return result.data;
-};
-const evaluate = (code) => run('eval', code).result;
+const fcp = (entry) => entry.paints.find(paint => paint.name === 'first-contentful-paint')?.start ?? null;
+const profile = await tempDir('glass-tab-performance');
+const { run, evaluate, close } = browserSession('glass-performance');
 const sample = (ms) => evaluate(`(async()=>{window.__glassProbe.reset();await new Promise(r=>setTimeout(r,${ms}));return {...window.__glassProbe.read(),hidden:document.hidden}})()`);
 let extensionUrl;
-let fixture;
 try {
   run('--profile', profile, '--extension', `${root}.output/chrome-mv3`, 'open', '--init-script', `${root}scripts/performance-probe.js`, 'about:blank');
   run('set', 'viewport', '1440', '900', '2');
   run('open', 'chrome://newtab');
   extensionUrl = evaluate('location.href');
-  fixture = evaluate(`(async()=>{
+  evaluate(`(async()=>{
     const folder=await chrome.bookmarks.create({parentId:'1',title:'Glass Tab Performance Fixture'});
     const ids=[];
     for(let i=0;i<6;i++) ids.push((await chrome.bookmarks.create({parentId:folder.id,title:'Example '+i,url:'https://example.com/'+i})).id);
@@ -56,7 +49,6 @@ try {
     run('wait', '1000');
     startups.push(evaluate('window.__glassProbe.startup()'));
   }
-  const fcp = (entry) => entry.paints.find(paint => paint.name === 'first-contentful-paint')?.start ?? null;
   const startup = {
     loads: startups.length,
     medianStartMs: median(startups.map(entry => entry.startMs)),
@@ -122,5 +114,6 @@ try {
   await writeFile(`${root}artifacts/performance/${outputName}.json`, JSON.stringify({ date: new Date().toISOString(), commit, viewport: [1440,900], dpr: 2, offline: true, navigationPreferences, visibilityPersisted: true, effect: 'crt-terminal/day', startup, effects, idle, glass, settings, hidden, errors }, null, 2));
   console.log(`Performance checks passed: idle ${idle.draws}/10s, glass ${glass.draws}/5s, settings ${settings.draws}/5s, hidden draws unchanged, context released, errors 0.`);
 } finally {
-  try { run('close'); await rm(profile, { recursive: true, force: true }); } catch {}
+  close();
+  await removeDir(profile);
 }

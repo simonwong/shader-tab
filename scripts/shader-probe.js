@@ -1,8 +1,8 @@
 (() => {
   const locations = new WeakMap();
   window.__shaderProbe = { uniforms: {}, uploads: 0, draws: 0, arcFrames: 0, crtTextReady: false };
-  for (const name of ['WebGLRenderingContext', 'WebGL2RenderingContext']) {
-    const proto = window[name]?.prototype;
+  for (const contextName of ['WebGLRenderingContext', 'WebGL2RenderingContext']) {
+    const proto = window[contextName]?.prototype;
     if (!proto) continue;
     const locate = proto.getUniformLocation;
     proto.getUniformLocation = function (program, name) {
@@ -13,8 +13,8 @@
     for (const method of ['uniform1f', 'uniform2f', 'uniform3f', 'uniform1fv', 'uniform2fv', 'uniform4fv']) {
       const original = proto[method];
       proto[method] = function (location, ...values) {
-        const name = locations.get(location);
-        if (name) window.__shaderProbe.uniforms[name] = method.endsWith('fv') ? Array.from(values[0]) : values.length === 1 ? values[0] : values;
+        const uniform = locations.get(location);
+        if (uniform) window.__shaderProbe.uniforms[uniform] = method.endsWith('fv') ? Array.from(values[0]) : values.length === 1 ? values[0] : values;
         return original.call(this, location, ...values);
       };
     }

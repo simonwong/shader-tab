@@ -1,14 +1,11 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { createServer } from 'node:http';
-import { mkdir, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
+import { browserSessionAsync, fromRoot, removeDir, tempDir } from './lib/browser.mjs';
 
-const execute = promisify(execFile);
-const profile = await mkdtemp('/private/tmp/glass-tab-favicon-');
-const session = `glass-favicons-${process.pid}`;
-const output = resolve('artifacts/favicon-review');
+const profile = await tempDir('glass-tab-favicon');
+const output = fromRoot('artifacts/favicon-review');
 const requests = [];
 const server = createServer((request, response) => {
   requests.push(request.url);
@@ -20,27 +17,20 @@ const server = createServer((request, response) => {
     response.end('<!doctype html><title>Cached icon fixture</title><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png"><h1>Cached icon fixture</h1>');
   }
 });
-const run = async (...args) => {
-  const { stdout } = await execute('agent-browser', ['--session', session, '--json', ...args], { timeout: 60_000 });
-  const result = JSON.parse(stdout);
-  if (!result.success) throw new Error(JSON.stringify(result.error));
-  return result.data;
-};
-const evaluate = async code => (await run('eval', code)).result;
-let folder;
+const { run, evaluate, close } = browserSessionAsync('glass-favicons');
 let extensionUrl;
 try {
   await mkdir(output, { recursive: true });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  await new Promise(listening => server.listen(0, '127.0.0.1', listening));
   const page = `http://127.0.0.1:${server.address().port}/cached`;
-  await run('--profile', profile, '--extension', resolve('.output/chrome-mv3'), 'open', page);
+  await run('--profile', profile, '--extension', fromRoot('.output/chrome-mv3'), 'open', page);
   await run('wait', '--text', 'Cached icon fixture');
   const deadline = Date.now() + 10_000;
-  while (!requests.includes('/favicon.png') && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
+  while (!requests.includes('/favicon.png') && Date.now() < deadline) await new Promise(done => setTimeout(done, 100));
   assert.ok(requests.includes('/favicon.png'));
   await run('tab', 'new', 'chrome://newtab');
   extensionUrl = await evaluate('location.href');
-  folder = await evaluate(`(async()=>{
+  await evaluate(`(async()=>{
     const folder=await chrome.bookmarks.create({parentId:'1',title:'Glass Tab favicon fixture'});
     const ids=[];
     for(const [title,url] of ${JSON.stringify([['缓存图标', page], ['同站新路径', page + '/unvisited'], ['无缓存图标', 'https://glass-tab-no-icon.invalid/']])}) ids.push((await chrome.bookmarks.create({parentId:folder.id,title,url})).id);
@@ -55,7 +45,7 @@ try {
   const before = requests.length;
   const cached = `async()=>{const url=new URL(chrome.runtime.getURL('/_favicon/'));url.searchParams.set('pageUrl',${JSON.stringify(page)});url.searchParams.set('size','32');const image=new Image();image.src=url.href;await image.decode();const canvas=document.createElement('canvas');canvas.width=canvas.height=32;const context=canvas.getContext('2d');context.drawImage(image,0,0,32,32);return context.getImageData(5,16,1,1).data[0]===23;}`;
   await run('wait', '--fn', `(${cached})()`);
-  await new Promise(resolve => server.close(resolve));
+  await new Promise(closed => server.close(closed));
   await run('press', 'Tab');
   await run('find','role','button','hover','--name','常用书签','--exact');
   await run('wait','--fn','document.querySelectorAll(".favorites-tray .site-mark[data-favicon=true]").length === 3');
@@ -99,5 +89,6 @@ try {
   throw error;
 } finally {
   server.close();
-  try { await run('close'); await rm(profile, { recursive: true, force: true }); } catch {}
+  await close();
+  await removeDir(profile);
 }

@@ -1,27 +1,21 @@
-import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 import { presets } from '@shadergradient/react';
-const session = `glass-official-check-${process.pid}`;
-const output = resolve('artifacts/shader-official');
-const run = (...args) => {
-  const result = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding: 'utf8', timeout: 60000 }));
-  if (!result.success) throw new Error(JSON.stringify(result.error));
-  return result.data;
-};
-const evaluate = code => run('eval', code).result;
-const wait = code => run('wait', '--fn', code);
+import { browserSession, fromRoot } from './lib/browser.mjs';
+// Needs `pnpm dev` serving the preview on port 4317.
+const output = fromRoot('artifacts/shader-official');
+const { run, evaluate, waitFor: wait, close } = browserSession('glass-official-check');
 const preference = values => evaluate(`(()=>{for(const [key,value] of Object.entries(${JSON.stringify(values)}))localStorage.setItem('glass-tab-preview:preference:v1:'+key,JSON.stringify(value));dispatchEvent(new StorageEvent('storage',{key:'glass-tab-preview:preference:v1:activeEffect'}));})()`);
 const shapes = [['plane', 'Plane', 'halo'], ['sphere', 'Sphere', 'pensive'], ['waterPlane', 'Water', 'mint']];
 const results = [];
 try {
   await mkdir(output, {recursive:true});
-  run('open','--init-script',resolve('scripts/shader-probe.js'),'http://localhost:4317/src/entrypoints/newtab/index.html');
+  run('open','--init-script',fromRoot('scripts/shader-probe.js'),'http://localhost:4317/src/entrypoints/newtab/index.html');
   run('set','viewport','1440','900');
   preference({shuffle:false,activeEffect:'shader-gradient'});
   wait("document.querySelector('.ambient-background')?.dataset.renderer==='live'");
-  for(const [shape,label] of shapes) {
+  for(const [shape] of shapes) {
     evaluate(`localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:shader-gradient',JSON.stringify({remaining:['${shape}']}))`);
     run('reload');
     wait(`document.querySelector('.ambient-background')?.dataset.variant==='${shape}'&&document.querySelector('.ambient-background')?.dataset.renderer==='live'`);
@@ -58,4 +52,4 @@ try {
     run('screenshot',resolve(output,`${shape}-website.png`));
   }
   console.log(JSON.stringify({results,errors,output}));
-} finally {try {run('close');}catch{}}
+} finally {close();}
