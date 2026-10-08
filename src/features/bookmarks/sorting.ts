@@ -6,7 +6,8 @@ export function isBookmarkSort(value: unknown): value is BookmarkSort {
   return BOOKMARK_SORTS.includes(value as BookmarkSort);
 }
 const title = (node: BookmarkNode) => node.title.trim() || (node.url && safeBookmarkUrl(node.url) ? new URL(node.url).hostname : '');
-export function sortBookmarkTree(tree: BookmarkNode[], sort: BookmarkSort, locale = 'zh-CN'): BookmarkNode[] {
+/** `locale` should be the UI locale; undefined falls back to the runtime default. */
+export function sortBookmarkTree(tree: BookmarkNode[], sort: BookmarkSort, locale?: string): BookmarkNode[] {
   if (sort === 'chrome') return tree;
   const names = new Intl.Collator(locale, { numeric: true, sensitivity: 'base' });
   const sortChildren = (nodes: BookmarkNode[]): BookmarkNode[] => nodes.map(node => ({

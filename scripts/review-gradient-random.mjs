@@ -11,9 +11,9 @@ try {
   run('open','chrome://newtab');
   const url=evaluate('location.href');
   const version=evaluate('chrome.runtime.getManifest().version');
-  evaluate("chrome.storage.local.set({'preference:v1:effects':['shader-gradient'],'preference:v1:activeEffect':'shader-gradient','preference:v1:shuffle':true,'preference:v1:shaderGradientShape':'sphere','shader-gradient:shuffle:v1':{remaining:[]}})");
+  evaluate("chrome.storage.local.set({'preference:v1:effects':['shader-gradient'],'preference:v1:activeEffect':'shader-gradient','preference:v1:shuffle':true,'preference:v1:shaderGradientShape':'sphere','effect-variant:shuffle:v1:shader-gradient':{remaining:[]}})");
   live();
-  evaluate("chrome.storage.local.set({'shader-gradient:shuffle:v1':{remaining:[]}})");
+  evaluate("chrome.storage.local.set({'effect-variant:shuffle:v1:shader-gradient':{remaining:[]}})");
   const random=[];
   for(let i=0;i<12;i++){
     run('open',url);live();
@@ -30,7 +30,7 @@ try {
   const consoleErrors=run('console').messages.filter(x=>x.type==='error');assert.deepEqual(consoleErrors,[]);
   run('set','offline','on');
   const offline=[];
-  evaluate("chrome.storage.local.set({'shader-gradient:shuffle:v1':{remaining:['plane','waterPlane','sphere']}})");
+  evaluate("chrome.storage.local.set({'effect-variant:shuffle:v1:shader-gradient':{remaining:['plane','waterPlane','sphere']}})");
   for(const shape of ['plane','waterPlane','sphere']) {
     run('open',url);live();
     assert.equal(evaluate("document.querySelector('.ambient-background').dataset.variant"),shape);

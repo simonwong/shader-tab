@@ -18,7 +18,7 @@ try {
   browser('open', '--init-script', resolve('scripts/shader-probe.js'), 'http://127.0.0.1:4317/src/entrypoints/newtab/index.html');
   browser('set', 'viewport', '1440', '900');
   browser('eval', `localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:crt-terminal', JSON.stringify({ remaining: ['terminal'] }))`);
-  browser('eval', `localStorage.setItem('glass-tab-preview:shader-gradient:shuffle:v1', JSON.stringify({ remaining: ['plane'] }))`);
+  browser('eval', `localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:shader-gradient', JSON.stringify({ remaining: ['plane'] }))`);
   browser('reload');
   browser('wait', '--fn', "document.querySelector('.ambient-background')?.dataset.renderer === 'live'");
   browser('eval', "(() => { const style=document.createElement('style'); style.textContent='main > :not(.ambient-background) { visibility: hidden !important; }'; document.head.append(style); })()");

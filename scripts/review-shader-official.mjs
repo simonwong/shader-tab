@@ -22,7 +22,7 @@ try {
   preference({shuffle:false,activeEffect:'shader-gradient'});
   wait("document.querySelector('.ambient-background')?.dataset.renderer==='live'");
   for(const [shape,label] of shapes) {
-    evaluate(`localStorage.setItem('glass-tab-preview:shader-gradient:shuffle:v1',JSON.stringify({remaining:['${shape}']}))`);
+    evaluate(`localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:shader-gradient',JSON.stringify({remaining:['${shape}']}))`);
     run('reload');
     wait(`document.querySelector('.ambient-background')?.dataset.variant==='${shape}'&&document.querySelector('.ambient-background')?.dataset.renderer==='live'`);
     const engine=evaluate("document.querySelector('.ambient-background').dataset.engine");

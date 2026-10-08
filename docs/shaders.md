@@ -17,7 +17,7 @@ Paper 直接使用 npm 包导出的 shader 与 ShaderMount。React Bits 和 Thre
 
 - [React Bits PixelBlast.tsx](https://github.com/DavidHDev/react-bits/blob/main/src/ts-default/Backgrounds/PixelBlast/PixelBlast.tsx)：提取触摸纹理、液化 Effect 与图形 shader，替换 React 包装为公共生命周期；触摸衰减按时间计算，统一限制帧率和像素数。
 - [ThreeUI dataPixelArcRenderer.ts](https://github.com/MengTo/threeui/blob/main/src/shaders/data-pixel-arc/dataPixelArcRenderer.ts)：保留官方 Canvas 绘制，用公共时间与像素密度替换逐帧累加和内部密度选择，指针调节现有弧线参数。
-- [ThreeUI CRT](https://github.com/MengTo/threeui/tree/main/src/shaders/crt)：保留 crtRenderer、crtScreens、crtShaders，改用公共时间推进打字与扫描线、统一像素预算，并让原有反光位置跟随鼠标。crtScreens 补齐严格索引类型检查。
+- [ThreeUI CRT](https://github.com/MengTo/threeui/tree/main/src/shaders/crt)：保留 crtRenderer 与 crtShaders 的 Terminal 屏幕，其余 CRT 屏幕已移除；改用公共时间推进打字与扫描线、统一像素预算，并让原有反光位置跟随鼠标。
 
 Paper Shaders 为 Apache-2.0；ThreeUI、Three.js 为 MIT；postprocessing 为 Zlib。React Bits 为 MIT + Commons Clause，附组件再分发限制，不能简称纯 MIT。许可证与 Paper NOTICE 随扩展放入 `licenses/`。
 

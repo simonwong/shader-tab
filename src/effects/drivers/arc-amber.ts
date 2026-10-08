@@ -1,12 +1,13 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
 import * as THREE from 'three';
 import { vertex, fragment } from '../vendor/amber-halftone-shaders';
+import { ARC_SURFACE } from '../presets';
 import type { DriverFactory } from './types';
-export const createDriver: DriverFactory = (host, _effect, theme) => {
+export const createDriver: DriverFactory = (host, { theme }) => {
   const light = theme === 'day';
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'low-power' });
   const canvas = renderer.domElement; host.append(canvas);
-  renderer.setClearColor(light ? 0xeef1f6 : 0x0a0a0a, 1);
+  renderer.setClearColor(ARC_SURFACE[theme], 1);
   const scene = new THREE.Scene(), camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 10);
   camera.position.z = 1;
   const geometry = new THREE.BufferGeometry();

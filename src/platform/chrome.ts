@@ -1,5 +1,4 @@
-import { drawVariant, variantShuffleKey } from '../features/preferences/variant-shuffle';
-import { drawShaderShape, SHADER_SHUFFLE_KEY } from '../features/preferences/shader-shuffle';
+import { drawStoredVariant, variantStorageKeys } from '../features/preferences/variant-shuffle';
 import { flattenBookmarks } from '../features/bookmarks/model';
 import { FAVORITE_PREFIX, FAVORITES_KEY, changeFavorites, readFavoriteIds } from '../features/favorites/model';
 import { PREFERENCE_PREFIX, readPreferences } from '../features/preferences/model';
@@ -22,17 +21,11 @@ export const chromePlatform: Platform = {
     await chrome.storage.local.set({ [FAVORITES_KEY]: changeFavorites(readFavoriteIds(items), action, available) });
   }),
   nextEffectVariant: (effect) => navigator.locks.request(`glass-tab:variant:${effect}`, async () => {
-    const key = variantShuffleKey(effect);
-    const saved = await chrome.storage.local.get(key);
-    const { variant, state } = drawVariant(effect, saved[key]);
-    await chrome.storage.local.set({ [key]: state });
+    const items = await chrome.storage.local.get(variantStorageKeys(effect));
+    const { variant, set, remove } = drawStoredVariant(effect, items);
+    await chrome.storage.local.set(set);
+    if (remove.length) await chrome.storage.local.remove(remove);
     return variant;
-  }),
-  nextShaderGradientType: () => navigator.locks.request('glass-tab:shader-shuffle', async () => {
-    const saved = await chrome.storage.local.get(SHADER_SHUFFLE_KEY);
-    const { shape, state } = drawShaderShape(saved[SHADER_SHUFFLE_KEY]);
-    await chrome.storage.local.set({ [SHADER_SHUFFLE_KEY]: state });
-    return shape;
   }),
   getPreferences: async () => readPreferences(await chrome.storage.local.get(null)),
   updatePreferences: async (patch) => {
