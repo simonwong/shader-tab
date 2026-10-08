@@ -33,7 +33,7 @@ importers:
         specifier: 0.0.81
         version: 0.0.81
       '@react-three/fiber':
-        specifier: ^9.7.0
+        specifier: 9.7.0
         version: 9.7.0(@types/react@19.3.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(three@0.186.0)
       '@shadergradient/react':
         specifier: 2.4.20

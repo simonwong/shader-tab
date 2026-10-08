@@ -17,6 +17,13 @@ pnpm dev
 
 调试真实扩展：在 `chrome://extensions` 开启开发者模式，加载 `.output/chrome-mv3-dev`，保持开发服务运行，再打开新标签页。WXT 不会自动启动或修改日常浏览器配置。自动化验证使用独立测试配置和示例书签，避免暴露个人书签。
 
+### 依赖版本
+
+- 影响渲染结果或首屏的依赖在 package.json 中写确切版本：`react`、`react-dom`、`three`、`@react-three/fiber`、`@shadergradient/react`、`@paper-design/shaders`、`@base-ui/react`。升级时单独提交，并重跑 `pnpm review:variants` 和 `pnpm perf:measure`。
+- Hugeicons 两个包写确切版本，图标形状不随更新变化；`@types/three` 与 `three` 同版本。开发工具 `oxlint`、`oxfmt` 也写确切版本，避免规则或格式随小版本变化。
+- 其余依赖使用 `^` 范围。实际安装版本以 `pnpm-lock.yaml` 为准，CI 用 `pnpm install --frozen-lockfile`。
+- 新增或升级依赖时选择发布至少两周的版本。
+
 ## 命令
 
 | 命令 | 用途 |
