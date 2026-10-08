@@ -1,5 +1,6 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
-// The phosphor sheen follows the pointer.
+// Modified by Shader Tab: the phosphor sheen follows the pointer, and the cursor
+// block and its glow are drawn here from uniforms instead of into the text canvas.
 export const CRT_VERTEX_SHADER = "attribute vec2 aPos;\nvoid main(){ gl_Position = vec4(aPos,0.0,1.0); }";
 
 export const CRT_FRAGMENT_SHADER = `precision highp float;
@@ -24,8 +25,37 @@ uniform float uGain;
 uniform float uHalo;
 uniform vec3 uSheen;
 uniform vec3 uRoom;
+uniform vec4 uCursorRect;
+uniform vec4 uCursorGlow;
+uniform float uCursorOn;
 
 float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+
+/* erf approximation (Abramowitz and Stegun 7.1.26 family, max error ~1e-4) */
+float erf1(float x){
+  float x2 = x*x;
+  float a = 0.147;
+  return sign(x)*sqrt(1.0 - exp(-x2*(1.2732395 + a*x2)/(1.0 + a*x2)));
+}
+/* fraction of a unit Gaussian (sigma s) between lo and hi, seen from p */
+float gaussianSpan(float p, float lo, float hi, float s){
+  return 0.5*(erf1((p-lo)/(s*1.4142136)) - erf1((p-hi)/(s*1.4142136)));
+}
+
+/* The text texture plus the blinking cursor block, which the screen canvas used
+   to draw with a phosphor shadow (rgba(28,236,132,.95)) under a #bdf8d2 fill. */
+vec3 screen(vec2 uv){
+  vec3 col = texture2D(uTex, uv).rgb;
+  if (uCursorOn > 0.5){
+    float glow = 0.95 * gaussianSpan(uv.x, uCursorRect.x, uCursorRect.z, uCursorGlow.x)
+                      * gaussianSpan(uv.y, uCursorRect.y, uCursorRect.w, uCursorGlow.y);
+    col = mix(col, vec3(28.0, 236.0, 132.0)/255.0, glow);
+    vec2 lo = clamp((uv - uCursorRect.xy)/uCursorGlow.zw + 0.5, 0.0, 1.0);
+    vec2 hi = clamp((uCursorRect.zw - uv)/uCursorGlow.zw + 0.5, 0.0, 1.0);
+    col = mix(col, vec3(189.0, 248.0, 210.0)/255.0, lo.x*lo.y*hi.x*hi.y);
+  }
+  return col;
+}
 
 vec2 curve(vec2 uv){
   uv = uv*2.0-1.0;
@@ -64,20 +94,20 @@ void main(){
   float d2 = dot(dir,dir);
   vec2 ao = dir * (0.0010 + 0.0075*d2) * uChroma;
   vec3 col;
-  col.r = texture2D(uTex, uv + ao).r;
-  col.g = texture2D(uTex, uv).g;
-  col.b = texture2D(uTex, uv - ao).b;
+  col.r = screen(uv + ao).r;
+  col.g = screen(uv).g;
+  col.b = screen(uv - ao).b;
 
   /* phosphor halation: a wide cheap tap ring so bright glyphs bloom into the
      glass instead of relying on the text canvas alone */
   if (uHalo > 0.001){
     float s = 0.0038;
-    vec3 wide = texture2D(uTex, uv + vec2( s, 0.0)).rgb
-              + texture2D(uTex, uv + vec2(-s, 0.0)).rgb
-              + texture2D(uTex, uv + vec2(0.0,  s)).rgb
-              + texture2D(uTex, uv + vec2(0.0, -s)).rgb
-              + texture2D(uTex, uv + vec2( s,  s)*0.72).rgb
-              + texture2D(uTex, uv + vec2(-s, -s)*0.72).rgb;
+    vec3 wide = screen(uv + vec2( s, 0.0))
+              + screen(uv + vec2(-s, 0.0))
+              + screen(uv + vec2(0.0,  s))
+              + screen(uv + vec2(0.0, -s))
+              + screen(uv + vec2( s,  s)*0.72)
+              + screen(uv + vec2(-s, -s)*0.72);
     col += wide * (uHalo / 6.0);
   }
 
