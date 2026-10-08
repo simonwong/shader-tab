@@ -1,24 +1,19 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-const session = `shader-brand-${process.pid}`;
-const profile = await mkdtemp('/private/tmp/shader-brand-');
-const output = resolve('artifacts/brand-review');
-const run = (...args) => {
-  const result = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding: 'utf8', timeout: 60000 }));
-  if (!result.success) throw new Error(JSON.stringify(result.error));
-  return result.data;
-};
-const evaluate = code => run('eval', code).result;
+import { browserSession, fromRoot, removeDir, tempDir } from './lib/browser.mjs';
+const profile = await tempDir('shader-brand');
+const output = fromRoot('artifacts/brand-review');
+const { run, evaluate, close } = browserSession('shader-brand');
+const { version } = JSON.parse(await readFile(fromRoot('package.json'), 'utf8'));
 try {
   await mkdir(output,{recursive:true});
-  run('--profile',profile,'--extension',resolve('.output/chrome-mv3'),'open','chrome://newtab');
+  run('--profile',profile,'--extension',fromRoot('.output/chrome-mv3'),'open','chrome://newtab');
   run('wait','--fn',"document.querySelector('main')?.dataset.mode==='extension'");
   run('set','offline','on');
   const manifest=evaluate('chrome.runtime.getManifest()');
   const base=evaluate('chrome.runtime.getURL("")');
-  assert.equal(manifest.version,'0.3.13');
+  assert.equal(manifest.version,version);
   const icons=evaluate(`Promise.all(Object.entries(chrome.runtime.getManifest().icons).map(async([size,path])=>{const image=new Image();image.src=chrome.runtime.getURL(path);await image.decode();const c=document.createElement('canvas');c.width=c.height=Number(size);const x=c.getContext('2d');x.drawImage(image,0,0);return {size:Number(size),width:image.naturalWidth,height:image.naturalHeight,cornerAlpha:x.getImageData(0,0,1,1).data[3]};}))`);
   assert.equal(icons.length,4);
   assert.ok(icons.every(i=>i.width===i.size&&i.height===i.size&&i.cornerAlpha===0));
@@ -39,4 +34,4 @@ try {
   run('screenshot',resolve(output,'extension-management.png'));
   await writeFile(resolve(output,'checks.json'),JSON.stringify({version:manifest.version,icons,pages,management},null,2));
   console.log('Manifest icon sizes, transparent PNG decoding, three page favicons and extension management icon passed.');
-} finally {try{run('close');}finally{await rm(profile,{recursive:true,force:true});}}
+} finally {close();await removeDir(profile);}

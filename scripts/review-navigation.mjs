@@ -1,16 +1,10 @@
-import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-const session = `glass-navigation-${process.pid}`;
-const output = resolve('artifacts/navigation-review');
-const run = (...args) => {
-  const result = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding:'utf8', timeout:60000 }));
-  if (!result.success) throw new Error(JSON.stringify(result.error));
-  return result.data;
-};
-const evaluate = code => run('eval', code).result;
-const wait = code => run('wait', '--fn', code);
+import { browserSession, fromRoot } from './lib/browser.mjs';
+// Needs `pnpm dev` serving the preview on port 4317.
+const output = fromRoot('artifacts/navigation-review');
+const { run, evaluate, waitFor: wait, close } = browserSession('glass-navigation');
 try {
   await mkdir(output, {recursive:true});
   run('open', 'http://localhost:4317/src/entrypoints/newtab/index.html');
@@ -87,4 +81,4 @@ try {
   const errors=run('errors').errors;assert.equal(errors.length,0);
   await writeFile(resolve(output,'checks.json'),JSON.stringify({date:new Date().toISOString(),favorites,layouts,editFocusRestored:true,settingsFocusRestored:true,keyboard:true,persisted:true,sourceLayout,sources,sourceAutoHides:true,errors},null,2));
   console.log('Navigation passed: centered favorites and bookmarks, separate left settings, tray, edit, focus, keyboard, reload and narrow layout.');
-} finally {try{run('close');}catch{}}
+} finally {close();}

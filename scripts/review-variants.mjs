@@ -1,22 +1,20 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
+import { browserSession, fromRoot, removeDir, tempDir } from './lib/browser.mjs';
 import { loadVariants } from './lib/variants.mjs';
+// Usage: node scripts/review-variants.mjs [effect id ...]
 const { variantIds: variants, shuffleKey } = await loadVariants();
-const session=`glass-variants-${process.pid}`, profile=await mkdtemp('/private/tmp/glass-variants-'), output=resolve('artifacts/variants-review');
-const run=(...args)=>{const r=JSON.parse(execFileSync('agent-browser',['--session',session,'--json',...args],{encoding:'utf8',timeout:60000}));if(!r.success)throw new Error(JSON.stringify(r.error));return r.data;};
-const evaluate=code=>run('eval',code).result;
-const wait=code=>run('wait','--fn',code);
-const delay=ms=>evaluate(`new Promise(r=>setTimeout(r,${ms}))`);
+const profile=await tempDir('glass-variants'), output=fromRoot('artifacts/variants-review');
+const { run, evaluate, waitFor: wait, sleep: delay, close } = browserSession('glass-variants');
 const preference=values=>evaluate(`chrome.storage.local.set(${JSON.stringify(Object.fromEntries(Object.entries(values).map(([k,v])=>['preference:v1:'+k,v])))})`);
 const settled=(effect,variant)=>wait(`document.querySelector('main')?.dataset.effect===${JSON.stringify(effect)} && document.querySelector('.ambient-background')?.dataset.variant===${JSON.stringify(variant)} && document.querySelector('.ambient-background')?.dataset.renderer==='live'`);
 try {
  await mkdir(output,{recursive:true});
- run('--profile',profile,'--extension',resolve('.output/chrome-mv3'),'open','--init-script',resolve('scripts/shader-probe.js'),'chrome://newtab');
+ run('--profile',profile,'--extension',fromRoot('.output/chrome-mv3'),'open','--init-script',fromRoot('scripts/shader-probe.js'),'chrome://newtab');
  run('set','viewport','1200','760');
  const records=[];
- for(const [effect,choices] of Object.entries(variants).filter(([effect])=>process.argv.length<=2||process.argv.slice(2).includes(effect))) {
+ for(const [effect,choices] of Object.entries(variants).filter(([id])=>process.argv.length<=2||process.argv.slice(2).includes(id))) {
   await preference({shuffle:false,activeEffect:effect,appearance:'night'});
   wait(`document.querySelector('main')?.dataset.effect===${JSON.stringify(effect)} && document.querySelector('.ambient-background')?.dataset.renderer==='live'`);
   const key=shuffleKey(effect);
@@ -57,4 +55,4 @@ try {
  await writeFile(resolve(output,'checks.json'),JSON.stringify({records,shuffleSingleFamily:true,narrowOverflow:false,reducedMotion:true,errors},null,2));
  console.log(`${records.length} theme combinations, one-family random, responsive settings and reduced motion passed.`);
 } catch(error) { try { console.error(JSON.stringify(run('snapshot')));console.error(JSON.stringify(run('errors'))); }catch{} throw error; }
-finally {try{run('close');await rm(profile,{recursive:true,force:true});}catch{}}
+finally {close();await removeDir(profile);}

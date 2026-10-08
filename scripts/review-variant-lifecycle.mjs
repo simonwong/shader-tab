@@ -1,17 +1,15 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
+import { browserSession, fromRoot, removeDir, tempDir } from './lib/browser.mjs';
 import { loadVariants } from './lib/variants.mjs';
-const session=`glass-variant-life-${process.pid}`,profile=await mkdtemp('/private/tmp/glass-variant-life-'),output=resolve('artifacts/variants-review');
-const run=(...args)=>{const r=JSON.parse(execFileSync('agent-browser',['--session',session,'--json',...args],{encoding:'utf8',timeout:60000}));if(!r.success)throw new Error(JSON.stringify(r.error));return r.data;};
-const evaluate=code=>run('eval',code).result;
-const wait=code=>run('wait','--fn',code);
+const profile=await tempDir('glass-variant-life'),output=fromRoot('artifacts/variants-review');
+const { run, evaluate, waitFor: wait, close } = browserSession('glass-variant-life');
 const { variantIds, shuffleKey } = await loadVariants();
 const variants=variantIds['data-pixel-arc'], lastVariant=variants.at(-1), bagKey=shuffleKey('data-pixel-arc');
 try {
  await mkdir(output,{recursive:true});
- run('--profile',profile,'--extension',resolve('.output/chrome-mv3'),'open','--init-script',resolve('scripts/performance-probe.js'),'chrome://newtab');
+ run('--profile',profile,'--extension',fromRoot('.output/chrome-mv3'),'open','--init-script',fromRoot('scripts/performance-probe.js'),'chrome://newtab');
  run('set','offline','on');run('set','viewport','390','844','2');
  evaluate(`chrome.storage.local.set({'preference:v1:shuffle':false,'preference:v1:activeEffect':'data-pixel-arc','preference:v1:appearance':'night',[${JSON.stringify(bagKey)}]:{remaining:${JSON.stringify(variants)}}})`);
  wait("document.querySelector('main')?.dataset.effect==='data-pixel-arc' && document.querySelector('.ambient-background')?.dataset.renderer==='live'");
@@ -33,4 +31,4 @@ try {
  const errors=run('errors').errors;assert.deepEqual(errors,[]);
  await writeFile(resolve(output,'lifecycle.json'),JSON.stringify({offline:true,narrow:[390,844],samples,hidden,restoredVariant:lastVariant,rapidSwitch:true,errors},null,2));
  console.log(`${variants.length} Arc variants offline at 390px, bounded frame rate, hidden stop/release, same-variant restore, rapid switching passed.`);
-}finally{try{run('close');await rm(profile,{recursive:true,force:true});}catch{}}
+}finally{close();await removeDir(profile);}

@@ -1,23 +1,17 @@
-import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-const session = `glass-framework-review-${process.pid}`;
-const output = resolve('artifacts/shader-review');
+import { browserSession, fromRoot } from './lib/browser.mjs';
+// Needs `pnpm dev` serving the preview on port 4317.
+const output = fromRoot('artifacts/shader-review');
 const url = 'http://127.0.0.1:4317/src/entrypoints/newtab/index.html';
 const ids = ['grain-gradient', 'dithering', 'pixel-blast', 'data-pixel-arc', 'crt-terminal', 'shader-gradient'];
-const run = (...args) => {
-  const result = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding: 'utf8', timeout: 60_000 }));
-  if (!result.success) throw new Error(JSON.stringify(result.error));
-  return result.data;
-};
-const evaluate = code => run('eval', code).result;
-const wait = ms => evaluate(`new Promise(r=>setTimeout(r,${ms}))`);
+const { run, evaluate, sleep: wait, close } = browserSession('glass-framework-review');
 const preference = values => evaluate(`(() => {for (const [key,value] of Object.entries(${JSON.stringify(values)})) localStorage.setItem('glass-tab-preview:preference:v1:'+key, JSON.stringify(value));dispatchEvent(new StorageEvent('storage',{key:'glass-tab-preview:preference:v1:activeEffect'}));})()`);
 const settled = id => run('wait', '--fn', `document.querySelector('main').dataset.effect === '${id}' && document.querySelector('.ambient-background').dataset.renderer === 'live' && document.querySelector('.ambient-background').dataset.transitioning === 'false'`);
 try {
   await mkdir(output, { recursive: true });
-  run('open', '--init-script', resolve('scripts/shader-probe.js'), url);
+  run('open', '--init-script', fromRoot('scripts/shader-probe.js'), url);
   run('set', 'viewport', '1440', '900', '2');
   evaluate(`(() => {
     const variants = { 'grain-gradient': 'blob', dithering: 'swirl:4x4', 'pixel-blast': 'square', 'data-pixel-arc': 'data-pixel', 'crt-terminal': 'terminal' };
@@ -92,4 +86,4 @@ try {
   const errors = run('errors').errors; assert.equal(errors.length, 0);
   await writeFile(resolve(output, 'checks.json'), JSON.stringify({ date: new Date().toISOString(), effects, rapidSwitch: true, fallbacks, cards: 6, persisted: 'crt-terminal', narrowOverflow: false, contextLossFallback: true, errors }, null, 2));
   console.log('Framework review passed: animation, interaction, rapid switching, settings, persistence, static fallback, narrow layout, context loss.');
-} finally { try { run('close'); } catch {} }
+} finally { close(); }

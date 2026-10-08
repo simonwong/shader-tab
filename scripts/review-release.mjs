@@ -1,20 +1,13 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-const session = `shader-release-${process.pid}`;
-const profile = await mkdtemp('/private/tmp/shader-release-');
-const output = resolve('artifacts/release-review');
-const run = (...args) => {
-  const response = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding: 'utf8', timeout: 60000 }));
-  if (!response.success) throw new Error(JSON.stringify(response.error));
-  return response.data;
-};
-const evaluate = code => run('eval', code).result;
-const wait = code => run('wait', '--fn', code);
+import { browserSession, fromRoot, removeDir, tempDir } from './lib/browser.mjs';
+const profile = await tempDir('shader-release');
+const output = fromRoot('artifacts/release-review');
+const { run, evaluate, waitFor: wait, close } = browserSession('shader-release');
 try {
   await mkdir(output, { recursive: true });
-  run('--profile', profile, '--extension', resolve('.output/chrome-mv3'), 'open', 'chrome://newtab');
+  run('--profile', profile, '--extension', fromRoot('.output/chrome-mv3'), 'open', 'chrome://newtab');
   wait("document.querySelector('main')?.dataset.mode==='extension'");
   const base = evaluate('chrome.runtime.getURL("")');
   evaluate(`(async()=>{const folder=await chrome.bookmarks.create({parentId:'1',title:'Review folder'}); await chrome.bookmarks.create({parentId:folder.id,title:'Review bookmark',url:'https://example.invalid/'}); await chrome.storage.local.set({'preference:v1:language':'zh-CN','preference:v1:shuffle':false,'preference:v1:activeEffect':'grain-gradient'});})()`);
@@ -65,9 +58,9 @@ try {
   const statuses=evaluate("Promise.all([...document.querySelectorAll('a')].map(async a=>({url:a.href,status:(await fetch(a.href)).status})))");
   assert.ok(statuses.every(item=>item.status===200));
   const errors=run('errors').errors;assert.deepEqual(errors,[]);
-  await writeFile(resolve(output,'checks.json'),JSON.stringify({version:'0.4.0',buttons,layouts,offline:true,bookmarkAdd:true,legalLinks:statuses,errors},null,2));
+  await writeFile(resolve(output,'checks.json'),JSON.stringify({version:evaluate('chrome.runtime.getManifest().version'),buttons,layouts,offline:true,bookmarkAdd:true,legalLinks:statuses,errors},null,2));
   console.log('Hugeicons, bookmark add, 320/390/1440px settings, offline privacy and license pages passed.');
 } catch (error) {
   console.error(JSON.stringify(run('snapshot')));
   throw error;
-} finally { try { run('close'); } finally { await rm(profile,{recursive:true,force:true}); } }
+} finally { close(); await removeDir(profile); }

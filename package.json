@@ -17,7 +17,12 @@
     "site:deploy": "pnpm site:build && npx --yes wrangler@4.135.0 deploy --config website/wrangler.jsonc",
     "lint": "oxlint",
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "capture:effects": "node scripts/capture-effects.mjs",
+    "review:effects": "node scripts/review-effects.mjs",
+    "review:variants": "pnpm build && node scripts/review-variants.mjs",
+    "review:locales": "pnpm build && node scripts/review-locales.mjs",
+    "perf:measure": "pnpm build && node scripts/measure-performance.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",

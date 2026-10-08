@@ -1,13 +1,11 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const session=`glass-random-${process.pid}`,profile=await mkdtemp('/private/tmp/glass-tab-random-');
-const run=(...args)=>{const r=JSON.parse(execFileSync('agent-browser',['--session',session,'--json',...args],{encoding:'utf8',timeout:60000}));if(!r.success)throw new Error(JSON.stringify(r.error));return r.data;};
-const evaluate=code=>run('eval',code).result;
+import { browserSession, fromRoot, removeDir, tempDir } from './lib/browser.mjs';
+const profile=await tempDir('glass-tab-random');
+const { run, evaluate, close } = browserSession('glass-random');
 const live=()=>run('wait','--fn',"document.querySelector('main')?.dataset.effect==='shader-gradient'&&document.querySelector('.ambient-background')?.dataset.renderer==='live'");
 try {
-  run('--profile',profile,'--extension',resolve('.output/chrome-mv3'),'open','--init-script',resolve('scripts/performance-probe.js'),'about:blank');
+  run('--profile',profile,'--extension',fromRoot('.output/chrome-mv3'),'open','--init-script',fromRoot('scripts/performance-probe.js'),'about:blank');
   run('open','chrome://newtab');
   const url=evaluate('location.href');
   const version=evaluate('chrome.runtime.getManifest().version');
@@ -40,7 +38,7 @@ try {
   evaluate(`window.__hiddenSamples=[];for(const ms of [1500,32000])setTimeout(()=>window.__hiddenSamples.push({hidden:document.hidden,...window.__glassProbe.read()}),ms)`);
   const activeTab=run('tab','list').tabs.find(tab=>tab.active).tabId;
   run('tab','new','about:blank');
-  await new Promise(resolve=>setTimeout(resolve,33500));
+  await new Promise(done=>setTimeout(done,33500));
   run('tab',activeTab);
   const hidden=evaluate('window.__hiddenSamples');
   assert.equal(hidden.length,2);assert.ok(hidden.every(x=>x.hidden));assert.equal(hidden[0].draws,hidden[1].draws);assert.equal(hidden[1].buffer,null);live();
@@ -48,9 +46,9 @@ try {
   run('wait','--fn','document.querySelector("[role=dialog]") !== null');
   assert.equal(evaluate('document.body.innerText.includes("Shader Gradient 形态")'),false);
   assert.equal(evaluate('document.documentElement.scrollWidth > innerWidth'),false);
-  run('screenshot',resolve('artifacts/shader-review/settings-0.3.7.png'));
+  run('screenshot',fromRoot(`artifacts/shader-review/settings-${version}.png`));
   const errors=run('errors').errors;assert.equal(errors.length,0);
   const result={version,random,fixed,offline,hidden,errors};
-  await writeFile(resolve(`artifacts/shader-review/random-${version}.json`),JSON.stringify(result,null,2));
+  await writeFile(fromRoot(`artifacts/shader-review/random-${version}.json`),JSON.stringify(result,null,2));
   console.log(JSON.stringify(result));
-} finally {try{run('close');await rm(profile,{recursive:true,force:true});}catch{}}
+} finally {close();await removeDir(profile);}

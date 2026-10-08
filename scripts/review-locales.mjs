@@ -1,21 +1,14 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-const session = `shader-locales-${process.pid}`;
-const profile = await mkdtemp('/private/tmp/shader-locales-');
-const output = resolve('artifacts/locales');
-const run = (...args) => {
-  const response = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding: 'utf8', timeout: 60000 }));
-  if (!response.success) throw new Error(JSON.stringify(response.error));
-  return response.data;
-};
-const evaluate = code => run('eval', code).result;
-const wait = code => run('wait', '--fn', code);
+import { browserSession, fromRoot, removeDir, tempDir } from './lib/browser.mjs';
+const profile = await tempDir('shader-locales');
+const output = fromRoot('artifacts/locales');
+const { run, evaluate, waitFor: wait, close } = browserSession('shader-locales');
 const labels = { en: 'Settings', 'zh-CN': '设置', 'zh-TW': '設定', ja: '設定', ko: '설정', fr: 'Paramètres', de: 'Einstellungen', es: 'Ajustes' };
 try {
   await mkdir(output, { recursive: true });
-  run('--profile', profile, '--extension', resolve('.output/chrome-mv3'), 'open', 'chrome://newtab');
+  run('--profile', profile, '--extension', fromRoot('.output/chrome-mv3'), 'open', 'chrome://newtab');
   wait("document.querySelector('main')?.dataset.mode==='extension'");
   const base = evaluate('chrome.runtime.getURL("")');
   const initial = evaluate("({ui:chrome.i18n.getUILanguage(),lang:document.documentElement.lang,name:chrome.runtime.getManifest().name,resources:performance.getEntriesByType('resource').map(r=>r.name)})");
@@ -80,9 +73,9 @@ try {
     legal.push({locale,page,links:statuses.length});
   }
   const errors=run('errors').errors;assert.deepEqual(errors,[]);
-  await writeFile(resolve(output,'checks.json'),JSON.stringify({version:'0.4.0',initial,auto,fixture,layouts,legal,offline:true,languageSavedAfterReload:true,favoritesPreserved:true,canvasPreserved:true,errors},null,2));
+  await writeFile(resolve(output,'checks.json'),JSON.stringify({version:evaluate('chrome.runtime.getManifest().version'),initial,auto,fixture,layouts,legal,offline:true,languageSavedAfterReload:true,favoritesPreserved:true,canvasPreserved:true,errors},null,2));
   console.log('8 locales, 24 settings layouts, 16 legal pages, offline loading, persistence and unchanged favorite/background passed.');
 } catch(error) {
   console.error(JSON.stringify(run('snapshot')));
   throw error;
-} finally {try{run('close');}finally{await rm(profile,{recursive:true,force:true});}}
+} finally {close();await removeDir(profile);}
