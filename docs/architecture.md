@@ -6,10 +6,10 @@
 - React / TypeScript 负责组件和交互状态。
 - Radix UI 提供菜单定位、键盘导航、弹层和模态焦点管理，视觉由本项目 CSS 实现。
 - dnd-kit 支持指针与键盘收藏排序。
-- Paper Shaders、Three.js / postprocessing 、ThreeUI 与 Shader Gradient 官方渲染核心负责六种背景，CSS 自定义属性负责日夜玻璃材质。
+- Paper Shaders、ThreeUI 与 Shader Gradient 官方渲染核心及自研 Pixel Field 着色器负责六种背景，CSS 自定义属性负责日夜玻璃材质。
 - Hugeicons 官方免费包统一操作图标；Space Grotesk 字体随扩展本地打包。
 
-背景依赖按渲染器动态导入。Three.js 由 Pixel Blast 与 Shader Gradient 共用；postprocessing 仅随 Pixel Blast 加载。
+背景依赖按渲染器动态导入。Three.js 由 Shader Gradient 与 Amber Halftone 使用；Pixel Field 为原生 WebGL，无额外依赖。
 
 ## 数据
 
@@ -25,13 +25,13 @@
 
 `presets.ts` 定义六种效果与配色，`drivers/` 连接框架，`vendor/` 保留官方渲染核心及来源说明。`ambient.ts` 统一管理帧循环、12 秒呼吸时钟、指针与资源；React 层处理主题、效果、系统动态效果偏好和静态降级。
 
-先显示 CSS 配色，跨过两个动画帧后在空闲任务中加载所选渲染器。仅一个可见画布；Pixel Blast 另有离屏触摸纹理和后处理缓冲。切换时销毁旧渲染器，新渲染器从 CSS 配色淡入 900 ms。取消标记保证过期异步加载会释放资源，不能覆盖新选择。
+先显示 CSS 配色，跨过两个动画帧后在空闲任务中加载所选渲染器。仅一个可见画布。切换时销毁旧渲染器，新渲染器从 CSS 配色淡入 900 ms。取消标记保证过期异步加载会释放资源，不能覆盖新选择。
 
 空闲目标 20 fps，交互上限 30 fps；定时器配合 rAF 调度。Paper 自带时钟设为零，用公共时钟推进。像素密度上限 2，缓冲区最长边上限 2560、总像素不超过 400 万。隐藏立即停绘，30 秒后释放画布；返回时重建。减少动态效果、后端不可用或上下文丢失时使用 HTML/CSS 渐变或底色，不请求图片。
 
 随机效果每次打开新标签页选择一次；菜单交互不会重抽。Shader Gradient 用独立的洗牌队列选择 Plane、Sphere、Water，三种每轮各出现一次且轮次交界不重复。队列通过 Web Locks 串行化后存入本地，避免多个标签页竞争。同页主题切换不重抽；旧 `shaderGradientShape` 设置不再读取，所有背景类别统一随机变体。背景类别、主题与两个入口显示开关保存于本地。旧 ID 在读取时迁移，不修改收藏和其他设置。
 
-指针仅更新目标坐标，公共渲染循环平滑跟随。移入控件、窗口失焦或隐藏后目标归位；Pixel Blast 的液化轨迹按时间自然衰减。触屏支持 Pixel Blast 点击涟漪，不跟随触摸移动。释放渲染器时移除全部输入监听。
+指针仅更新目标坐标，公共渲染循环平滑跟随。移入控件、窗口失焦或隐藏后目标归位；Pixel Field 的涟漪按时间自然衰减。触屏支持 Pixel Field 点击涟漪，不跟随触摸移动。释放渲染器时移除全部输入监听。
 
 ## 材质与加载
 
@@ -52,7 +52,6 @@
 - [Chrome storage](https://developer.chrome.com/docs/extensions/reference/api/storage)
 - [Chrome favicon](https://developer.chrome.com/docs/extensions/how-to/ui/favicons)
 - [Paper Shaders](https://github.com/paper-design/shaders)
-- [React Bits](https://github.com/DavidHDev/react-bits)
 - [ThreeUI](https://github.com/MengTo/threeui)
 
 `bookmark-tree.ts` 从原始 Chrome 树生成候选目录，过滤非 HTTP/HTTPS 链接并保留匹配项的完整祖先路径。折叠的子目录不挂载内容，搜索用 deferred value 更新。`showFavorites`、`showBookmarks` 默认均为 true，独立存储；入口隐藏不改变收藏或 Chrome 书签。

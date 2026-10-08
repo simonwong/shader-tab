@@ -42,8 +42,8 @@ try {
       assert.ok(Math.abs(left.uniforms.u_offsetX) <= .0211 && Math.abs(right.uniforms.u_offsetX) <= .0211, 'Paper pointer must stay gentle');
     } else if (id === 'pixel-blast') {
       assert.ok(right.uniforms.uTime > before.uniforms.uTime);
-      assert.ok(right.uploads > left.uploads);
-      assert.ok(right.uniforms['uClickTimes[0]'].some(x => x > 0));
+      assert.ok(right.uniforms.uRipples.some((value, index) => index % 4 === 3 && value > 0), 'Pixel Field must start a ripple on click');
+      assert.ok(right.draws - before.draws > 0);
     } else if (id === 'crt-terminal') {
       assert.ok(right.uniforms.uTime > before.uniforms.uTime);
       assert.ok(left.uniforms.uPointer[0] < -.2 && right.uniforms.uPointer[0] > .2, 'CRT must follow both pointer directions');

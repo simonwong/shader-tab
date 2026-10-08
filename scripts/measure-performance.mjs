@@ -48,7 +48,7 @@ try {
     run('wait', '--fn', `document.querySelector('main').dataset.effect === '${id}' && document.documentElement.dataset.theme === '${theme}'`);
     run('wait', '--fn', 'document.querySelector(".ambient-background").dataset.transitioning === "false"');
     const result = sample(2000);
-    assert.ok(result.draws > 0 && result.draws <= (['pixel-blast', 'shader-gradient'].includes(id) ? 84 : 42));
+    assert.ok(result.draws > 0 && result.draws <= (id === 'shader-gradient' ? 84 : 42));
     assert.ok(result.raf <= 45);
     effects.push({ id, theme, ...result });
     console.log(`${id}/${theme}: ${result.draws} draw passes, ${result.raf} rAF / 2s`);

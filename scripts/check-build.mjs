@@ -46,7 +46,7 @@ assert.ok(entryCode.byteLength < 340_000, 'New-tab entry exceeds the 340 KB raw 
 assert.ok(['"', "'", '`'].some((quote) => entryCode.toString().includes(`import(${quote}./${settings}${quote})`)), 'Settings must load through dynamic import');
 console.log('Manifest V3, permissions, new-tab entry and production isolation verified.');
 
-for (const license of ['paper-shaders.txt', 'paper-shaders-NOTICE.txt', 'react-bits.txt', 'threeui.txt', 'three.txt', 'postprocessing.txt', 'shader-gradient.txt', 'react-three-fiber.txt', 'camera-controls.txt', 'glsl-noise.txt']) await access(new URL(`licenses/${license}`, root));
+for (const license of ['paper-shaders.txt', 'paper-shaders-NOTICE.txt', 'threeui.txt', 'three.txt', 'shader-gradient.txt', 'react-three-fiber.txt', 'camera-controls.txt', 'glsl-noise.txt']) await access(new URL(`licenses/${license}`, root));
 for (const renderer of ['paper-', 'pixel-blast-', 'arc-', 'crt-', 'shader-gradient-']) assert.ok(chunks.some(file => file.startsWith(renderer)), `Missing lazy renderer: ${renderer}`);
 for (const locale of locales.filter(locale => locale !== 'en')) assert.ok(chunks.some(file => file.startsWith(`${locale}-`)), `Missing lazy locale: ${locale}`);
 const assets = await readdir(new URL('assets/', root));

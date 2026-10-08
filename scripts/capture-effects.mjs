@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 const session = `glass-effects-${process.pid}`;
 const ids = ['grain-gradient', 'dithering', 'pixel-blast', 'data-pixel-arc', 'crt-terminal', 'shader-gradient'];
-const names = ['Grain Gradient', 'Dithering', 'Pixel Blast', 'Data Pixel Arc', 'CRT Terminal', 'Shader Gradient'];
+const names = ['Grain Gradient', 'Dithering', 'Pixel Field', 'Data Pixel Arc', 'CRT Terminal', 'Shader Gradient'];
 const requested = process.argv.slice(2);
 const captureIds = requested.length ? ids.filter(id => requested.includes(id)) : ids;
 const output = resolve('artifacts/effects');
