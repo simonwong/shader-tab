@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "settings": {
+    "react": {
+      "version": "19.2"
+    }
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/jsx-key": "error",
+    "react/react-in-jsx-scope": "off",
+    "typescript/no-explicit-any": "warn",
+    "import/no-cycle": "warn",
+    "import/no-self-import": "error",
+    "vitest/require-mock-type-parameters": "warn",
+    "eslint/no-underscore-dangle": "off"
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**", "website/**", "*.config.ts"],
+      "env": {
+        "browser": false,
+        "node": true
+      }
+    }
+  ],
+  "ignorePatterns": [
+    ".output/**",
+    ".wxt/**",
+    "artifacts/**",
+    "node_modules/**",
+    "public/locales/**"
+  ]
+}
