@@ -1,5 +1,7 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
-// Adapted to the shared animation clock and pixel budget.
+// Modified by Shader Tab: adapted to the shared animation clock and pixel budget,
+// and ported from a per-cell Canvas 2D loop to one fragment shader (same cell
+// grid, arc curve, wave terms, colours and alpha, evaluated per pixel).
 export type DataPixelArcMode = "dark" | "light";
 
 export type DataPixelArcOptions = {
@@ -10,8 +12,6 @@ export type DataPixelArcOptions = {
   arcDrop: number;
   thickness: number;
   brightness: number;
-  hue: number;
-  saturation: number;
 };
 
 export const DATA_PIXEL_ARC_DEFAULTS: DataPixelArcOptions = {
@@ -22,87 +22,77 @@ export const DATA_PIXEL_ARC_DEFAULTS: DataPixelArcOptions = {
   arcDrop: 0.9,
   thickness: 0.35,
   brightness: 1,
-  hue: 0,
-  saturation: 1,
 };
 
-function resolveMode(mode: DataPixelArcOptions["mode"] | number | string | undefined): DataPixelArcMode {
-  if (mode === "light" || mode === 1 || mode === "1") return "light";
-  return "dark";
+/*
+ * Uniforms: uCanvas (backing store, device px), uDensity (device px per CSS px),
+ * uSize (CSS px), uTime (seconds * 1.2 * speed), uArc (arcCenter, arcDrop,
+ * thickness), uCell (pixelSize), uGain (options.brightness), uLight (0/1).
+ * Each CSS-space cell takes the colour the original computed from its top-left
+ * corner and is blended over the background with the original alpha, leaving
+ * the 1 px gap the original left between cells.
+ */
+export const DATA_PIXEL_ARC_FRAGMENT = `precision highp float;
+uniform vec2 uCanvas;
+uniform float uDensity;
+uniform vec2 uSize;
+uniform float uTime;
+uniform vec3 uArc;
+uniform float uCell;
+uniform float uGain;
+uniform float uLight;
+uniform float uDim;
+
+vec3 lightBackground(float y) {
+  vec3 top = vec3(248.0, 250.0, 246.0) / 255.0;
+  vec3 middle = vec3(243.0, 246.0, 241.0) / 255.0;
+  vec3 bottom = vec3(237.0, 241.0, 236.0) / 255.0;
+  return y < 0.58 ? mix(top, middle, y / 0.58) : mix(middle, bottom, (y - 0.58) / 0.42);
 }
 
-export function createDataPixelArcRenderer(canvas: HTMLCanvasElement, getOptions: () => DataPixelArcOptions) {
-  const context = canvas.getContext("2d", { alpha: false });
-  if (!context) return null;
-  let width = 1;
-  let height = 1;
-  let time = 0;
-  let lightBackground: CanvasGradient | null = null;
-  const resize = (nextWidth: number, nextHeight: number, density: number) => {
-    width = Math.max(1, nextWidth);
-    height = Math.max(1, nextHeight);
-    const pixelRatio = density;
-    canvas.width = Math.round(width * pixelRatio);
-    canvas.height = Math.round(height * pixelRatio);
-    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    lightBackground = context.createLinearGradient(0, 0, 0, height);
-    lightBackground.addColorStop(0, "#f8faf6");
-    lightBackground.addColorStop(0.58, "#f3f6f1");
-    lightBackground.addColorStop(1, "#edf1ec");
-  };
-  const render = (seconds: number) => {
-    const options = getOptions();
-    time = seconds * 1.2 * options.speed;
-    const isLight = resolveMode(options.mode) === "light";
-    context.fillStyle = isLight && lightBackground ? lightBackground : "#030308";
-    context.fillRect(0, 0, width, height);
-    const cols = Math.ceil(width / options.pixelSize);
-    const rows = Math.ceil(height / options.pixelSize);
-    const arcCenterY = height * options.arcCenter;
-    const arcDrop = height * options.arcDrop;
-    const thickness = height * options.thickness;
-    for (let x = 0; x < cols; x += 1) {
-      for (let y = 0; y < rows; y += 1) {
-        const px = x * options.pixelSize;
-        const py = y * options.pixelSize;
-        const nx = (px / width) * 2 - 1;
-        const curveY = arcCenterY + Math.pow(Math.abs(nx), 1.8) * arcDrop;
-        let intensity = Math.max(0, 1 - Math.abs(py - curveY) / thickness);
-        if (intensity <= 0.01) continue;
-        const wave1 = Math.sin(nx * 4 - time * 1.5) * 0.1;
-        const wave2 = Math.cos(py * 0.01 + time) * 0.1;
-        intensity = Math.max(0, Math.min(1, intensity + wave1 + wave2));
-        intensity *= Math.max(0, 1 - Math.pow(Math.abs(nx), 2.5));
-        if (intensity <= 0.02) continue;
-        const coreStrength = Math.pow(intensity, 3);
-        const middleStrength = Math.pow(intensity, 1.5);
-        let r: number;
-        let g: number;
-        let b: number;
-        if (isLight) {
+void main() {
+  vec2 css = vec2(gl_FragCoord.x, uCanvas.y - gl_FragCoord.y) / uDensity;
+  bool light = uLight > 0.5;
+  vec3 background = light ? lightBackground(css.y / uSize.y) : vec3(3.0, 3.0, 8.0) / 255.0;
+  vec3 color = background;
+  vec2 cell = floor(css / uCell) * uCell;
+  vec2 local = css - cell;
+  if (local.x < uCell - 1.0 && local.y < uCell - 1.0) {
+    float nx = cell.x / uSize.x * 2.0 - 1.0;
+    float curveY = uSize.y * uArc.x + pow(abs(nx), 1.8) * uSize.y * uArc.y;
+    float intensity = max(0.0, 1.0 - abs(cell.y - curveY) / (uSize.y * uArc.z));
+    if (intensity > 0.01) {
+      float wave1 = sin(nx * 4.0 - uTime * 1.5) * 0.1;
+      float wave2 = cos(cell.y * 0.01 + uTime) * 0.1;
+      intensity = clamp(intensity + wave1 + wave2, 0.0, 1.0);
+      intensity *= max(0.0, 1.0 - pow(abs(nx), 2.5));
+      if (intensity > 0.02) {
+        float core = intensity * intensity * intensity;
+        vec3 ink;
+        float alpha;
+        if (light) {
           // Sage edge pixels hold their shape on paper while the emerald core stays vivid.
-          const pigment = Math.pow(intensity, 0.78);
-          const inkStrength = Math.max(0.45, Math.min(1.35, options.brightness));
-          const paper = [238, 242, 237] as const;
-          const ink = [
-            192 - 172 * pigment - 10 * coreStrength,
-            204 - 88 * pigment + 18 * coreStrength,
-            193 - 132 * pigment + 4 * coreStrength,
-          ] as const;
-          r = Math.max(0, Math.min(255, Math.round(paper[0] + (ink[0] - paper[0]) * inkStrength)));
-          g = Math.max(0, Math.min(255, Math.round(paper[1] + (ink[1] - paper[1]) * inkStrength)));
-          b = Math.max(0, Math.min(255, Math.round(paper[2] + (ink[2] - paper[2]) * inkStrength)));
+          float pigment = pow(intensity, 0.78);
+          float strength = clamp(uGain, 0.45, 1.35);
+          vec3 paper = vec3(238.0, 242.0, 237.0);
+          vec3 tint = vec3(
+            192.0 - 172.0 * pigment - 10.0 * core,
+            204.0 - 88.0 * pigment + 18.0 * core,
+            193.0 - 132.0 * pigment + 4.0 * core);
+          ink = floor(clamp(paper + (tint - paper) * strength, 0.0, 255.0) + 0.5) / 255.0;
+          alpha = min(1.0, 0.22 + pow(intensity, 0.68) * 0.78);
         } else {
-          r = Math.floor((30 * intensity + 100 * coreStrength) * options.brightness);
-          g = Math.floor((220 * middleStrength + 40 * coreStrength) * options.brightness);
-          b = Math.floor((80 * intensity + 50 * coreStrength) * options.brightness);
+          float middle = pow(intensity, 1.5);
+          ink = floor(vec3(
+            30.0 * intensity + 100.0 * core,
+            220.0 * middle + 40.0 * core,
+            80.0 * intensity + 50.0 * core) * uGain) / 255.0;
+          alpha = intensity;
         }
-        context.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        context.globalAlpha = isLight ? Math.min(1, 0.22 + Math.pow(intensity, 0.68) * 0.78) : intensity;
-        context.fillRect(px, py, options.pixelSize - 1, options.pixelSize - 1);
+        color = mix(background, ink, alpha);
       }
     }
-    context.globalAlpha = 1;
-  };
-  return { resize, render };
+  }
+  gl_FragColor = vec4(color * uDim, 1.0);
 }
+`;
