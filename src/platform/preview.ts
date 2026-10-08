@@ -1,7 +1,8 @@
-import { drawStoredVariant } from '../features/preferences/variant-shuffle';
+import { variantIds } from '../effects/variants';
+import { drawStoredVariant, settleVariant } from '../features/preferences/variant-shuffle';
 import { flattenBookmarks, type BookmarkNode } from '../features/bookmarks/model';
-import { FAVORITES_KEY, changeFavorites, readFavoriteIds } from '../features/favorites/model';
-import { PREFERENCE_PREFIX, readPreferences } from '../features/preferences/model';
+import { FAVORITES_KEY, changeFavorites, readFavorites } from '../features/favorites/model';
+import { PREFERENCE_PREFIX, preferenceEntries, readPreferences, resolvePreferenceUpdate } from '../features/preferences/model';
 import type { Listener, Platform } from './types';
 
 const link = (id: string, title: string, url: string): BookmarkNode => ({ id, title, url: `https://${url}`, dateAdded: 1_700_000_000_000 + Array.from(id).reduce((sum,char)=>sum+char.charCodeAt(0),0) * 86_400_000 });
@@ -23,7 +24,7 @@ const tree: BookmarkNode[] = [{ id: '0', title: '', children: [
     { id: 'work', title: '工作', children: work },
     { id: 'reading', title: '阅读', children: [link('mdn', 'MDN Web Docs', 'developer.mozilla.org'), link('react', 'React', 'react.dev')] },
     { id: 'design', title: '设计', children: [link('ogl', 'OGL', 'oframe.github.io/ogl/examples/')] },
-    { id: 'tools', title: '工具', children: [link('wxt', 'WXT', 'wxt.dev')] },
+    { id: 'tools', title: '工具', children: [link('wxt', 'WXT', 'wxt.dev'), { id: 'chrome-settings', title: 'Chrome 设置', url: 'chrome://settings/' }] },
     ...sites,
   ] },
   { id: '2', title: '其他书签', children: [link('other', 'Wikipedia', 'wikipedia.org')] },
@@ -38,6 +39,11 @@ function getItems(): Record<string, unknown> {
     if (!key?.startsWith(PREFIX)) continue;
     try { items[key.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(key)!); } catch { /* Ignore invalid preview data. */ }
   }
+  return items;
+}
+/** Stored favorites, or sample ones until the preview saves its own. */
+function getFavoriteItems(): Record<string, unknown> {
+  const items = getItems();
   if (items[FAVORITES_KEY] === undefined) items[FAVORITES_KEY] = sites.slice(0, 6).map((site) => site.id);
   return items;
 }
@@ -49,22 +55,32 @@ function watch(listener: Listener) {
 }
 export const previewPlatform: Platform = {
   mode: 'preview', getTree: async () => structuredClone(tree),
-  getFavorites: async () => readFavoriteIds(getItems()),
+  getFavorites: async () => readFavorites(getFavoriteItems()),
   updateFavorites: (action) => navigator.locks.request('glass-tab:preview-favorites', async () => {
-    const next = changeFavorites(readFavoriteIds(getItems()), action, new Set(flattenBookmarks(tree).map((bookmark) => bookmark.id)));
+    const next = changeFavorites(readFavorites(getFavoriteItems()), action, flattenBookmarks(tree));
     localStorage.setItem(PREFIX + FAVORITES_KEY, JSON.stringify(next));
     changed.dispatchEvent(new Event('change'));
   }),
-  nextEffectVariant: (effect) => navigator.locks.request(`glass-tab:preview-variant:${effect}`, async () => {
-    const { variant, set, remove } = drawStoredVariant(effect, getItems());
-    for (const [key, state] of Object.entries(set)) localStorage.setItem(PREFIX + key, JSON.stringify(state));
-    for (const key of remove) localStorage.removeItem(PREFIX + key);
-    return variant;
-  }),
+  nextEffectVariant: async (effect) => {
+    const ids = variantIds(effect);
+    if (ids.length === 1) return { variant: ids[0]!, saved: Promise.resolve() };
+    const { variant } = drawStoredVariant(effect, getItems());
+    const saved = navigator.locks.request(`glass-tab:preview-variant:${effect}`, async () => {
+      const { set, remove } = settleVariant(effect, getItems(), variant);
+      for (const [key, state] of Object.entries(set)) localStorage.setItem(PREFIX + key, JSON.stringify(state));
+      for (const key of remove) localStorage.removeItem(PREFIX + key);
+    });
+    return { variant, saved };
+  },
   getPreferences: async () => readPreferences(getItems()),
-  updatePreferences: async (patch) => {
-    for (const [key, value] of Object.entries(patch)) localStorage.setItem(PREFIX + PREFERENCE_PREFIX + key, JSON.stringify(value));
+  updatePreferences: (update) => navigator.locks.request('glass-tab:preview-preferences', async () => {
+    const patch = resolvePreferenceUpdate(readPreferences(getItems()), update);
+    for (const [key, value] of Object.entries(preferenceEntries(patch))) localStorage.setItem(PREFIX + key, JSON.stringify(value));
     changed.dispatchEvent(new Event('change'));
+  }),
+  openUrl: async (url, background) => {
+    // A dev server page cannot open browser pages or files; log what the extension would do.
+    console.info(`[preview] open ${url}${background ? ' in a background tab' : ''}`);
   },
   watchBookmarks: () => () => {}, watchFavorites: watch, watchPreferences: watch,
 };

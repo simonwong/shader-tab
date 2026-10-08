@@ -1,12 +1,12 @@
 import { expect, it } from 'vitest';
-import { chooseEffect, DEFAULT_PREFERENCES, PREFERENCE_PREFIX, readPreferences } from './model';
-import { EFFECTS, EFFECT_IDS } from '../../effects/presets';
+import { chooseEffect, DEFAULT_PREFERENCES, PREFERENCE_PREFIX, preferenceEntries, readPreferences, resolvePreferenceUpdate, toggleEffect } from './model';
+import { EFFECTS, EFFECT_IDS, type EffectId } from '../../effects/presets';
 const data = (values: Record<string, unknown>) => Object.fromEntries(Object.entries(values).map(([key, value]) => [PREFERENCE_PREFIX + key, value]));
 it('recovers invalid preferences without accepting an empty shader pool', () => {
   expect(readPreferences(data({ appearance: 'invalid', effects: [], activeEffect: 'unknown', idleDelay: 0, shuffle: 'true' }))).toEqual(DEFAULT_PREFERENCES);
 });
 it('deduplicates known effects and preserves valid appearance settings', () => {
-  expect(readPreferences(data({ appearance: 'night', effects: ['dithering', 'unknown', 'dithering', 'grain-gradient'], activeEffect: 'grain-gradient', idleDelay: 5000, shuffle: false }))).toEqual({ language: 'auto', appearance: 'night', effects: ['dithering', 'grain-gradient'], activeEffect: 'grain-gradient', idleDelay: 5000, shuffle: false, bookmarkSort: 'chrome', showFavorites: true, showBookmarks: true });
+  expect(readPreferences(data({ appearance: 'night', effects: ['dithering', 'unknown', 'dithering', 'grain-gradient'], activeEffect: 'grain-gradient', idleDelay: 5000, shuffle: false }))).toEqual({ language: 'auto', appearance: 'night', effects: ['dithering', 'grain-gradient'], activeEffect: 'grain-gradient', idleDelay: 5000, shuffle: false, bookmarkSort: 'chrome', showFavorites: true, showBookmarks: true, onboarding: false });
 });
 it('chooses only enabled effects per opening and preserves a fixed selection', () => {
   const preferences = { ...DEFAULT_PREFERENCES, effects: ['data-pixel-arc', 'pixel-blast'] as const };
@@ -44,4 +44,30 @@ it('adds browser language to old preferences without resetting favorites or sett
   expect(readPreferences({ ...original, ...data({ language: 'invalid' }) })).toEqual(legacy);
   expect(original).toEqual(before);
   expect(chooseEffect({ ...legacy, language: 'en' }, .5)).toBe(chooseEffect(legacy, .5));
+});
+
+it('shows the first-run hint only for a fresh install until it is dismissed', () => {
+  expect(readPreferences({}).onboarding).toBe(true);
+  expect(readPreferences({ 'variant-bag:v1:dithering': ['a'] }).onboarding).toBe(true);
+  expect(readPreferences({ 'favorite:v1:7': true }).onboarding).toBe(false);
+  expect(readPreferences({ 'favorites:v2': [] }).onboarding).toBe(false);
+  expect(readPreferences(data({ appearance: 'night' })).onboarding).toBe(false);
+  expect(readPreferences(data({ onboarding: true, appearance: 'night' })).onboarding).toBe(true);
+  expect(readPreferences(data({ onboarding: false })).onboarding).toBe(false);
+});
+
+it('resolves functional updates against the latest stored value and drops no-ops', () => {
+  const stored = { ...DEFAULT_PREFERENCES, effects: ['dithering', 'crt-terminal'] as EffectId[] };
+  // Two quick toggles built from the same stale props would lose one; functions see the latest value.
+  const first = resolvePreferenceUpdate(stored, current => ({ effects: toggleEffect(current.effects, 'pixel-blast') }));
+  const afterFirst = { ...stored, ...first };
+  const second = resolvePreferenceUpdate(afterFirst, current => ({ effects: toggleEffect(current.effects, 'grain-gradient') }));
+  expect({ ...afterFirst, ...second }.effects).toEqual(['dithering', 'crt-terminal', 'pixel-blast', 'grain-gradient']);
+  expect(resolvePreferenceUpdate(stored, { appearance: 'system', idleDelay: 5000 })).toEqual({ idleDelay: 5000 });
+  expect(preferenceEntries({ idleDelay: 5000 })).toEqual({ [PREFERENCE_PREFIX + 'idleDelay']: 5000 });
+});
+
+it('keeps the last shuffled effect selected', () => {
+  expect(toggleEffect(['dithering'], 'dithering')).toEqual(['dithering']);
+  expect(toggleEffect(['dithering', 'crt-terminal'], 'dithering')).toEqual(['crt-terminal']);
 });

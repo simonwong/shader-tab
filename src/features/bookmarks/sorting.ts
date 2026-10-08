@@ -1,11 +1,14 @@
-import { safeBookmarkUrl, type BookmarkNode } from './model';
+import { bookmarkHost, safeBookmarkUrl, type BookmarkNode } from './model';
 
 export const BOOKMARK_SORTS = ['chrome', 'name-asc', 'name-desc', 'newest', 'oldest', 'recent'] as const;
 export type BookmarkSort = typeof BOOKMARK_SORTS[number];
 export function isBookmarkSort(value: unknown): value is BookmarkSort {
   return BOOKMARK_SORTS.includes(value as BookmarkSort);
 }
-const title = (node: BookmarkNode) => node.title.trim() || (node.url && safeBookmarkUrl(node.url) ? new URL(node.url).hostname : '');
+const title = (node: BookmarkNode) => {
+  const url = node.url === undefined ? undefined : safeBookmarkUrl(node.url);
+  return node.title.trim() || (url ? bookmarkHost(url) : '');
+};
 /** `locale` should be the UI locale; undefined falls back to the runtime default. */
 export function sortBookmarkTree(tree: BookmarkNode[], sort: BookmarkSort, locale?: string): BookmarkNode[] {
   if (sort === 'chrome') return tree;

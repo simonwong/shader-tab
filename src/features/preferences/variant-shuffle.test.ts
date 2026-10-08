@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { variantIds } from '../../effects/variants';
 import { EFFECT_IDS } from '../../effects/presets';
-import { drawStoredVariant, drawVariant, LEGACY_SHUFFLE_KEYS, variantShuffleKey } from './variant-shuffle';
+import { drawStoredVariant, drawVariant, LEGACY_SHUFFLE_KEYS, settleVariant, variantShuffleKey } from './variant-shuffle';
 import { readPreferences, PREFERENCE_PREFIX } from './model';
 
 it.each(EFFECT_IDS)('%s draws all variants per round without repeating at the boundary', effect => {
@@ -104,6 +104,38 @@ it('drops malformed legacy data safely', () => {
     expect(variantIds('shader-gradient')).toContain(draw.variant);
     expect(draw.remove).toEqual([LEGACY]);
   }
+});
+
+it.each(EFFECT_IDS)('%s: peeking then settling covers every variant per round', effect => {
+  const choices = variantIds(effect);
+  let items: Record<string, unknown> = {};
+  const shown: string[] = [];
+  for (let i = 0; i < choices.length * 3; i++) {
+    const { variant } = drawStoredVariant(effect, items);
+    shown.push(variant);
+    items = { ...items, ...settleVariant(effect, items, variant).set };
+  }
+  for (let i = 0; i < shown.length; i += choices.length) {
+    expect(shown.slice(i, i + choices.length).toSorted()).toEqual([...choices].toSorted());
+  }
+});
+
+it('settles against a bag another tab already advanced', () => {
+  const key = variantShuffleKey('pixel-blast');
+  // This tab peeked "circle"; another tab drew it first and left only "diamond".
+  expect(settleVariant('pixel-blast', { [key]: { remaining: ['diamond'], last: 'circle' } }, 'circle').set[key])
+    .toEqual({ remaining: ['diamond'], last: 'circle' });
+  // The bag is used up: a new round starts without the variant on screen.
+  const fresh = settleVariant('pixel-blast', { [key]: { remaining: [], last: 'square' } }, 'square').set[key]!;
+  expect(fresh.remaining.toSorted()).toEqual(['circle', 'diamond', 'triangle']);
+  expect(fresh.last).toBe('square');
+});
+
+it('moves a legacy Shader Gradient bag when settling', () => {
+  const legacy = LEGACY_SHUFFLE_KEYS['shader-gradient']!;
+  const draw = settleVariant('shader-gradient', { [legacy]: { remaining: ['waterPlane', 'plane'], last: 'sphere' } }, 'waterPlane');
+  expect(draw.set).toEqual({ [variantShuffleKey('shader-gradient')]: { remaining: ['plane'], last: 'waterPlane' } });
+  expect(draw.remove).toEqual([legacy]);
 });
 
 it('leaves storage alone for effects without a legacy bag', () => {

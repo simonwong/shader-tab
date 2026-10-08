@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { flattenBookmarks, matchesBookmark, safeBookmarkUrl } from './model';
+import { bookmarkHost, flattenBookmarks, isWebUrl, matchesBookmark, safeBookmarkUrl } from './model';
 
 describe('bookmark projection', () => {
   it('keeps IDs and folder paths without changing the browser tree', () => {
@@ -14,9 +14,24 @@ describe('bookmark projection', () => {
     ]);
     expect(tree).toEqual(before);
   });
-  it.each(['javascript:alert(1)', 'data:text/html,hello', 'file:///tmp/a', 'invalid', 'chrome://settings'])('does not expose unsupported URL %s', (url) => {
+  it.each(['javascript:alert(1)', 'data:text/html,hello', 'invalid', 'blob:https://example.com/1', 'about:blank'])('does not expose unsupported URL %s', (url) => {
     expect(safeBookmarkUrl(url)).toBeUndefined();
     expect(flattenBookmarks([{ id: '1', title: 'unsafe', url }])).toEqual([]);
+  });
+  it('keeps browser pages and local files, which open through the tabs API', () => {
+    expect(flattenBookmarks([
+      { id: '1', title: '', url: 'chrome://settings/appearance' },
+      { id: '2', title: 'Notes', url: 'file:///Users/me/notes%20today.html' },
+      { id: '3', title: '', url: 'file:///tmp/report.pdf' },
+    ])).toEqual([
+      { id: '1', title: 'settings', url: 'chrome://settings/appearance', folder: [] },
+      { id: '2', title: 'Notes', url: 'file:///Users/me/notes%20today.html', folder: [] },
+      { id: '3', title: 'report.pdf', url: 'file:///tmp/report.pdf', folder: [] },
+    ]);
+    expect(bookmarkHost('file:///Users/me/notes%20today.html')).toBe('notes today.html');
+    expect(isWebUrl('https://example.com')).toBe(true);
+    expect(isWebUrl('chrome://settings')).toBe(false);
+    expect(isWebUrl('file:///tmp/a')).toBe(false);
   });
   it('matches all search terms across name, URL and folder', () => {
     const bookmark = { id: '1', title: 'React', url: 'https://react.dev/', folder: ['开发'] };

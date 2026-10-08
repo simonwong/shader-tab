@@ -23,7 +23,7 @@ it('has complete nonempty catalogs with matching interpolation fields for every 
     for (const key of Object.keys(en) as MessageKey[]) {
       expect(dictionary[key].trim()).not.toBe('');
       expect(placeholders(dictionary[key])).toEqual(placeholders(en[key]));
-      expect(createTranslator(locale)(key, { count: 10, position: 2, title: 'Site' })).not.toMatch(/\{\w+\}/);
+      expect(createTranslator(locale)(key, { count: 10, position: 2, title: 'Site', total: 6 })).not.toMatch(/\{\w+\}/);
     }
   }
 });
