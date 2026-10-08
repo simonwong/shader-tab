@@ -13,6 +13,20 @@ export const legalCopy = {
     contactHeading: 'Contact', contact: 'Shader Tab developer:', compliance: 'Use and transfer of information received from Google APIs follow the Chrome Web Store User Data Policy, including its Limited Use requirements.',
     licenseIntro: 'Thanks to the authors and contributors of these projects. Their full licenses govern copyright and usage conditions.', dependencies: 'Application dependencies', notices: 'Copyright and full license notices for bundled dependencies', versions: 'Version inventory', inventory: 'The inventory is generated from modules included in the build, covering runtime dependencies such as React, Base UI, dnd-kit, Hugeicons and Three.js.', embedded: 'Additional notices for embedded dependencies', embeddedNote: 'URL utilities and three-stdlib embedded in Shader Gradient, and React reconciler embedded in Fiber. See below for camera-controls and GLSL noise.', backgrounds: 'Backgrounds and fonts', adaptations: 'Local adaptations of ThreeUI cover rendering lifecycle, frame rate and resolution budgets, pointer interactions and decorative text.',
   },
+  // zh-CN pages are published at the extension root (privacy.html, licenses.html).
+  // `colon` replaces the default ': ' after permission names and the embedded-notice link.
+  'zh-CN': {
+    name: '简体中文', privacy: '隐私政策', licenses: '第三方许可', date: '生效日期：2026 年 9 月 21 日', description: '用动态玻璃背景、Chrome 书签与个人收藏，打造安静的新标签页。', colon: '：',
+    intro: 'Shader Tab 在浏览器本地展示书签、收藏和动态背景。扩展不会向开发者或第三方服务器上传书签、收藏或使用记录。',
+    dataHeading: '处理哪些数据', data: ['Chrome 书签的名称、网址、文件夹结构、添加时间，以及 Chrome 提供的最近打开时间：用于浏览、搜索和排序书签。', '你选择的常用书签 ID 与排列顺序：用于显示收藏。', '语言、主题、背景类别、随机队列、排序方式、入口显示与隐藏延迟：用于保存偏好。', 'Chrome 已有的网页图标缓存：用于显示当前展开的书签图标。'],
+    excluded: '扩展不读取网页正文、账号密码、Cookie 或完整浏览历史，不记录你打开了哪些书签。不设账户、广告、分析统计或追踪器。',
+    permissionsHeading: '权限用途', permissions: ['读取并监听 Chrome 书签变化。扩展不创建、修改或删除你的 Chrome 书签。', '在当前浏览器配置中保存收藏和偏好。', '读取 Chrome 的本地图标缓存。扩展不批量抓取网站，也不调用第三方图标服务。'],
+    storageHeading: '存储、共享与保留', storage: ['收藏和偏好仅保存在当前浏览器配置的本地扩展存储中，不通过扩展跨设备同步。Chrome 原始书签和它自身的同步功能由 Chrome 管理。', '开发者不会收到、出售、共享或将这些本地数据用于广告。数据在本地保留，直到你修改设置、移除收藏、清除扩展数据或卸载扩展。卸载扩展会移除扩展自身的本地数据，不会删除 Chrome 原始书签。'],
+    externalHeading: '打开网站与联系支持', external: ['点击书签或背景来源链接后，浏览器会访问你选择的网站。该网站按自身隐私政策处理访问数据；Shader Tab 不向其附加你的收藏列表或其他书签。', '如果你主动通过邮件联系支持，我们会收到你提供的邮箱地址、邮件内容及附件，仅用于处理你的请求，不用于广告。不要在支持邮件中发送密码等敏感信息；可通过同一邮箱请求删除支持通信中你提供的个人信息，法律要求保留的情况除外。邮件由邮件服务提供商处理。'],
+    choicesHeading: '你的选择', choices: '你可以在设置中移除常用书签、改变偏好或隐藏书签入口，也可以在 Chrome 扩展管理页禁用或卸载 Shader Tab。隐藏入口只改变展示，不会清空已保存的收藏或偏好。',
+    updatesHeading: '政策更新', updates: '政策更新时会修改生效日期。若数据处理方式发生实质变化，会在相关功能启用前作出说明，并按适用要求取得同意。', contactHeading: '联系', contact: 'Shader Tab 开发者：', compliance: '对通过 Google API 获得的信息的使用和转移遵循 Chrome Web Store 用户数据政策，包括 Limited Use 要求。',
+    licenseIntro: '感谢以下项目的作者与贡献者。各项目的版权及使用条件以对应许可全文为准。', dependencies: '应用依赖', notices: '已打包依赖的版权与完整许可声明', versions: '版本清单', inventory: '该清单由构建时实际包含的模块生成，涵盖 React、Base UI、dnd-kit、Hugeicons、Three.js 等运行时依赖。', embedded: '预打包依赖的补充许可', embeddedNote: 'Shader Gradient 内嵌的 URL 工具与 three-stdlib，以及 Fiber 内嵌的 React reconciler。camera-controls 与 GLSL noise 的声明见下方。', backgrounds: '背景与字体', adaptations: 'ThreeUI 的本地适配包括渲染生命周期、帧率和分辨率预算、指针交互与装饰文案。',
+  },
   'zh-TW': {
     name: '繁體中文', privacy: '隱私權政策', licenses: '第三方授權', date: '生效日期：2026 年 9 月 21 日', description: '以動態玻璃背景、Chrome 書籤與個人收藏，打造寧靜的新分頁。',
     intro: 'Shader Tab 在瀏覽器本機顯示書籤、收藏與動態背景。擴充功能不會向開發者或第三方伺服器上傳書籤、收藏或使用紀錄。',
