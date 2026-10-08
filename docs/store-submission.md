@@ -1,6 +1,6 @@
 # Shader Tab 商店提交资料
 
-版本：0.4.1。支持邮箱：support@simonwong.cn。
+版本：0.5.0。支持邮箱：support@simonwong.cn。
 
 ## 单一用途
 
@@ -35,7 +35,7 @@
 
 `public/privacy.html`、`public/legal.css`、`public/licenses.html` 及构建后的 `licenses/`、`icon/` 可作为静态网站托管。政策页面无需登录，不包含追踪脚本。商店字段填写托管后的完整 HTTPS 隐私政策 URL；`chrome-extension://` 地址不能作为公开网址。
 
-本地准备包为 `artifacts/store-legal-0.4.1.zip`。上传托管服务并核对公开访问后，再填写商店后台。商店图标、截图和宣传文案需与 0.4.1 实际功能一致，不使用蓝屏或暗示其他品牌授权的素材。
+本地准备包为 `artifacts/store-legal-0.4.1.zip`（0.4.1 时生成；0.5.0 提交前重新生成）。上传托管服务并核对公开访问后，再填写商店后台。商店图标、截图和宣传文案需与 0.5.0 实际功能一致，不使用蓝屏或暗示其他品牌授权的素材。
 
 尚未部署公共政策网站，尚未提交 Chrome Web Store。
 

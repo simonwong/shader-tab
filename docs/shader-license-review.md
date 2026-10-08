@@ -1,6 +1,6 @@
 # Shader 与商店发布许可核对
 
-核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换和发布状态。范围：Shader Tab 0.4.1 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。0.4.1 已在 [Chrome 网上应用店](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)发布。本记录是许可证文本与实现核对，不是律师意见。
+核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换和发布状态。范围：Shader Tab 0.5.0 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。0.4.1 已在 [Chrome 网上应用店](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)发布。本记录是许可证文本与实现核对，不是律师意见。
 
 ## 结论
 
