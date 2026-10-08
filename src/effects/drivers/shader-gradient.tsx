@@ -5,7 +5,13 @@ import * as THREE from 'three';
 import { THEME_BRIGHTNESS } from '../presets';
 import type { DriverFactory } from './types';
 
-extend({ Mesh: THREE.Mesh, PlaneGeometry: THREE.PlaneGeometry, IcosahedronGeometry: THREE.IcosahedronGeometry, AmbientLight: THREE.AmbientLight, Group: THREE.Group });
+extend({
+  Mesh: THREE.Mesh,
+  PlaneGeometry: THREE.PlaneGeometry,
+  IcosahedronGeometry: THREE.IcosahedronGeometry,
+  AmbientLight: THREE.AmbientLight,
+  Group: THREE.Group,
+});
 
 /*
  * Shader Gradient's materials still `#include` chunks that current three.js no
@@ -20,8 +26,13 @@ function registerLegacyShaderChunks() {
   for (const chunk of LEGACY_CHUNKS) chunks[chunk] ??= '';
 }
 
-const PRESETS = { plane: presets.halo.props, sphere: presets.pensive.props, waterPlane: presets.mint.props };
-const isPresetName = (value: string): value is keyof typeof PRESETS => Object.hasOwn(PRESETS, value);
+const PRESETS = {
+  plane: presets.halo.props,
+  sphere: presets.pensive.props,
+  waterPlane: presets.mint.props,
+};
+const isPresetName = (value: string): value is keyof typeof PRESETS =>
+  Object.hasOwn(PRESETS, value);
 
 /*
  * The presets are framed for a 16:10 screen. With a fixed vertical field of view
@@ -36,12 +47,17 @@ const COVERED: Record<keyof typeof PRESETS, number> = { plane: 2.7, sphere: 1.95
 /* Multiplies whatever is in the default framebuffer by `dim` (dst *= dim). */
 function createDimPass(dim: number) {
   const material = new THREE.RawShaderMaterial({
-    vertexShader: 'attribute vec3 position;\nvoid main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    vertexShader:
+      'attribute vec3 position;\nvoid main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: `precision mediump float;\nvoid main() { gl_FragColor = vec4(vec3(${dim.toFixed(4)}), 1.0); }`,
-    blending: THREE.CustomBlending, blendEquation: THREE.AddEquation,
-    blendSrc: THREE.ZeroFactor, blendDst: THREE.SrcColorFactor,
-    blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
-    depthTest: false, depthWrite: false,
+    blending: THREE.CustomBlending,
+    blendEquation: THREE.AddEquation,
+    blendSrc: THREE.ZeroFactor,
+    blendDst: THREE.SrcColorFactor,
+    blendSrcAlpha: THREE.ZeroFactor,
+    blendDstAlpha: THREE.OneFactor,
+    depthTest: false,
+    depthWrite: false,
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
   mesh.frustumCulled = false;
@@ -54,7 +70,10 @@ function createDimPass(dim: number) {
       renderer.render(mesh, camera);
       renderer.autoClear = autoClear;
     },
-    dispose() { mesh.geometry.dispose(); material.dispose(); },
+    dispose() {
+      mesh.geometry.dispose();
+      material.dispose();
+    },
   };
 }
 
@@ -69,30 +88,63 @@ export const createDriver: DriverFactory = async (host, { theme, variant }) => {
   const dim = createDimPass(THEME_BRIGHTNESS[theme]);
   try {
     await root.configure({
-      frameloop: 'never', linear: true, flat: true, dpr: 1,
+      frameloop: 'never',
+      linear: true,
+      flat: true,
+      dpr: 1,
       camera: { fov: preset.fov },
       gl: { alpha: true, antialias: false, powerPreference: 'low-power' },
-      size: { width: host.clientWidth || innerWidth, height: host.clientHeight || innerHeight, top: 0, left: 0 },
+      size: {
+        width: host.clientWidth || innerWidth,
+        height: host.clientHeight || innerHeight,
+        top: 0,
+        left: 0,
+      },
     });
     let state: RootState;
     await new Promise<void>((resolve, reject) => {
-      const timer = window.setTimeout(() => reject(new Error('Shader Gradient initialization timed out')), 10_000);
+      const timer = window.setTimeout(
+        () => reject(new Error('Shader Gradient initialization timed out')),
+        10_000,
+      );
       function Ready() {
         const current = useThree();
-        useEffect(() => { state = current; clearTimeout(timer); resolve(); }, [current]);
+        useEffect(() => {
+          state = current;
+          clearTimeout(timer);
+          resolve();
+        }, [current]);
         return null;
       }
-      root.render(<><ShaderGradient {...preset as React.ComponentProps<typeof ShaderGradient>} animate="off" enableTransition={false} /><Ready /></>);
+      root.render(
+        <>
+          <ShaderGradient
+            {...(preset as React.ComponentProps<typeof ShaderGradient>)}
+            animate="off"
+            enableTransition={false}
+          />
+          <Ready />
+        </>,
+      );
     });
     let time: { value: number } | undefined;
     return {
-      canvas, engine: 'shadergradient-official',
+      canvas,
+      engine: 'shadergradient-official',
       resize(width, height, density) {
         state.setDpr(Math.min(density, preset.pixelDensity));
         state.setSize(width, height);
         const camera = state.camera as THREE.PerspectiveCamera;
         const zoom = Math.hypot(width / height, 1) / COVERED[shape];
-        if (zoom > 1) camera.setViewOffset(width * zoom, height * zoom, width * (zoom - 1) / 2, height * (zoom - 1) / 2, width, height);
+        if (zoom > 1)
+          camera.setViewOffset(
+            width * zoom,
+            height * zoom,
+            (width * (zoom - 1)) / 2,
+            (height * (zoom - 1)) / 2,
+            width,
+            height,
+          );
         else camera.clearViewOffset();
       },
       render(seconds) {
@@ -104,7 +156,16 @@ export const createDriver: DriverFactory = async (host, { theme, variant }) => {
         state.advance(seconds);
         dim.render(state.gl);
       },
-      dispose() { root.unmount(); dim.dispose(); canvas.remove(); },
+      dispose() {
+        root.unmount();
+        dim.dispose();
+        canvas.remove();
+      },
     };
-  } catch (error) { root.unmount(); dim.dispose(); canvas.remove(); throw error; }
+  } catch (error) {
+    root.unmount();
+    dim.dispose();
+    canvas.remove();
+    throw error;
+  }
 };

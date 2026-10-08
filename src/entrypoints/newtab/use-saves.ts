@@ -30,12 +30,15 @@ export function useOptimistic<T>(saved: unknown) {
   const begin = useCallback((value: T) => {
     const id = ++nextId;
     setState(current => ({ ...current, edits: [...current.edits, { id, value, settled: false }] }));
-    return (ok: boolean) => setState(current => ({
-      ...current,
-      edits: ok
-        ? current.edits.map(edit => edit.id === id ? { ...edit, settled: true, seen: current.saved } : edit)
-        : current.edits.filter(edit => edit.id !== id),
-    }));
+    return (ok: boolean) =>
+      setState(current => ({
+        ...current,
+        edits: ok
+          ? current.edits.map(edit =>
+              edit.id === id ? { ...edit, settled: true, seen: current.saved } : edit,
+            )
+          : current.edits.filter(edit => edit.id !== id),
+      }));
   }, []);
 
   const values = useMemo(() => state.edits.map(edit => edit.value), [state.edits]);

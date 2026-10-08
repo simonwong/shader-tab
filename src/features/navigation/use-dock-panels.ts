@@ -10,7 +10,13 @@ const CLOSE_DELAY = 220;
  * focus is still inside it; a pointer press outside any `.ui-surface` closes it
  * at once.
  */
-export function useDockPanels({ showFavorites, showBookmarks }: { showFavorites: boolean; showBookmarks: boolean }) {
+export function useDockPanels({
+  showFavorites,
+  showBookmarks,
+}: {
+  showFavorites: boolean;
+  showBookmarks: boolean;
+}) {
   const [panel, setPanel] = useState<DockPanel | null>(null);
   const [inside, setInside] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -38,14 +44,18 @@ export function useDockPanels({ showFavorites, showBookmarks }: { showFavorites:
   useEffect(() => () => clearTimeout(closeTimer.current), []);
 
   // A panel whose button was just hidden closes (adjusting state during render, not in an effect).
-  if (panel === 'favorites' && !showFavorites || panel === 'all' && !showBookmarks) {
+  if ((panel === 'favorites' && !showFavorites) || (panel === 'all' && !showBookmarks)) {
     setPanel(null);
     setInside(false);
   }
 
   useEffect(() => {
-    const pointer = () => { keyboardMode.current = false; };
-    const keyboard = () => { keyboardMode.current = true; };
+    const pointer = () => {
+      keyboardMode.current = false;
+    };
+    const keyboard = () => {
+      keyboardMode.current = true;
+    };
     const outside = (event: PointerEvent) => {
       if (!(event.target instanceof Element) || event.target.closest('.ui-surface')) return;
       setPanel(null);

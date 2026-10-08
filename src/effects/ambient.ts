@@ -37,10 +37,18 @@ export function mountAmbient(
   // Appended so a newer scene fades in above the one it replaces.
   host.append(layer);
   let driver: EffectDriver | undefined;
-  let disposed = false, paused = document.hidden, pointerBlocked = false;
-  let lastFrame = 0, seconds = 0, resizeTimer = 0;
-  const target: Pointer = { x: 0, y: 0 }, pointer: Pointer = { x: 0, y: 0 };
-  const size = () => ({ width: Math.max(1, host.clientWidth), height: Math.max(1, host.clientHeight) });
+  let disposed = false,
+    paused = document.hidden,
+    pointerBlocked = false;
+  let lastFrame = 0,
+    seconds = 0,
+    resizeTimer = 0;
+  const target: Pointer = { x: 0, y: 0 },
+    pointer: Pointer = { x: 0, y: 0 };
+  const size = () => ({
+    width: Math.max(1, host.clientWidth),
+    height: Math.max(1, host.clientHeight),
+  });
 
   const monitor = createRateMonitor(plan => {
     loop.setFps(plan.fps);
@@ -52,7 +60,11 @@ export function mountAmbient(
     const { width, height } = size();
     appliedDensityCap = monitor.plan.densityCap;
     const cap = Math.min(variant.density ?? Infinity, appliedDensityCap ?? Infinity);
-    driver?.resize(width, height, pixelDensity(width, height, Number.isFinite(cap) ? cap : undefined));
+    driver?.resize(
+      width,
+      height,
+      pixelDensity(width, height, Number.isFinite(cap) ? cap : undefined),
+    );
   };
   // Resizing clears the canvas; redraw at once so a slow or held frame rate never shows it blank.
   const resizeAndDraw = () => {
@@ -63,17 +75,28 @@ export function mountAmbient(
     clearTimeout(resizeTimer);
     if (!paused) resizeTimer = window.setTimeout(resizeAndDraw, 100);
   };
-  const resetPointer = () => { target.x = target.y = 0; };
-  const leavePointer = (event: PointerEvent) => { if (!event.relatedTarget) resetPointer(); };
+  const resetPointer = () => {
+    target.x = target.y = 0;
+  };
+  const leavePointer = (event: PointerEvent) => {
+    if (!event.relatedTarget) resetPointer();
+  };
   const overControls = (event: PointerEvent) =>
-    pointerBlocked || event.target instanceof Element && event.target.closest('.ui-surface') !== null;
+    pointerBlocked ||
+    (event.target instanceof Element && event.target.closest('.ui-surface') !== null);
   const normalize = (event: PointerEvent): Pointer => {
     const { width, height } = size();
-    return { x: clamp(event.clientX / width * 2 - 1), y: clamp(event.clientY / height * 2 - 1) };
+    return {
+      x: clamp((event.clientX / width) * 2 - 1),
+      y: clamp((event.clientY / height) * 2 - 1),
+    };
   };
   const movePointer = (event: PointerEvent) => {
     if (paused || event.pointerType !== 'mouse') return;
-    if (overControls(event)) { resetPointer(); return; }
+    if (overControls(event)) {
+      resetPointer();
+      return;
+    }
     Object.assign(target, normalize(event));
     if (driver?.move) {
       driver.move(target);
@@ -87,13 +110,17 @@ export function mountAmbient(
   };
   const render = (now: number) => {
     if (disposed || paused || document.hidden || !driver) return;
-    const delta = lastFrame ? Math.min((now - lastFrame) / 1000, .25) : 0;
+    const delta = lastFrame ? Math.min((now - lastFrame) / 1000, 0.25) : 0;
     lastFrame = now;
     seconds += delta;
     const follow = 1 - Math.exp(-delta * 1.2);
-    pointer.x += (target.x * .35 - pointer.x) * follow;
-    pointer.y += (target.y * .35 - pointer.y) * follow;
-    try { driver.render(breathingTime(seconds), delta, pointer); } catch { fail('error'); }
+    pointer.x += (target.x * 0.35 - pointer.x) * follow;
+    pointer.y += (target.y * 0.35 - pointer.y) * follow;
+    try {
+      driver.render(breathingTime(seconds), delta, pointer);
+    } catch {
+      fail('error');
+    }
   };
   const loop = createFrameLoop(render, monitor.plan.fps);
 
@@ -119,31 +146,44 @@ export function mountAmbient(
     onFailure(reason);
   };
   // preventDefault keeps the context restorable; the owner decides whether to rebuild.
-  const lost = (event: Event) => { event.preventDefault(); fail('lost'); };
+  const lost = (event: Event) => {
+    event.preventDefault();
+    fail('lost');
+  };
 
-  void variant.load().then(async createDriver => {
-    if (disposed) return;
-    const next = await createDriver(layer, { effect: variant.effect, theme, variant: variant.id });
-    if (disposed) { next.dispose(); return; }
-    driver = next;
-    resize();
-    driver.canvas.addEventListener('webglcontextlost', lost);
-    window.addEventListener('resize', requestResize);
-    window.addEventListener('pointermove', movePointer, { passive: true });
-    window.addEventListener('pointerdown', clickPointer, { passive: true });
-    window.addEventListener('pointerout', leavePointer);
-    window.addEventListener('blur', resetPointer);
-    host.dataset.engine = driver.engine;
-    if (!paused && !document.hidden) {
-      const now = performance.now();
-      render(now);
-      if (!disposed) loop.start(now);
-    }
-    if (disposed) return;
-    layer.classList.add('ready');
-    performance.mark('ambient:ready', { detail: `${variant.effect}/${variant.id}` });
-    onReady();
-  }).catch(() => fail('error'));
+  void variant
+    .load()
+    .then(async createDriver => {
+      if (disposed) return;
+      const next = await createDriver(layer, {
+        effect: variant.effect,
+        theme,
+        variant: variant.id,
+      });
+      if (disposed) {
+        next.dispose();
+        return;
+      }
+      driver = next;
+      resize();
+      driver.canvas.addEventListener('webglcontextlost', lost);
+      window.addEventListener('resize', requestResize);
+      window.addEventListener('pointermove', movePointer, { passive: true });
+      window.addEventListener('pointerdown', clickPointer, { passive: true });
+      window.addEventListener('pointerout', leavePointer);
+      window.addEventListener('blur', resetPointer);
+      host.dataset.engine = driver.engine;
+      if (!paused && !document.hidden) {
+        const now = performance.now();
+        render(now);
+        if (!disposed) loop.start(now);
+      }
+      if (disposed) return;
+      layer.classList.add('ready');
+      performance.mark('ambient:ready', { detail: `${variant.effect}/${variant.id}` });
+      onReady();
+    })
+    .catch(() => fail('error'));
 
   return {
     layer,

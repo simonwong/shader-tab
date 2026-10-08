@@ -9,49 +9,93 @@ const publicDir = new URL('../public/', import.meta.url);
 /** Language menu order; zh-CN lives at the extension root. */
 const locales = ['en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'fr', 'de', 'es'];
 const ROOT_LOCALE = 'zh-CN';
-const languageLabel = { en: 'Language', 'zh-CN': '语言', 'zh-TW': '語言', ja: '言語', ko: '언어', fr: 'Langue', de: 'Sprache', es: 'Idioma' };
+const languageLabel = {
+  en: 'Language',
+  'zh-CN': '语言',
+  'zh-TW': '語言',
+  ja: '言語',
+  ko: '언어',
+  fr: 'Langue',
+  de: 'Sprache',
+  es: 'Idioma',
+};
 const permissionNames = ['bookmarks', 'storage', 'favicon'];
 const licenseItems = [
-  ['Paper Shaders', 'paper-shaders.txt', 'Apache-2.0'], ['Shader Gradient', 'shader-gradient.txt', 'MIT'], ['ThreeUI', 'threeui.txt', 'MIT'], ['Three.js', 'three.txt', 'MIT'], ['React Three Fiber', 'react-three-fiber.txt', 'MIT'], ['camera-controls', 'camera-controls.txt', 'MIT'], ['GLSL noise / Ashima Arts / Stefan Gustavson', 'glsl-noise.txt', 'MIT'], ['Space Grotesk', 'space-grotesk.txt', 'SIL Open Font License 1.1'],
+  ['Paper Shaders', 'paper-shaders.txt', 'Apache-2.0'],
+  ['Shader Gradient', 'shader-gradient.txt', 'MIT'],
+  ['ThreeUI', 'threeui.txt', 'MIT'],
+  ['Three.js', 'three.txt', 'MIT'],
+  ['React Three Fiber', 'react-three-fiber.txt', 'MIT'],
+  ['camera-controls', 'camera-controls.txt', 'MIT'],
+  ['GLSL noise / Ashima Arts / Stefan Gustavson', 'glsl-noise.txt', 'MIT'],
+  ['Space Grotesk', 'space-grotesk.txt', 'SIL Open Font License 1.1'],
 ];
 
-const escape = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+const escape = text =>
+  text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 const p = text => `<p>${escape(text)}</p>`;
 const list = items => `<ul>${items.map(text => `<li>${escape(text)}</li>`).join('')}</ul>`;
 const section = (heading, body) => `<h2>${escape(heading)}</h2>${body}`;
 /** Path from a locale's page back to public/. */
 const base = locale => (locale === ROOT_LOCALE ? '' : '../../');
-const pagePath = (locale, page) => (locale === ROOT_LOCALE ? `${page}.html` : `locales/${locale}/${page}.html`);
+const pagePath = (locale, page) =>
+  locale === ROOT_LOCALE ? `${page}.html` : `locales/${locale}/${page}.html`;
 
 function languageNav(locale, page) {
-  const links = locales.map(id => `<a href="${base(locale)}${pagePath(id, page)}" lang="${id}" hreflang="${id}"${id === locale ? ' aria-current="page"' : ''}>${legalCopy[id].name}</a>`);
+  const links = locales.map(
+    id =>
+      `<a href="${base(locale)}${pagePath(id, page)}" lang="${id}" hreflang="${id}"${id === locale ? ' aria-current="page"' : ''}>${legalCopy[id].name}</a>`,
+  );
   return `<nav class="legal-languages" aria-label="${languageLabel[locale]}">${links.join(' ')}</nav>`;
 }
 
 function privacyBody(copy) {
   const colon = copy.colon ?? ':';
   const gap = copy.colon ? '' : ' ';
-  const permissions = copy.permissions.map((text, i) => `<li><strong>${permissionNames[i]}${colon}</strong>${gap}${escape(text)}</li>`);
-  return section(copy.dataHeading, list(copy.data) + p(copy.excluded))
-    + section(copy.permissionsHeading, `<ul>${permissions.join('')}</ul>`)
-    + section(copy.storageHeading, copy.storage.map(p).join('')) + section(copy.externalHeading, copy.external.map(p).join(''))
-    + section(copy.choicesHeading, p(copy.choices)) + section(copy.updatesHeading, p(copy.updates))
-    + section(copy.contactHeading, `<p>${escape(copy.contact)} <a href="mailto:support@simonwong.cn">support@simonwong.cn</a></p><p><a href="https://developer.chrome.com/docs/webstore/program-policies/user-data">${escape(copy.compliance)}</a></p>`);
+  const permissions = copy.permissions.map(
+    (text, i) => `<li><strong>${permissionNames[i]}${colon}</strong>${gap}${escape(text)}</li>`,
+  );
+  return (
+    section(copy.dataHeading, list(copy.data) + p(copy.excluded)) +
+    section(copy.permissionsHeading, `<ul>${permissions.join('')}</ul>`) +
+    section(copy.storageHeading, copy.storage.map(p).join('')) +
+    section(copy.externalHeading, copy.external.map(p).join('')) +
+    section(copy.choicesHeading, p(copy.choices)) +
+    section(copy.updatesHeading, p(copy.updates)) +
+    section(
+      copy.contactHeading,
+      `<p>${escape(copy.contact)} <a href="mailto:support@simonwong.cn">support@simonwong.cn</a></p><p><a href="https://developer.chrome.com/docs/webstore/program-policies/user-data">${escape(copy.compliance)}</a></p>`,
+    )
+  );
 }
 
 function licensesBody(copy, root) {
   const colon = copy.colon ?? ':';
   const gap = copy.colon ? '' : ' ';
-  const items = licenseItems.map(([name, file, label]) => `<li>${name} — <a href="${root}licenses/${file}">${escape(label)}</a>${name === 'Paper Shaders' ? ` · <a href="${root}licenses/paper-shaders-NOTICE.txt">NOTICE</a>` : ''}</li>`);
-  return section(copy.dependencies, `<p><a href="${root}licenses/dependencies.txt">${escape(copy.notices)}</a> · <a href="${root}licenses/dependencies.json">${escape(copy.versions)}</a></p>${p(copy.inventory)}<p><a href="${root}licenses/embedded-dependencies.txt">${escape(copy.embedded)}</a>${colon}${gap}${escape(copy.embeddedNote)}</p>`)
-    + section(copy.backgrounds, `<ul>${items.join('')}</ul>${p(copy.adaptations)}`);
+  const items = licenseItems.map(
+    ([name, file, label]) =>
+      `<li>${name} — <a href="${root}licenses/${file}">${escape(label)}</a>${name === 'Paper Shaders' ? ` · <a href="${root}licenses/paper-shaders-NOTICE.txt">NOTICE</a>` : ''}</li>`,
+  );
+  return (
+    section(
+      copy.dependencies,
+      `<p><a href="${root}licenses/dependencies.txt">${escape(copy.notices)}</a> · <a href="${root}licenses/dependencies.json">${escape(copy.versions)}</a></p>${p(copy.inventory)}<p><a href="${root}licenses/embedded-dependencies.txt">${escape(copy.embedded)}</a>${colon}${gap}${escape(copy.embeddedNote)}</p>`,
+    ) + section(copy.backgrounds, `<ul>${items.join('')}</ul>${p(copy.adaptations)}`)
+  );
 }
 
 function legalPage(locale, page) {
   const copy = legalCopy[locale];
   const root = base(locale);
   const other = page === 'privacy' ? 'licenses' : 'privacy';
-  const lead = page === 'privacy' ? `<p class="muted">${escape(copy.date)}</p>${p(copy.intro)}` : p(copy.licenseIntro);
+  const lead =
+    page === 'privacy'
+      ? `<p class="muted">${escape(copy.date)}</p>${p(copy.intro)}`
+      : p(copy.licenseIntro);
   const body = page === 'privacy' ? privacyBody(copy) : licensesBody(copy, root);
   return `<!doctype html>
 <!-- Generated by scripts/generate-locales.mjs from scripts/localization/legal-copy.mjs. Do not edit. -->
@@ -74,7 +118,10 @@ for (const locale of locales) {
   }
   const folder = new URL(`_locales/${locale.replace('-', '_')}/`, publicDir);
   await mkdir(folder, { recursive: true });
-  const catalog = { extensionName: { message: 'Shader Tab' }, extensionDescription: { message: legalCopy[locale].description } };
+  const catalog = {
+    extensionName: { message: 'Shader Tab' },
+    extensionDescription: { message: legalCopy[locale].description },
+  };
   await writeIfChanged(new URL('messages.json', folder), JSON.stringify(catalog, null, 2) + '\n');
 }
 console.log(`Generated ${locales.length} Chrome locale catalogs and localized legal pages.`);

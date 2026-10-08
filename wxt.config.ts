@@ -5,7 +5,10 @@ export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/module-react'],
   imports: false,
-  vite: () => ({ plugins: [bundledLicenses()], resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber'] } }),
+  vite: () => ({
+    plugins: [bundledLicenses()],
+    resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber'] },
+  }),
   manifestVersion: 3,
   manifest: {
     name: '__MSG_extensionName__',
@@ -17,7 +20,8 @@ export default defineConfig({
     minimum_chrome_version: '111',
     content_security_policy: {
       // connect-src 'self' keeps every renderer offline; the page never fetches from the network.
-      extension_pages: "script-src 'self'; object-src 'self'; connect-src 'self'; img-src 'self' data: blob:",
+      extension_pages:
+        "script-src 'self'; object-src 'self'; connect-src 'self'; img-src 'self' data: blob:",
     },
   },
   dev: { server: { port: 4317 } },

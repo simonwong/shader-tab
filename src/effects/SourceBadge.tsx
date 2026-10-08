@@ -20,25 +20,35 @@ export function SourceBadge({ effect, variant, visible, onEnter, onLeave, onShuf
   const { t } = useI18n();
   const preset = getEffect(effect);
   const label = getVariant(effect, variant)?.label;
-  return <div className="source-zone dock-zone" data-visible={visible} onPointerEnter={onEnter} onPointerLeave={onLeave}>
-    <GlassPanel className="source-glass ui-surface">
-      {onShuffle && <button
-        className="source-shuffle"
-        aria-label={t('shuffleBackground')}
-        title={t('shuffleBackground')}
-        onClick={onShuffle}
-      >
-        <HugeiconsIcon aria-hidden="true" icon={RefreshIcon} size={13} strokeWidth={1.9} />
-      </button>}
-      <a
-        className="effect-source"
-        href={resolveVariant(effect, variant).source}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={`${preset.name} · ${t('reference')}`}
-      >
-        {preset.sourceName}{label ? ` · ${label}` : ''}
-      </a>
-    </GlassPanel>
-  </div>;
+  return (
+    <div
+      className="source-zone dock-zone"
+      data-visible={visible}
+      onPointerEnter={onEnter}
+      onPointerLeave={onLeave}
+    >
+      <GlassPanel className="source-glass ui-surface">
+        {onShuffle && (
+          <button
+            className="source-shuffle"
+            aria-label={t('shuffleBackground')}
+            title={t('shuffleBackground')}
+            onClick={onShuffle}
+          >
+            <HugeiconsIcon aria-hidden="true" icon={RefreshIcon} size={13} strokeWidth={1.9} />
+          </button>
+        )}
+        <a
+          className="effect-source"
+          href={resolveVariant(effect, variant).source}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`${preset.name} · ${t('reference')}`}
+        >
+          {preset.sourceName}
+          {label ? ` · ${label}` : ''}
+        </a>
+      </GlassPanel>
+    </div>
+  );
 }

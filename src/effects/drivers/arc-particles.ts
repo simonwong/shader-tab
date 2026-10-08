@@ -73,22 +73,27 @@ void main() {
 `;
 };
 
-function createParticleDriver(fragment: (theme: Theme) => string, timeScale: number): DriverFactory {
-  return (host, { theme }) => mountFullscreenShader(host, {
-    engine: 'threeui-webgl',
-    fragment: fragment(theme),
-    setup(gl, uniform) {
-      const time = uniform('uTime'), pointer = uniform('uPointer');
-      gl.uniform1f(uniform('uDim'), THEME_BRIGHTNESS[theme]);
-      return {
-        resize: cssSurfaceUniforms(gl, uniform),
-        frame(seconds, mouse) {
-          gl.uniform1f(time, seconds * timeScale);
-          gl.uniform2f(pointer, mouse.x, mouse.y);
-        },
-      };
-    },
-  });
+function createParticleDriver(
+  fragment: (theme: Theme) => string,
+  timeScale: number,
+): DriverFactory {
+  return (host, { theme }) =>
+    mountFullscreenShader(host, {
+      engine: 'threeui-webgl',
+      fragment: fragment(theme),
+      setup(gl, uniform) {
+        const time = uniform('uTime'),
+          pointer = uniform('uPointer');
+        gl.uniform1f(uniform('uDim'), THEME_BRIGHTNESS[theme]);
+        return {
+          resize: cssSurfaceUniforms(gl, uniform),
+          frame(seconds, mouse) {
+            gl.uniform1f(time, seconds * timeScale);
+            gl.uniform2f(pointer, mouse.x, mouse.y);
+          },
+        };
+      },
+    });
 }
 
 export const createSignalParticlesDriver = createParticleDriver(signalFragment, 1.2);

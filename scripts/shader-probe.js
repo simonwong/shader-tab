@@ -10,19 +10,37 @@
       if (location) locations.set(location, name);
       return location;
     };
-    for (const method of ['uniform1f', 'uniform2f', 'uniform3f', 'uniform1fv', 'uniform2fv', 'uniform4fv']) {
+    for (const method of [
+      'uniform1f',
+      'uniform2f',
+      'uniform3f',
+      'uniform1fv',
+      'uniform2fv',
+      'uniform4fv',
+    ]) {
       const original = proto[method];
       proto[method] = function (location, ...values) {
         const uniform = locations.get(location);
-        if (uniform) window.__shaderProbe.uniforms[uniform] = method.endsWith('fv') ? Array.from(values[0]) : values.length === 1 ? values[0] : values;
+        if (uniform)
+          window.__shaderProbe.uniforms[uniform] = method.endsWith('fv')
+            ? Array.from(values[0])
+            : values.length === 1
+              ? values[0]
+              : values;
         return original.call(this, location, ...values);
       };
     }
     const draw = proto.drawArrays;
-    proto.drawArrays = function (...args) { window.__shaderProbe.draws++; return draw.apply(this, args); };
+    proto.drawArrays = function (...args) {
+      window.__shaderProbe.draws++;
+      return draw.apply(this, args);
+    };
     for (const method of ['texImage2D', 'texSubImage2D']) {
       const upload = proto[method];
-      proto[method] = function (...args) { window.__shaderProbe.uploads++; return upload.apply(this, args); };
+      proto[method] = function (...args) {
+        window.__shaderProbe.uploads++;
+        return upload.apply(this, args);
+      };
     }
   }
   const text = CanvasRenderingContext2D.prototype.fillText;
@@ -32,7 +50,8 @@
   };
   const fill = CanvasRenderingContext2D.prototype.fillRect;
   CanvasRenderingContext2D.prototype.fillRect = function (...args) {
-    if (this.canvas.isConnected && args[0] === 0 && args[1] === 0 && args[2] === innerWidth) window.__shaderProbe.arcFrames++;
+    if (this.canvas.isConnected && args[0] === 0 && args[1] === 0 && args[2] === innerWidth)
+      window.__shaderProbe.arcFrames++;
     return fill.apply(this, args);
   };
 })();

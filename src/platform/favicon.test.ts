@@ -4,7 +4,9 @@ import { faviconUrl } from './favicon';
 afterEach(() => vi.unstubAllGlobals());
 
 it('keeps bookmark query parameters inside the local Chrome favicon request', () => {
-  vi.stubGlobal('chrome', { runtime: { id: 'fixture', getURL: (path: string) => `chrome-extension://fixture${path}` } });
+  vi.stubGlobal('chrome', {
+    runtime: { id: 'fixture', getURL: (path: string) => `chrome-extension://fixture${path}` },
+  });
   const page = 'https://example.com/a?size=999&x=中#part';
   const result = new URL(faviconUrl(page)!);
   expect(result.protocol).toBe('chrome-extension:');
@@ -17,8 +19,11 @@ it('keeps bookmark query parameters inside the local Chrome favicon request', ()
 });
 
 it('does not request icons for unsafe URLs or browser previews', () => {
-  vi.stubGlobal('chrome', { runtime: { id: 'fixture', getURL: vi.fn<(path: string) => string>() } });
-  for (const page of ['javascript:alert(1)', 'file:///tmp/a', 'chrome://settings', 'invalid']) expect(faviconUrl(page)).toBeUndefined();
+  vi.stubGlobal('chrome', {
+    runtime: { id: 'fixture', getURL: vi.fn<(path: string) => string>() },
+  });
+  for (const page of ['javascript:alert(1)', 'file:///tmp/a', 'chrome://settings', 'invalid'])
+    expect(faviconUrl(page)).toBeUndefined();
   expect(chrome.runtime.getURL).not.toHaveBeenCalled();
   vi.stubGlobal('chrome', undefined);
   expect(faviconUrl('https://example.com')).toBeUndefined();

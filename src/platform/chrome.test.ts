@@ -16,14 +16,29 @@ function fakeEvent() {
 let store: Record<string, unknown>;
 let tree: BookmarkNode[];
 const storage = {
-  get: vi.fn<(keys: string[] | null) => Promise<Record<string, unknown>>>(async keys => structuredClone(keys === null ? store : Object.fromEntries(keys.filter(key => key in store).map(key => [key, store[key]])))),
-  set: vi.fn<(items: Record<string, unknown>) => Promise<void>>(async items => { Object.assign(store, structuredClone(items)); }),
-  remove: vi.fn<(keys: string[]) => Promise<void>>(async keys => { for (const key of keys) delete store[key]; }),
+  get: vi.fn<(keys: string[] | null) => Promise<Record<string, unknown>>>(async keys =>
+    structuredClone(
+      keys === null
+        ? store
+        : Object.fromEntries(keys.filter(key => key in store).map(key => [key, store[key]])),
+    ),
+  ),
+  set: vi.fn<(items: Record<string, unknown>) => Promise<void>>(async items => {
+    Object.assign(store, structuredClone(items));
+  }),
+  remove: vi.fn<(keys: string[]) => Promise<void>>(async keys => {
+    for (const key of keys) delete store[key];
+  }),
 };
 const bookmarks = {
   getTree: vi.fn<() => Promise<BookmarkNode[]>>(async () => structuredClone(tree)),
-  onCreated: fakeEvent(), onRemoved: fakeEvent(), onChanged: fakeEvent(), onMoved: fakeEvent(),
-  onChildrenReordered: fakeEvent(), onImportBegan: fakeEvent(), onImportEnded: fakeEvent(),
+  onCreated: fakeEvent(),
+  onRemoved: fakeEvent(),
+  onChanged: fakeEvent(),
+  onMoved: fakeEvent(),
+  onChildrenReordered: fakeEvent(),
+  onImportBegan: fakeEvent(),
+  onImportEnded: fakeEvent(),
 };
 const tabs = {
   getCurrent: vi.fn<() => Promise<{ id: number }>>(async () => ({ id: 7 })),
@@ -33,19 +48,38 @@ const tabs = {
 
 beforeEach(() => {
   store = {};
-  tree = [{ id: '0', title: '', children: [{ id: '1', title: 'Bar', children: [
-    { id: 'a', title: 'A', url: 'https://a.example/' },
-    { id: 'b', title: 'B', url: 'https://b.example/' },
-  ] }] }];
+  tree = [
+    {
+      id: '0',
+      title: '',
+      children: [
+        {
+          id: '1',
+          title: 'Bar',
+          children: [
+            { id: 'a', title: 'A', url: 'https://a.example/' },
+            { id: 'b', title: 'B', url: 'https://b.example/' },
+          ],
+        },
+      ],
+    },
+  ];
   vi.clearAllMocks();
   vi.stubGlobal('chrome', { storage: { local: storage, onChanged: fakeEvent() }, bookmarks, tabs });
   // Exclusive per-name locks, like the Web Locks API.
   const queues = new Map<string, Promise<unknown>>();
-  vi.stubGlobal('navigator', { locks: { request: (name: string, task: () => Promise<unknown>) => {
-    const run = (queues.get(name) ?? Promise.resolve()).then(task);
-    queues.set(name, run.catch(() => {}));
-    return run;
-  } } });
+  vi.stubGlobal('navigator', {
+    locks: {
+      request: (name: string, task: () => Promise<unknown>) => {
+        const run = (queues.get(name) ?? Promise.resolve()).then(task);
+        queues.set(
+          name,
+          run.catch(() => {}),
+        );
+        return run;
+      },
+    },
+  });
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -64,7 +98,10 @@ it('returns the bag head after one read and records it in the background', async
   const draw = await (await platform()).nextEffectVariant('pixel-blast');
   expect(draw.variant).toBe('circle');
   await draw.saved;
-  expect(store[variantShuffleKey('pixel-blast')]).toEqual({ remaining: ['diamond'], last: 'circle' });
+  expect(store[variantShuffleKey('pixel-blast')]).toEqual({
+    remaining: ['diamond'],
+    last: 'circle',
+  });
 });
 
 it('shares one full storage read between favorites and preferences at startup', async () => {
@@ -76,7 +113,12 @@ it('shares one full storage read between favorites and preferences at startup', 
 it('writes favorites with URLs and removes legacy keys on the first ordered write', async () => {
   store = { 'favorite:v1:a': true, 'favorite:v1:gone': true };
   await (await platform()).updateFavorites({ type: 'add', id: 'b' });
-  expect(store).toEqual({ [FAVORITES_KEY]: [{ id: 'a', url: 'https://a.example/' }, { id: 'b', url: 'https://b.example/' }] });
+  expect(store).toEqual({
+    [FAVORITES_KEY]: [
+      { id: 'a', url: 'https://a.example/' },
+      { id: 'b', url: 'https://b.example/' },
+    ],
+  });
 });
 
 it('applies functional preference updates to the latest stored value', async () => {
@@ -86,7 +128,11 @@ it('applies functional preference updates to the latest stored value', async () 
     chrome.updatePreferences(current => ({ effects: [...current.effects, 'pixel-blast'] })),
     chrome.updatePreferences(current => ({ effects: [...current.effects, 'crt-terminal'] })),
   ]);
-  expect(store[PREFERENCE_PREFIX + 'effects']).toEqual(['dithering', 'pixel-blast', 'crt-terminal']);
+  expect(store[PREFERENCE_PREFIX + 'effects']).toEqual([
+    'dithering',
+    'pixel-blast',
+    'crt-terminal',
+  ]);
 });
 
 it('refreshes once after a bookmark import instead of once per created bookmark', async () => {

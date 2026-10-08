@@ -6,10 +6,8 @@
   "assets": {
     "directory": "../.output/site",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
   },
-  "routes": [
-    { "pattern": "shadertab.simonwong.cn", "custom_domain": true }
-  ],
-  "observability": { "enabled": false }
+  "routes": [{ "pattern": "shadertab.simonwong.cn", "custom_domain": true }],
+  "observability": { "enabled": false },
 }

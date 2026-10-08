@@ -20,45 +20,69 @@ interface ItemsProps {
 function Items({ entries, onEnter, onLeave, onOpenUrl }: ItemsProps) {
   const { t } = useI18n();
   const [limit, setLimit] = useState(PAGE);
-  if (!entries.length) return <Menu.Item disabled className="menu-empty">{t('noBookmarks')}</Menu.Item>;
-  return <>
-    {entries.slice(0, limit).map(entry => {
-      if (entry.type === 'divider') return <Menu.Separator className="menu-separator" key={entry.id} />;
-      if (entry.type === 'link') return <Menu.LinkItem
-        key={entry.id}
-        className="menu-row"
-        href={entry.bookmark.url}
-        title={entry.bookmark.title}
-        label={entry.bookmark.title}
-        onClick={bookmarkClick(entry.bookmark.url, onOpenUrl)}
-      >
-        <SiteMark bookmark={entry.bookmark} size="menu" />
-        <span className="truncate">{entry.bookmark.title}</span>
-      </Menu.LinkItem>;
-      return <Menu.SubmenuRoot key={entry.id}>
-        <Menu.SubmenuTrigger className="menu-row" label={entry.title}>
-          <HugeiconsIcon aria-hidden="true" icon={Folder01Icon} size={16} strokeWidth={1.8} />
-          <span className="truncate">{entry.title}</span>
-          <span className="folder-count">{entry.count}</span>
-          <HugeiconsIcon aria-hidden="true" icon={ArrowRight01Icon} size={14} />
-        </Menu.SubmenuTrigger>
-        <Menu.Portal>
-          <Menu.Positioner className="menu-positioner" sideOffset={13} collisionPadding={16}>
-            <Menu.Popup className="glass bookmark-menu submenu ui-surface" onPointerEnter={onEnter} onPointerLeave={onLeave}>
-              <Items entries={entry.children} onEnter={onEnter} onLeave={onLeave} onOpenUrl={onOpenUrl} />
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.SubmenuRoot>;
-    })}
-    {entries.length > limit && <Menu.Item
-      className="menu-row menu-more"
-      closeOnClick={false}
-      onClick={() => setLimit(limit + PAGE)}
-    >
-      {t('showMore', { count: entries.length - limit })}
-    </Menu.Item>}
-  </>;
+  if (!entries.length)
+    return (
+      <Menu.Item disabled className="menu-empty">
+        {t('noBookmarks')}
+      </Menu.Item>
+    );
+  return (
+    <>
+      {entries.slice(0, limit).map(entry => {
+        if (entry.type === 'divider')
+          return <Menu.Separator className="menu-separator" key={entry.id} />;
+        if (entry.type === 'link')
+          return (
+            <Menu.LinkItem
+              key={entry.id}
+              className="menu-row"
+              href={entry.bookmark.url}
+              title={entry.bookmark.title}
+              label={entry.bookmark.title}
+              onClick={bookmarkClick(entry.bookmark.url, onOpenUrl)}
+            >
+              <SiteMark bookmark={entry.bookmark} size="menu" />
+              <span className="truncate">{entry.bookmark.title}</span>
+            </Menu.LinkItem>
+          );
+        return (
+          <Menu.SubmenuRoot key={entry.id}>
+            <Menu.SubmenuTrigger className="menu-row" label={entry.title}>
+              <HugeiconsIcon aria-hidden="true" icon={Folder01Icon} size={16} strokeWidth={1.8} />
+              <span className="truncate">{entry.title}</span>
+              <span className="folder-count">{entry.count}</span>
+              <HugeiconsIcon aria-hidden="true" icon={ArrowRight01Icon} size={14} />
+            </Menu.SubmenuTrigger>
+            <Menu.Portal>
+              <Menu.Positioner className="menu-positioner" sideOffset={13} collisionPadding={16}>
+                <Menu.Popup
+                  className="glass bookmark-menu submenu ui-surface"
+                  onPointerEnter={onEnter}
+                  onPointerLeave={onLeave}
+                >
+                  <Items
+                    entries={entry.children}
+                    onEnter={onEnter}
+                    onLeave={onLeave}
+                    onOpenUrl={onOpenUrl}
+                  />
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.SubmenuRoot>
+        );
+      })}
+      {entries.length > limit && (
+        <Menu.Item
+          className="menu-row menu-more"
+          closeOnClick={false}
+          onClick={() => setLimit(limit + PAGE)}
+        >
+          {t('showMore', { count: entries.length - limit })}
+        </Menu.Item>
+      )}
+    </>
+  );
 }
 
 interface Props extends ItemsProps {
@@ -76,45 +100,69 @@ interface Props extends ItemsProps {
  * registers the root menu in the floating tree, without which opening a
  * submenu would close the root menu as a "sibling".
  */
-export function BookmarkMenu({ open, onOpenChange, placeholder, onTriggerPointerEnter, ...items }: Props) {
+export function BookmarkMenu({
+  open,
+  onOpenChange,
+  placeholder,
+  onTriggerPointerEnter,
+  ...items
+}: Props) {
   const { t } = useI18n();
   const button = useRef<HTMLButtonElement>(null);
   // Read during the first render, while the placeholder is still in the document.
-  const [takeFocus] = useState(() => placeholder.current !== null && document.activeElement === placeholder.current);
-  useLayoutEffect(() => { if (takeFocus) button.current?.focus(); }, [takeFocus]);
+  const [takeFocus] = useState(
+    () => placeholder.current !== null && document.activeElement === placeholder.current,
+  );
+  useLayoutEffect(() => {
+    if (takeFocus) button.current?.focus();
+  }, [takeFocus]);
 
-  return <Menu.Root
-    open={open}
-    modal={false}
-    onOpenChange={(next, details) => {
-      // A mouse click on a menu that hover already opened keeps it open; keyboard activation toggles.
-      const event = details.event;
-      if (!next && details.reason === 'trigger-press' && event instanceof MouseEvent && event.detail > 0) return;
-      onOpenChange(next);
-    }}
-  >
-    <Menu.Trigger
-      ref={button}
-      className="dock-button"
-      aria-label={t('allBookmarks')}
-      onPointerEnter={onTriggerPointerEnter}
+  return (
+    <Menu.Root
+      open={open}
+      modal={false}
+      onOpenChange={(next, details) => {
+        // A mouse click on a menu that hover already opened keeps it open; keyboard activation toggles.
+        const event = details.event;
+        if (
+          !next &&
+          details.reason === 'trigger-press' &&
+          event instanceof MouseEvent &&
+          event.detail > 0
+        )
+          return;
+        onOpenChange(next);
+      }}
     >
-      <HugeiconsIcon aria-hidden="true" icon={GridViewIcon} size={17} strokeWidth={1.7} />
-    </Menu.Trigger>
-    <Menu.Portal>
-      <Menu.Positioner className="menu-positioner" side="top" align="center" sideOffset={19} collisionPadding={16}>
-        <Menu.Popup
-          className="glass bookmark-menu ui-surface"
-          id="bookmark-menu"
-          aria-label={t('allBookmarks')}
-          // Escape returns focus to the dock button; pointer dismissals leave focus alone.
-          finalFocus={closeType => closeType === 'keyboard'}
-          onPointerEnter={items.onEnter}
-          onPointerLeave={items.onLeave}
+      <Menu.Trigger
+        ref={button}
+        className="dock-button"
+        aria-label={t('allBookmarks')}
+        onPointerEnter={onTriggerPointerEnter}
+      >
+        <HugeiconsIcon aria-hidden="true" icon={GridViewIcon} size={17} strokeWidth={1.7} />
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner
+          className="menu-positioner"
+          side="top"
+          align="center"
+          sideOffset={19}
+          collisionPadding={16}
         >
-          <Items {...items} />
-        </Menu.Popup>
-      </Menu.Positioner>
-    </Menu.Portal>
-  </Menu.Root>;
+          <Menu.Popup
+            className="glass bookmark-menu ui-surface"
+            id="bookmark-menu"
+            aria-label={t('allBookmarks')}
+            // Escape returns focus to the dock button; pointer dismissals leave focus alone.
+            finalFocus={closeType => closeType === 'keyboard'}
+            onPointerEnter={items.onEnter}
+            onPointerLeave={items.onLeave}
+          >
+            <Items {...items} />
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
+  );
 }

@@ -39,7 +39,7 @@ button {
 
 button:disabled {
   cursor: default;
-  opacity: .4;
+  opacity: 0.4;
 }
 
 a {
@@ -70,7 +70,9 @@ small {
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg);
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--fg);
 }
 
 .truncate {
@@ -102,13 +104,36 @@ small {
 }
 
 /* Owned by the background work: the filter rules stay as they were; the layer fade follows the new stage code. */
-.ambient-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ambient-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
 /* Theme dimming for the static fallback; animated drivers multiply THEME_BRIGHTNESS in their shaders. */
-.ambient-background::before { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 6%); }
-:root[data-theme='night'] .ambient-background::before { background: rgb(0 0 0 / 20%); }
-.effect-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 350ms ease-out; }
-.effect-layer[data-enter='crossfade'] { transition-duration: 600ms; transition-timing-function: ease-in-out; }
-.effect-layer.ready { opacity: 1; }
+.ambient-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 6%);
+}
+:root[data-theme='night'] .ambient-background::before {
+  background: rgb(0 0 0 / 20%);
+}
+.effect-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 350ms ease-out;
+}
+.effect-layer[data-enter='crossfade'] {
+  transition-duration: 600ms;
+  transition-timing-function: ease-in-out;
+}
+.effect-layer.ready {
+  opacity: 1;
+}
 
 .ambient-background canvas {
   display: block;
@@ -151,7 +176,13 @@ small {
 }
 
 .glass::before {
-  background: linear-gradient(135deg, var(--gloss) 0%, transparent 40%, transparent 65%, var(--gloss-end) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--gloss) 0%,
+    transparent 40%,
+    transparent 65%,
+    var(--gloss-end) 100%
+  );
 }
 
 .glass::after {
@@ -172,7 +203,12 @@ small {
 
 .dock.glass::before,
 .source-glass::before {
-  background: linear-gradient(135deg, rgb(255 255 255 / 8%), transparent 55%, rgb(255 255 255 / 2%));
+  background: linear-gradient(
+    135deg,
+    rgb(255 255 255 / 8%),
+    transparent 55%,
+    rgb(255 255 255 / 2%)
+  );
 }
 
 /* ---------- Dock zones ---------- */
@@ -249,7 +285,7 @@ small {
 }
 
 .dock-button:active {
-  transform: scale(.93);
+  transform: scale(0.93);
 }
 
 /* ---------- Source pill ---------- */
@@ -285,7 +321,7 @@ small {
 
 .effect-source:active {
   background: var(--on);
-  transform: scale(.97);
+  transform: scale(0.97);
 }
 
 /* Shuffle button, revealed when the pill is hovered or focused. */
@@ -351,7 +387,13 @@ small {
 }
 
 .favorites-tray::before {
-  background: linear-gradient(135deg, var(--gloss), transparent 35%, transparent 70%, var(--gloss-end));
+  background: linear-gradient(
+    135deg,
+    var(--gloss),
+    transparent 35%,
+    transparent 70%,
+    var(--gloss-end)
+  );
 }
 
 .favorite-items {
@@ -388,7 +430,7 @@ small {
 }
 
 .favorite-tile:active {
-  transform: scale(.96);
+  transform: scale(0.96);
 }
 
 .favorite-tile > .truncate {
@@ -497,7 +539,7 @@ small {
 .bookmark-menu[data-starting-style],
 .bookmark-menu[data-ending-style] {
   opacity: 0;
-  transform: translateY(6px) scale(.98);
+  transform: translateY(6px) scale(0.98);
 }
 
 .bookmark-menu[data-ending-style] {
@@ -511,7 +553,7 @@ small {
 
 .submenu[data-starting-style],
 .submenu[data-ending-style] {
-  transform: scale(.98);
+  transform: scale(0.98);
 }
 
 .menu-row {
@@ -550,7 +592,7 @@ small {
 }
 
 .menu-row > svg:last-child {
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .menu-more {
@@ -610,7 +652,7 @@ small {
 }
 
 .small-button:active:not(:disabled) {
-  transform: scale(.96);
+  transform: scale(0.96);
 }
 
 .text-button {
@@ -733,11 +775,17 @@ small {
 .settings-dialog[data-starting-style],
 .settings-dialog[data-ending-style] {
   opacity: 0;
-  scale: .97;
+  scale: 0.97;
 }
 
 .settings-dialog::before {
-  background: linear-gradient(135deg, var(--gloss), transparent 30%, transparent 75%, var(--gloss-end));
+  background: linear-gradient(
+    135deg,
+    var(--gloss),
+    transparent 30%,
+    transparent 75%,
+    var(--gloss-end)
+  );
 }
 
 .settings-header {
@@ -800,7 +848,7 @@ small {
 .settings-column h2 {
   font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--fg-muted);
 }
@@ -1009,7 +1057,7 @@ small {
 }
 
 .effect-card:active:not(:disabled) {
-  transform: scale(.98);
+  transform: scale(0.98);
 }
 
 .effect-card[aria-checked='true'] {
@@ -1151,7 +1199,9 @@ small {
 }
 
 .search-field:focus-within {
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg);
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--fg);
 }
 
 .search-field input {
@@ -1207,7 +1257,7 @@ small {
 .picker-folder small {
   font-size: 10px;
   font-variant-numeric: tabular-nums;
-  opacity: .8;
+  opacity: 0.8;
 }
 
 .picker-folder:hover,
@@ -1260,11 +1310,11 @@ details[open] > .picker-folder .folder-chevron {
 }
 
 .picker-add:disabled {
-  opacity: .5;
+  opacity: 0.5;
 }
 
 .picker-add[aria-disabled='true'] {
-  opacity: .4;
+  opacity: 0.4;
   cursor: default;
 }
 
@@ -1273,7 +1323,7 @@ details[open] > .picker-folder .folder-chevron {
 @keyframes surface-in {
   from {
     opacity: 0;
-    transform: translateY(6px) scale(.98);
+    transform: translateY(6px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -1384,8 +1434,20 @@ details[open] > .picker-folder .folder-chevron {
   /* Tiles fade at the edges to show the tray scrolls. */
   .favorite-items {
     padding-inline: var(--space-3);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent);
-    mask-image: linear-gradient(to right, transparent, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent);
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--space-4),
+      #000 calc(100% - var(--space-4)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--space-4),
+      #000 calc(100% - var(--space-4)),
+      transparent
+    );
   }
 
   .first-run {

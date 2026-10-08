@@ -3,7 +3,14 @@
  * draw. Shuffle storage, driver dispatch, the source badge, CSS fallbacks and
  * the review scripts (via `variantIdsByEffect`) all read from here.
  */
-import { ARC_SURFACE, EFFECT_IDS, effectBackground, getEffect, type EffectId, type Theme } from './presets';
+import {
+  ARC_SURFACE,
+  EFFECT_IDS,
+  effectBackground,
+  getEffect,
+  type EffectId,
+  type Theme,
+} from './presets';
 import type { DriverFactory } from './drivers/types';
 
 export type Tone = 'light' | 'dark';
@@ -28,7 +35,7 @@ export interface VariantDef {
 
 type VariantSpec = Partial<Omit<VariantDef, 'effect' | 'id' | 'load'>> & Pick<VariantDef, 'load'>;
 
-const followsTheme = (theme: Theme): Tone => theme === 'day' ? 'light' : 'dark';
+const followsTheme = (theme: Theme): Tone => (theme === 'day' ? 'light' : 'dark');
 const alwaysDark = (): Tone => 'dark';
 const alwaysLight = (): Tone => 'light';
 
@@ -36,12 +43,21 @@ export function variantLabel(id: string): string {
   if (id === 'waterPlane') return 'Water';
   return id
     .replace(':', ' · ')
-    .replace(/(^|[- ])([a-z])/g, (_match, prefix: string, letter: string) => `${prefix === '-' ? ' ' : prefix}${letter.toUpperCase()}`);
+    .replace(
+      /(^|[- ])([a-z])/g,
+      (_match, prefix: string, letter: string) =>
+        `${prefix === '-' ? ' ' : prefix}${letter.toUpperCase()}`,
+    );
 }
 
-function define(effect: EffectId, ids: readonly string[], spec: VariantSpec | ((id: string) => VariantSpec)): VariantDef[] {
+function define(
+  effect: EffectId,
+  ids: readonly string[],
+  spec: VariantSpec | ((id: string) => VariantSpec),
+): VariantDef[] {
   return ids.map(id => {
-    const { label, source, background, tone, density, load } = typeof spec === 'function' ? spec(id) : spec;
+    const { label, source, background, tone, density, load } =
+      typeof spec === 'function' ? spec(id) : spec;
     return {
       effect,
       id,
@@ -70,9 +86,9 @@ const GRAIN_DENSITY = 1.25;
 const DITHERING_SHAPES = ['simplex', 'warp', 'dots', 'wave', 'ripple', 'swirl', 'sphere'];
 const DITHERING_TYPES = ['random', '2x2', '4x4', '8x8'];
 const RETIRED_DITHERING = new Set(['ripple:4x4']);
-const DITHERING_IDS = DITHERING_SHAPES
-  .flatMap(shape => DITHERING_TYPES.map(type => `${shape}:${type}`))
-  .filter(id => !RETIRED_DITHERING.has(id));
+const DITHERING_IDS = DITHERING_SHAPES.flatMap(shape =>
+  DITHERING_TYPES.map(type => `${shape}:${type}`),
+).filter(id => !RETIRED_DITHERING.has(id));
 
 const arcSource = (id: string) => `https://threeui.com/backgrounds/predictive-arc/${id}`;
 const arcSurface = (theme: Theme) => ARC_SURFACE[theme];
@@ -86,16 +102,18 @@ const ARC_VARIANTS: Record<string, VariantSpec> = {
   },
   'signal-particles': {
     background: arcSurface,
-    load: () => import('./drivers/arc-particles').then(module => module.createSignalParticlesDriver),
+    load: () =>
+      import('./drivers/arc-particles').then(module => module.createSignalParticlesDriver),
   },
   'override-grid': {
     background: arcSurface,
     load: () => import('./drivers/arc-particles').then(module => module.createOverrideGridDriver),
   },
   'ribbon-field': {
-    background: theme => theme === 'day'
-      ? 'radial-gradient(ellipse at 75% 55%, #d3e5ee, #f0f5f9 70%)'
-      : 'radial-gradient(ellipse at 75% 55%, #143a44, #030305 70%)',
+    background: theme =>
+      theme === 'day'
+        ? 'radial-gradient(ellipse at 75% 55%, #d3e5ee, #f0f5f9 70%)'
+        : 'radial-gradient(ellipse at 75% 55%, #143a44, #030305 70%)',
     load: () => import('./drivers/arc-fields').then(module => module.createRibbonFieldDriver),
   },
   'void-field': {
@@ -109,7 +127,8 @@ const ARC_VARIANTS: Record<string, VariantSpec> = {
   },
 };
 
-const shaderGradient = () => import('./drivers/shader-gradient').then(module => module.createDriver);
+const shaderGradient = () =>
+  import('./drivers/shader-gradient').then(module => module.createDriver);
 const SHADER_GRADIENT_VARIANTS: Record<string, VariantSpec> = {
   plane: {
     background: () => 'linear-gradient(125deg, #ff5005, #dbba95 65%, #d0bce1)',
@@ -129,19 +148,33 @@ const SHADER_GRADIENT_VARIANTS: Record<string, VariantSpec> = {
 };
 
 export const EFFECT_VARIANTS: Record<EffectId, readonly VariantDef[]> = {
-  'grain-gradient': define('grain-gradient', ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'], { density: GRAIN_DENSITY, load: paper }),
+  'grain-gradient': define(
+    'grain-gradient',
+    ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'],
+    { density: GRAIN_DENSITY, load: paper },
+  ),
   // Ripple fills most of the frame with the front colour, so it reads dark in both themes.
-  dithering: define('dithering', DITHERING_IDS, id => ({ load: paper, ...(id.startsWith('ripple:') ? { tone: alwaysDark } : {}) })),
+  dithering: define('dithering', DITHERING_IDS, id => ({
+    load: paper,
+    ...(id.startsWith('ripple:') ? { tone: alwaysDark } : {}),
+  })),
   // Pixel Field: an original shader; the `pixel-blast` id is kept for stored preferences.
   'pixel-blast': define('pixel-blast', ['square', 'circle', 'triangle', 'diamond'], {
     load: () => import('./drivers/pixel-blast').then(module => module.createDriver),
   }),
-  'data-pixel-arc': define('data-pixel-arc', Object.keys(ARC_VARIANTS), id => ({ source: arcSource(id), ...ARC_VARIANTS[id]! })),
+  'data-pixel-arc': define('data-pixel-arc', Object.keys(ARC_VARIANTS), id => ({
+    source: arcSource(id),
+    ...ARC_VARIANTS[id]!,
+  })),
   'crt-terminal': define('crt-terminal', ['terminal'], {
     tone: alwaysDark,
     load: () => import('./drivers/crt').then(module => module.createDriver),
   }),
-  'shader-gradient': define('shader-gradient', Object.keys(SHADER_GRADIENT_VARIANTS), id => SHADER_GRADIENT_VARIANTS[id]!),
+  'shader-gradient': define(
+    'shader-gradient',
+    Object.keys(SHADER_GRADIENT_VARIANTS),
+    id => SHADER_GRADIENT_VARIANTS[id]!,
+  ),
 };
 
 /** Variant ids of one effect, in registry order. */
@@ -151,7 +184,10 @@ export function variantIds(effect: EffectId): string[] {
 
 /** Plain id lists for every effect; used by the Node review scripts. */
 export function variantIdsByEffect(): Record<EffectId, string[]> {
-  return Object.fromEntries(EFFECT_IDS.map(effect => [effect, variantIds(effect)])) as Record<EffectId, string[]>;
+  return Object.fromEntries(EFFECT_IDS.map(effect => [effect, variantIds(effect)])) as Record<
+    EffectId,
+    string[]
+  >;
 }
 
 export function getVariant(effect: EffectId, id: string | undefined): VariantDef | undefined {

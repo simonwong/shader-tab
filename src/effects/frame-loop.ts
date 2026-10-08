@@ -37,7 +37,10 @@ export function createFrameLoop(draw: (time: number) => void, initialFps: number
     if (!running || fps <= 0) return;
     const wait = slot + 1000 / fps - now;
     if (wait > TIMER_SLEEP_MIN_MS) {
-      timer = window.setTimeout(() => { timer = 0; frame = requestAnimationFrame(tick); }, wait - TIMER_WAKE_EARLY_MS);
+      timer = window.setTimeout(() => {
+        timer = 0;
+        frame = requestAnimationFrame(tick);
+      }, wait - TIMER_WAKE_EARLY_MS);
     } else {
       frame = requestAnimationFrame(tick);
     }

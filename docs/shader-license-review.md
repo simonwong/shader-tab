@@ -6,13 +6,13 @@
 
 按核对到的条款，当前作为完整新标签页应用使用这些效果，具有发布及商业使用的许可基础，不要求将整个扩展开源。代码许可不等于商标授权，也不能代替商店隐私披露。
 
-| 实际使用 | 版本或来源 | 许可证 | 主要要求 |
-| --- | --- | --- | --- |
-| Paper Grain Gradient / Dithering | @paper-design/shaders 0.0.81 | Apache-2.0 | 随包保留 LICENSE、NOTICE 与适用署名；修改原文件时标明修改；不授予品牌商标权 |
-| Shader Gradient Plane / Sphere / Water | @shadergradient/react 2.4.20 | MIT | 保留版权与许可声明；允许成品商业使用 |
-| ThreeUI Predictive Arc 系列 / CRT | 存入 src/effects/vendor 的上游代码 | MIT | 保留 Meng To 的版权与完整许可文本；修改后仍保留声明 |
-| Three.js / React Three Fiber / camera-controls / GLSL noise | 当前依赖和本地许可证 | MIT | 保留各自版权与许可声明 |
-| Space Grotesk | @fontsource-variable/space-grotesk 5.3.0 | OFL-1.1 | 可随应用分发；保留字体许可；字体本身不能单独售卖，修改字体需遵守保留字体名条件 |
+| 实际使用                                                    | 版本或来源                               | 许可证     | 主要要求                                                                       |
+| ----------------------------------------------------------- | ---------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| Paper Grain Gradient / Dithering                            | @paper-design/shaders 0.0.81             | Apache-2.0 | 随包保留 LICENSE、NOTICE 与适用署名；修改原文件时标明修改；不授予品牌商标权    |
+| Shader Gradient Plane / Sphere / Water                      | @shadergradient/react 2.4.20             | MIT        | 保留版权与许可声明；允许成品商业使用                                           |
+| ThreeUI Predictive Arc 系列 / CRT                           | 存入 src/effects/vendor 的上游代码       | MIT        | 保留 Meng To 的版权与完整许可文本；修改后仍保留声明                            |
+| Three.js / React Three Fiber / camera-controls / GLSL noise | 当前依赖和本地许可证                     | MIT        | 保留各自版权与许可声明                                                         |
+| Space Grotesk                                               | @fontsource-variable/space-grotesk 5.3.0 | OFL-1.1    | 可随应用分发；保留字体许可；字体本身不能单独售卖，修改字体需遵守保留字体名条件 |
 
 当前产品提供书签导航、收藏与背景显示，不提供组件下载、代码导出或素材包。若将产品改为 shader 组件库、付费代码导出器或移植素材合集，应重新核对各上游许可。
 

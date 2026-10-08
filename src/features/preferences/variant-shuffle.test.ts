@@ -1,12 +1,18 @@
 import { expect, it } from 'vitest';
 import { variantIds } from '../../effects/variants';
 import { EFFECT_IDS } from '../../effects/presets';
-import { drawStoredVariant, drawVariant, LEGACY_SHUFFLE_KEYS, settleVariant, variantShuffleKey } from './variant-shuffle';
+import {
+  drawStoredVariant,
+  drawVariant,
+  LEGACY_SHUFFLE_KEYS,
+  settleVariant,
+  variantShuffleKey,
+} from './variant-shuffle';
 import { readPreferences, PREFERENCE_PREFIX } from './model';
 
 it.each(EFFECT_IDS)('%s draws all variants per round without repeating at the boundary', effect => {
   const choices = variantIds(effect);
-  for (const seed of [0, .33, .7, .999]) {
+  for (const seed of [0, 0.33, 0.7, 0.999]) {
     let saved: unknown;
     const draws = Array.from({ length: choices.length * 4 }, () => {
       const draw = drawVariant(effect, saved, () => seed);
@@ -22,7 +28,12 @@ it.each(EFFECT_IDS)('%s draws all variants per round without repeating at the bo
 });
 
 it('recovers invalid storage and keeps unrelated families out of a shuffle bag', () => {
-  for (const saved of [null, 'wave', { remaining: ['invalid', 'wave', 'wave', 2] }, { remaining: false }]) {
+  for (const saved of [
+    null,
+    'wave',
+    { remaining: ['invalid', 'wave', 'wave', 2] },
+    { remaining: false },
+  ]) {
     const draw = drawVariant('grain-gradient', saved);
     expect(variantIds('grain-gradient')).toContain(draw.variant);
     expect(new Set(draw.state.remaining).size).toBe(draw.state.remaining.length);
@@ -38,7 +49,10 @@ it('keeps every dithering shape and algorithm with the supported combinations', 
 });
 
 it('discards retired CRT entries from an existing shuffle bag', () => {
-  const draw = drawVariant('crt-terminal', { remaining: ['blue-screen', 'nintendo', 'cinematic', 'retro-game'], last: 'terminal' });
+  const draw = drawVariant('crt-terminal', {
+    remaining: ['blue-screen', 'nintendo', 'cinematic', 'retro-game'],
+    last: 'terminal',
+  });
   expect(draw.variant).toBe('terminal');
   expect(draw.state.remaining).toEqual([]);
 });
@@ -46,11 +60,14 @@ it('discards retired CRT entries from an existing shuffle bag', () => {
 it.each([
   ['dithering', 'ripple:4x4', 'ripple:8x8'],
   ['data-pixel-arc', 'halftone-flow', 'ribbon-field'],
-] as const)('discards retired %s variants without losing the supported queue', (effect, retired, retained) => {
-  const draw = drawVariant(effect, { remaining: [retired, retained] });
-  expect(draw.variant).toBe(retained);
-  expect(draw.state.remaining).toEqual([]);
-});
+] as const)(
+  'discards retired %s variants without losing the supported queue',
+  (effect, retired, retained) => {
+    const draw = drawVariant(effect, { remaining: [retired, retained] });
+    expect(draw.variant).toBe(retained);
+    expect(draw.state.remaining).toEqual([]);
+  },
+);
 
 it('draws Shader Gradient shapes as ordinary variants', () => {
   expect(variantIds('shader-gradient')).toEqual(['plane', 'sphere', 'waterPlane']);
@@ -76,7 +93,9 @@ const LEGACY = LEGACY_SHUFFLE_KEYS['shader-gradient']!;
 const KEY = variantShuffleKey('shader-gradient');
 
 it('continues a legacy Shader Gradient queue and removes the old key', () => {
-  const draw = drawStoredVariant('shader-gradient', { [LEGACY]: { remaining: ['waterPlane', 'plane'], last: 'sphere' } });
+  const draw = drawStoredVariant('shader-gradient', {
+    [LEGACY]: { remaining: ['waterPlane', 'plane'], last: 'sphere' },
+  });
   expect(LEGACY).toBe('shader-gradient:shuffle:v1');
   expect(draw.variant).toBe('waterPlane');
   expect(draw.set).toEqual({ [KEY]: { remaining: ['plane'], last: 'waterPlane' } });
@@ -84,7 +103,11 @@ it('continues a legacy Shader Gradient queue and removes the old key', () => {
 });
 
 it('starts a fresh round from a used-up legacy queue without repeating its last shape', () => {
-  const draw = drawStoredVariant('shader-gradient', { [LEGACY]: { remaining: [], last: 'plane' } }, () => 0);
+  const draw = drawStoredVariant(
+    'shader-gradient',
+    { [LEGACY]: { remaining: [], last: 'plane' } },
+    () => 0,
+  );
   expect(draw.variant).not.toBe('plane');
   expect(draw.set[KEY]!.remaining).toHaveLength(2);
   expect(draw.remove).toEqual([LEGACY]);
@@ -124,18 +147,27 @@ it.each(EFFECT_IDS)('%s: peeking then settling covers every variant per round', 
 it('settles against a bag another tab already advanced', () => {
   const key = variantShuffleKey('pixel-blast');
   // This tab peeked "circle"; another tab drew it first and left only "diamond".
-  expect(settleVariant('pixel-blast', { [key]: { remaining: ['diamond'], last: 'circle' } }, 'circle').set[key])
-    .toEqual({ remaining: ['diamond'], last: 'circle' });
+  expect(
+    settleVariant('pixel-blast', { [key]: { remaining: ['diamond'], last: 'circle' } }, 'circle')
+      .set[key],
+  ).toEqual({ remaining: ['diamond'], last: 'circle' });
   // The bag is used up: a new round starts without the variant on screen.
-  const fresh = settleVariant('pixel-blast', { [key]: { remaining: [], last: 'square' } }, 'square').set[key]!;
+  const fresh = settleVariant('pixel-blast', { [key]: { remaining: [], last: 'square' } }, 'square')
+    .set[key]!;
   expect(fresh.remaining.toSorted()).toEqual(['circle', 'diamond', 'triangle']);
   expect(fresh.last).toBe('square');
 });
 
 it('moves a legacy Shader Gradient bag when settling', () => {
   const legacy = LEGACY_SHUFFLE_KEYS['shader-gradient']!;
-  const draw = settleVariant('shader-gradient', { [legacy]: { remaining: ['waterPlane', 'plane'], last: 'sphere' } }, 'waterPlane');
-  expect(draw.set).toEqual({ [variantShuffleKey('shader-gradient')]: { remaining: ['plane'], last: 'waterPlane' } });
+  const draw = settleVariant(
+    'shader-gradient',
+    { [legacy]: { remaining: ['waterPlane', 'plane'], last: 'sphere' } },
+    'waterPlane',
+  );
+  expect(draw.set).toEqual({
+    [variantShuffleKey('shader-gradient')]: { remaining: ['plane'], last: 'waterPlane' },
+  });
   expect(draw.remove).toEqual([legacy]);
 });
 

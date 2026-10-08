@@ -8,14 +8,14 @@
 
 ## 候选比较
 
-| 候选 | 可复用能力 | 限制与接入判断 |
-| --- | --- | --- |
-| [Paper Shaders](https://github.com/paper-design/shaders) | WebGL2、原生 JS 零依赖、React 包、可调预设和现成动画。当前为 Apache-2.0。 | 首选。鼠标交互取决于具体效果；可复用现有指针输入驱动参数。需适配限帧、30 秒隐藏释放、静态降级。 |
-| [React Bits](https://github.com/DavidHDev/react-bits) | 可按需复制单个背景；Iridescence、Orb、Prism 使用 OGL，具备不同的鼠标交互。 | MIT + Commons Clause，有额外限制；不能简称 MIT 开源。各组件依赖、渲染成本和暂停行为不同，须逐个审查。 |
-| [ShaderGradient](https://github.com/ruucm/shadergradient) | MIT，现成 3D 动态渐变，参数可配置；React、R3F、Three 等依赖。 | 更适合柔和的渐变雕塑；对当前清晰结构的诉求优先级较低。离线打包需审计并本地化环境贴图。 |
-| [Vanta](https://github.com/tengbao/vanta) | MIT，Waves、Net、Halo 等背景，部分支持鼠标与触摸；依赖 Three 或 p5。 | 可快速试效果；本次核查的主分支可见最新提交为 2023-01-12，示例依赖较旧。长期采用前需评估维护成本。 |
-| [Three + R3F/Drei](https://github.com/pmndrs/drei) | MIT；MeshDistortMaterial、MeshWobbleMaterial 等能省去部分材质实现。 | 适合实体雕塑和复杂场景，仍须设计灯光、构图和交互。接入工作大于单个现成背景。 |
-| [LYGIA](https://github.com/patriciogonzalezvivo/lygia) | GLSL/WGSL 等语言的噪声、色彩和距离场函数库。 | 提供基础函数，不提供完整背景设计。Prosperity + Patron 双许可，有商业使用条件，不作为当前首选。 |
+| 候选                                                      | 可复用能力                                                                 | 限制与接入判断                                                                                        |
+| --------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [Paper Shaders](https://github.com/paper-design/shaders)  | WebGL2、原生 JS 零依赖、React 包、可调预设和现成动画。当前为 Apache-2.0。  | 首选。鼠标交互取决于具体效果；可复用现有指针输入驱动参数。需适配限帧、30 秒隐藏释放、静态降级。       |
+| [React Bits](https://github.com/DavidHDev/react-bits)     | 可按需复制单个背景；Iridescence、Orb、Prism 使用 OGL，具备不同的鼠标交互。 | MIT + Commons Clause，有额外限制；不能简称 MIT 开源。各组件依赖、渲染成本和暂停行为不同，须逐个审查。 |
+| [ShaderGradient](https://github.com/ruucm/shadergradient) | MIT，现成 3D 动态渐变，参数可配置；React、R3F、Three 等依赖。              | 更适合柔和的渐变雕塑；对当前清晰结构的诉求优先级较低。离线打包需审计并本地化环境贴图。                |
+| [Vanta](https://github.com/tengbao/vanta)                 | MIT，Waves、Net、Halo 等背景，部分支持鼠标与触摸；依赖 Three 或 p5。       | 可快速试效果；本次核查的主分支可见最新提交为 2023-01-12，示例依赖较旧。长期采用前需评估维护成本。     |
+| [Three + R3F/Drei](https://github.com/pmndrs/drei)        | MIT；MeshDistortMaterial、MeshWobbleMaterial 等能省去部分材质实现。        | 适合实体雕塑和复杂场景，仍须设计灯光、构图和交互。接入工作大于单个现成背景。                          |
+| [LYGIA](https://github.com/patriciogonzalezvivo/lygia)    | GLSL/WGSL 等语言的噪声、色彩和距离场函数库。                               | 提供基础函数，不提供完整背景设计。Prosperity + Patron 双许可，有商业使用条件，不作为当前首选。        |
 
 Paper 的 [changelog](https://github.com/paper-design/shaders/blob/main/CHANGELOG.md) 记录了版本更新、性能及兼容修复；README 明确要求固定版本，因为 0.0.x 仍可能包含破坏性变化。React Bits 的 [提交记录](https://github.com/DavidHDev/react-bits/commits/main) 包含近期新增背景与兼容修复。维护判断应结合发布、修复及所选组件代码，不能只看 stars。
 

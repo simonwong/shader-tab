@@ -21,13 +21,17 @@ async function main() {
   const [platform] = await Promise.all([createPlatform(), loadLocale(bootLocale).catch(() => {})]);
   const t = createTranslator(bootLocale);
   createRoot(document.getElementById('root')!, {
-    onUncaughtError: (error, info) => console.error('Shader Tab crashed.', error, info.componentStack),
-    onCaughtError: (error, info) => console.error('Shader Tab recovered from an error.', error, info.componentStack),
-  }).render(<StrictMode>
-    <RootBoundary t={t}>
-      <App platform={platform} boot={boot} />
-    </RootBoundary>
-  </StrictMode>);
+    onUncaughtError: (error, info) =>
+      console.error('Shader Tab crashed.', error, info.componentStack),
+    onCaughtError: (error, info) =>
+      console.error('Shader Tab recovered from an error.', error, info.componentStack),
+  }).render(
+    <StrictMode>
+      <RootBoundary t={t}>
+        <App platform={platform} boot={boot} />
+      </RootBoundary>
+    </StrictMode>,
+  );
 }
 
 void main().catch((error: unknown) => {

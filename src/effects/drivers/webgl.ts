@@ -57,7 +57,11 @@ export function deleteProgram(gl: GL, linked: LinkedProgram | undefined): void {
  * Uploads one triangle that covers the viewport and binds it to `attribute`.
  * Returns the buffer so the caller can delete it on dispose.
  */
-export function bindFullscreenTriangle(gl: GL, program: WebGLProgram, attribute: string): WebGLBuffer | null {
+export function bindFullscreenTriangle(
+  gl: GL,
+  program: WebGLProgram,
+  attribute: string,
+): WebGLBuffer | null {
   const buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -72,7 +76,8 @@ export function loseContext(gl: GL | null | undefined): void {
 }
 
 /** Vertex shader for `bindFullscreenTriangle` with the attribute named `position`. */
-export const FULLSCREEN_VERTEX = 'attribute vec2 position;\nvoid main() { gl_Position = vec4(position, 0.0, 1.0); }';
+export const FULLSCREEN_VERTEX =
+  'attribute vec2 position;\nvoid main() { gl_Position = vec4(position, 0.0, 1.0); }';
 
 export interface FullscreenSurface {
   /** Backing-store size in device pixels. */
@@ -94,7 +99,10 @@ export interface FullscreenShaderSpec {
   /** Attribute that receives the fullscreen triangle; defaults to `position`. */
   attribute?: string;
   /** Runs once after linking with the program bound, and returns the per-frame callbacks. */
-  setup: (gl: WebGLRenderingContext, uniform: UniformLookup) => {
+  setup: (
+    gl: WebGLRenderingContext,
+    uniform: UniformLookup,
+  ) => {
     resize?: (surface: FullscreenSurface) => void;
     frame: (seconds: number, pointer: Pointer) => void;
   };
@@ -107,7 +115,13 @@ export interface FullscreenShaderSpec {
  */
 export function mountFullscreenShader(host: HTMLElement, spec: FullscreenShaderSpec): EffectDriver {
   const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' });
+  const gl = canvas.getContext('webgl', {
+    alpha: false,
+    antialias: false,
+    depth: false,
+    stencil: false,
+    powerPreference: 'low-power',
+  });
   if (!gl) throw new Error('WebGL is unavailable');
   let linked: LinkedProgram | undefined;
   let buffer: WebGLBuffer | null = null;
@@ -131,7 +145,13 @@ export function mountFullscreenShader(host: HTMLElement, spec: FullscreenShaderS
         canvas.width = Math.max(1, Math.round(width * density));
         canvas.height = Math.max(1, Math.round(height * density));
         gl.viewport(0, 0, canvas.width, canvas.height);
-        callbacks.resize?.({ pixelWidth: canvas.width, pixelHeight: canvas.height, width, height, density });
+        callbacks.resize?.({
+          pixelWidth: canvas.width,
+          pixelHeight: canvas.height,
+          width,
+          height,
+          density,
+        });
       },
       render(seconds, _delta, pointer) {
         callbacks.frame(seconds, pointer);
@@ -149,8 +169,13 @@ export function mountFullscreenShader(host: HTMLElement, spec: FullscreenShaderS
  * Resize callback for shaders that work in CSS pixels: feeds `uCanvas`
  * (backing store size), `uDensity` and `uSize` (CSS size).
  */
-export function cssSurfaceUniforms(gl: WebGLRenderingContext, uniform: UniformLookup): (surface: FullscreenSurface) => void {
-  const canvas = uniform('uCanvas'), density = uniform('uDensity'), size = uniform('uSize');
+export function cssSurfaceUniforms(
+  gl: WebGLRenderingContext,
+  uniform: UniformLookup,
+): (surface: FullscreenSurface) => void {
+  const canvas = uniform('uCanvas'),
+    density = uniform('uDensity'),
+    size = uniform('uSize');
   return surface => {
     gl.uniform2f(canvas, surface.pixelWidth, surface.pixelHeight);
     gl.uniform1f(density, surface.density);
@@ -161,10 +186,12 @@ export function cssSurfaceUniforms(gl: WebGLRenderingContext, uniform: UniformLo
 /** `#rrggbb` as a 0–1 RGB triple. */
 export function hexColor(hex: string): [number, number, number] {
   const value = Number.parseInt(hex.slice(1), 16);
-  return [(value >> 16 & 255) / 255, (value >> 8 & 255) / 255, (value & 255) / 255];
+  return [((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
 }
 
 /** GLSL `vec3` literal for a `#rrggbb` colour. */
 export function glslColor(hex: string): string {
-  return `vec3(${hexColor(hex).map(channel => channel.toFixed(6)).join(', ')})`;
+  return `vec3(${hexColor(hex)
+    .map(channel => channel.toFixed(6))
+    .join(', ')})`;
 }

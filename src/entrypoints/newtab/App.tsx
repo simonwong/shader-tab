@@ -1,4 +1,13 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { I18nContext, useLanguage } from '../../i18n/react';
@@ -10,8 +19,18 @@ import { SourceBadge } from '../../effects/SourceBadge';
 import { resolveVariant } from '../../effects/variants';
 import { flattenBookmarks, rootMenu } from '../../features/bookmarks/model';
 import { sortBookmarkTree } from '../../features/bookmarks/sorting';
-import { changeFavorites, resolveFavorites, type FavoriteAction, type FavoriteRef } from '../../features/favorites/model';
-import { DEFAULT_PREFERENCES, resolvePreferenceUpdate, type PreferenceUpdate, type Preferences } from '../../features/preferences/model';
+import {
+  changeFavorites,
+  resolveFavorites,
+  type FavoriteAction,
+  type FavoriteRef,
+} from '../../features/favorites/model';
+import {
+  DEFAULT_PREFERENCES,
+  resolvePreferenceUpdate,
+  type PreferenceUpdate,
+  type Preferences,
+} from '../../features/preferences/model';
 import { useEffectSelection } from '../../features/preferences/use-effect-selection';
 import { useTheme } from '../../features/preferences/use-theme';
 import { Dock, SettingsDock } from '../../features/navigation/Dock';
@@ -24,7 +43,12 @@ import { defaultTone, writeBoot, type BootState } from './boot';
 import { useOptimistic, useSaveQueue } from './use-saves';
 
 // A new lazy component per attempt: React caches a failed import, so a retry needs a fresh one.
-const loadSettings = () => lazy(() => import('../../features/settings/SettingsDialog').then(module => ({ default: module.SettingsDialog })));
+const loadSettings = () =>
+  lazy(() =>
+    import('../../features/settings/SettingsDialog').then(module => ({
+      default: module.SettingsDialog,
+    })),
+  );
 
 const NO_FAVORITES: FavoriteRef[] = [];
 
@@ -46,13 +70,21 @@ export function App({ platform, boot }: Props) {
   const preferenceEdits = useOptimistic<Partial<Preferences>>(savedPreferences.data);
   const favoriteEdits = useOptimistic<FavoriteRef[]>(savedFavorites.data);
 
-  const basePreferences = useMemo<Preferences>(() => savedPreferences.data ?? {
-    ...DEFAULT_PREFERENCES,
-    appearance: boot.appearance ?? DEFAULT_PREFERENCES.appearance,
-    language: boot.language ?? DEFAULT_PREFERENCES.language,
-  }, [savedPreferences.data, boot.appearance, boot.language]);
+  const basePreferences = useMemo<Preferences>(
+    () =>
+      savedPreferences.data ?? {
+        ...DEFAULT_PREFERENCES,
+        appearance: boot.appearance ?? DEFAULT_PREFERENCES.appearance,
+        language: boot.language ?? DEFAULT_PREFERENCES.language,
+      },
+    [savedPreferences.data, boot.appearance, boot.language],
+  );
   const preferences = useMemo(
-    () => preferenceEdits.values.reduce<Preferences>((current, patch) => ({ ...current, ...patch }), basePreferences),
+    () =>
+      preferenceEdits.values.reduce<Preferences>(
+        (current, patch) => ({ ...current, ...patch }),
+        basePreferences,
+      ),
     [basePreferences, preferenceEdits.values],
   );
   const i18n = useLanguage(preferences.language);
@@ -79,7 +111,10 @@ export function App({ platform, boot }: Props) {
   });
   const onboarding = preferencesReady && preferences.onboarding && !settings;
   const dock = useDockPanels(preferences);
-  const visible = useIdleControls(preferences.idleDelay, dock.inside || dock.panel !== null || settings || onboarding);
+  const visible = useIdleControls(
+    preferences.idleDelay,
+    dock.inside || dock.panel !== null || settings || onboarding,
+  );
   const controlsVisible = visible && !settings;
 
   const bookmarks = useMemo(() => flattenBookmarks(tree.data ?? []), [tree.data]);
@@ -89,13 +124,16 @@ export function App({ platform, boot }: Props) {
   );
   const menu = useMemo(() => rootMenu(sortedTree, t('untitledFolder')), [sortedTree, t]);
   const favoriteRefs = favoriteEdits.values.at(-1) ?? savedFavorites.data ?? NO_FAVORITES;
-  const favorites = useMemo(() => resolveFavorites(favoriteRefs, bookmarks), [favoriteRefs, bookmarks]);
+  const favorites = useMemo(
+    () => resolveFavorites(favoriteRefs, bookmarks),
+    [favoriteRefs, bookmarks],
+  );
   const readError = tree.error || savedFavorites.error || savedPreferences.error;
   const ready = tree.data !== undefined && savedFavorites.data !== undefined && preferencesReady;
   const shownError = readError || saves.error;
   const tone = selection
     ? resolveVariant(selection.effect, selection.variant).tone(theme)
-    : boot.tone?.[theme] ?? defaultTone(theme);
+    : (boot.tone?.[theme] ?? defaultTone(theme));
 
   // Latest values for handlers that may run twice before the next render (fast double clicks).
   const latest = useRef({ preferences, favoriteRefs });
@@ -127,7 +165,9 @@ export function App({ platform, boot }: Props) {
 
   const { closeNow, setPanel } = dock;
   const openSettings = useCallback(() => {
-    const fromFavorites = document.activeElement instanceof HTMLElement && document.activeElement.closest('.favorites-tray');
+    const fromFavorites =
+      document.activeElement instanceof HTMLElement &&
+      document.activeElement.closest('.favorites-tray');
     settingsReturnFocus.current = fromFavorites ? favoritesButton.current : settingsButton.current;
     closeNow();
     if (settingsFailed.current) {
@@ -149,115 +189,173 @@ export function App({ platform, boot }: Props) {
   });
 
   const { begin: beginPreferenceEdit } = preferenceEdits;
-  const onPreferenceChange = useCallback((update: PreferenceUpdate) => {
-    const patch = resolvePreferenceUpdate(latest.current.preferences, update);
-    if (!Object.keys(patch).length) return;
-    latest.current.preferences = { ...latest.current.preferences, ...patch };
-    const settle = beginPreferenceEdit(patch);
-    void runSave(() => platform.updatePreferences(update)).then(settle);
-  }, [platform, beginPreferenceEdit, runSave]);
+  const onPreferenceChange = useCallback(
+    (update: PreferenceUpdate) => {
+      const patch = resolvePreferenceUpdate(latest.current.preferences, update);
+      if (!Object.keys(patch).length) return;
+      latest.current.preferences = { ...latest.current.preferences, ...patch };
+      const settle = beginPreferenceEdit(patch);
+      void runSave(() => platform.updatePreferences(update)).then(settle);
+    },
+    [platform, beginPreferenceEdit, runSave],
+  );
 
   const { begin: beginFavoriteEdit } = favoriteEdits;
-  const onFavoriteChange = useCallback(async (action: FavoriteAction) => {
-    const current = latest.current.favoriteRefs;
-    let next: FavoriteRef[];
-    try {
-      next = changeFavorites(current, action, bookmarks);
-    } catch (error) {
-      setSaveError(error instanceof Error ? error : new MessageError('saveFailed'));
-      return false;
-    }
-    // A repeated click (adding twice, removing twice) changes nothing and is not saved again.
-    if (sameOrder(next, resolveFavorites(current, bookmarks))) return true;
-    latest.current.favoriteRefs = next;
-    const settle = beginFavoriteEdit(next);
-    const saved = await runSave(() => platform.updateFavorites(action));
-    settle(saved);
-    return saved;
-  }, [platform, bookmarks, beginFavoriteEdit, runSave, setSaveError]);
+  const onFavoriteChange = useCallback(
+    async (action: FavoriteAction) => {
+      const current = latest.current.favoriteRefs;
+      let next: FavoriteRef[];
+      try {
+        next = changeFavorites(current, action, bookmarks);
+      } catch (error) {
+        setSaveError(error instanceof Error ? error : new MessageError('saveFailed'));
+        return false;
+      }
+      // A repeated click (adding twice, removing twice) changes nothing and is not saved again.
+      if (sameOrder(next, resolveFavorites(current, bookmarks))) return true;
+      latest.current.favoriteRefs = next;
+      const settle = beginFavoriteEdit(next);
+      const saved = await runSave(() => platform.updateFavorites(action));
+      settle(saved);
+      return saved;
+    },
+    [platform, bookmarks, beginFavoriteEdit, runSave, setSaveError],
+  );
 
-  const onOpenUrl = useCallback((url: string, background: boolean) => {
-    platform.openUrl(url, background).catch((error: unknown) => {
-      console.warn('Could not open bookmark.', error);
-      setNotice(new MessageError('openFailed'));
-    });
-  }, [platform]);
+  const onOpenUrl = useCallback(
+    (url: string, background: boolean) => {
+      platform.openUrl(url, background).catch((error: unknown) => {
+        console.warn('Could not open bookmark.', error);
+        setNotice(new MessageError('openFailed'));
+      });
+    },
+    [platform],
+  );
 
   const closeSettings = () => setSettings(false);
-  const returnFocus = () => settingsReturnFocus.current?.isConnected ? settingsReturnFocus.current : settingsButton.current;
+  const returnFocus = () =>
+    settingsReturnFocus.current?.isConnected ? settingsReturnFocus.current : settingsButton.current;
   const notices = readError ?? (settings ? undefined : notice);
 
-  return <I18nContext.Provider value={i18n}>
-    <main
-      inert={settings}
-      className="new-tab"
-      aria-label={t('newTab')}
-      data-mode={platform.mode}
-      data-effect={selection?.effect ?? effect}
-      data-tone={tone}
-    >
-      {selection
-        ? <AmbientBackground
-          effect={selection.effect}
-          variant={selection.variant}
-          theme={theme}
-          pointerBlocked={settings}
-        />
-        : <div className="ambient-background boot-background" aria-hidden="true" />}
-      <Dock
-        showFavorites={preferences.showFavorites}
-        showBookmarks={preferences.showBookmarks}
-        suspended={settings}
-        visible={controlsVisible}
-        panel={dock.panel}
-        onPanelChange={setPanel}
-        onEnter={dock.enter}
-        onLeave={dock.leave}
-        favorites={favorites}
-        menu={menu}
-        favoritesButton={favoritesButton}
-        onOpenSettings={openSettings}
-        onOpenUrl={onOpenUrl}
-      />
-      <SettingsDock visible={controlsVisible} onEnter={dock.enter} onLeave={dock.leave} button={settingsButton} onOpen={openSettings} />
-      {selection && <SourceBadge
-        effect={selection.effect}
-        variant={selection.variant}
-        visible={controlsVisible}
-        onEnter={dock.enter}
-        onLeave={dock.leave}
-        onShuffle={canReshuffle ? reshuffle : undefined}
-      />}
-      {onboarding && dock.panel === null && <GlassPanel className="first-run ui-surface" role="status">
-        <HugeiconsIcon aria-hidden="true" icon={InformationCircleIcon} size={16} strokeWidth={1.8} />
-        <p>{t('firstRunHint')}</p>
-        <button className="small-button" onClick={() => onPreferenceChange({ onboarding: false })}>{t('gotIt')}</button>
-      </GlassPanel>}
-      {settingsLoaded && <SettingsBoundary key={settingsAttempt} open={settings} onClose={closeSettings} onError={() => { settingsFailed.current = true; }}>
-        <Suspense fallback={settings ? <SettingsLoading onClose={closeSettings} /> : null}>
-          <SettingsDialog
-            open={settings}
-            onOpenChange={setSettings}
-            tree={sortedTree}
-            bookmarks={bookmarks}
-            favorites={favorites}
-            preferences={preferences}
-            saving={saves.busy}
-            unavailable={!ready || Boolean(readError)}
-            error={shownError ? errorMessage(shownError, t) : undefined}
-            preview={platform.mode === 'preview'}
-            onFavoriteChange={onFavoriteChange}
-            onPreferenceChange={onPreferenceChange}
-            returnFocus={returnFocus}
+  return (
+    <I18nContext.Provider value={i18n}>
+      <main
+        inert={settings}
+        className="new-tab"
+        aria-label={t('newTab')}
+        data-mode={platform.mode}
+        data-effect={selection?.effect ?? effect}
+        data-tone={tone}
+      >
+        {selection ? (
+          <AmbientBackground
+            effect={selection.effect}
+            variant={selection.variant}
+            theme={theme}
+            pointerBlocked={settings}
           />
-        </Suspense>
-      </SettingsBoundary>}
-      {notices && <GlassPanel className="error-notice ui-surface" role="alert">
-        {errorMessage(notices, t)}
-        {readError
-          ? <button className="small-button" onClick={() => { tree.retry(); savedFavorites.retry(); savedPreferences.retry(); }}>{t('retry')}</button>
-          : <button className="small-button" onClick={() => setNotice(undefined)}>{t('close')}</button>}
-      </GlassPanel>}
-    </main>
-  </I18nContext.Provider>;
+        ) : (
+          <div className="ambient-background boot-background" aria-hidden="true" />
+        )}
+        <Dock
+          showFavorites={preferences.showFavorites}
+          showBookmarks={preferences.showBookmarks}
+          suspended={settings}
+          visible={controlsVisible}
+          panel={dock.panel}
+          onPanelChange={setPanel}
+          onEnter={dock.enter}
+          onLeave={dock.leave}
+          favorites={favorites}
+          menu={menu}
+          favoritesButton={favoritesButton}
+          onOpenSettings={openSettings}
+          onOpenUrl={onOpenUrl}
+        />
+        <SettingsDock
+          visible={controlsVisible}
+          onEnter={dock.enter}
+          onLeave={dock.leave}
+          button={settingsButton}
+          onOpen={openSettings}
+        />
+        {selection && (
+          <SourceBadge
+            effect={selection.effect}
+            variant={selection.variant}
+            visible={controlsVisible}
+            onEnter={dock.enter}
+            onLeave={dock.leave}
+            onShuffle={canReshuffle ? reshuffle : undefined}
+          />
+        )}
+        {onboarding && dock.panel === null && (
+          <GlassPanel className="first-run ui-surface" role="status">
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={InformationCircleIcon}
+              size={16}
+              strokeWidth={1.8}
+            />
+            <p>{t('firstRunHint')}</p>
+            <button
+              className="small-button"
+              onClick={() => onPreferenceChange({ onboarding: false })}
+            >
+              {t('gotIt')}
+            </button>
+          </GlassPanel>
+        )}
+        {settingsLoaded && (
+          <SettingsBoundary
+            key={settingsAttempt}
+            open={settings}
+            onClose={closeSettings}
+            onError={() => {
+              settingsFailed.current = true;
+            }}
+          >
+            <Suspense fallback={settings ? <SettingsLoading onClose={closeSettings} /> : null}>
+              <SettingsDialog
+                open={settings}
+                onOpenChange={setSettings}
+                tree={sortedTree}
+                bookmarks={bookmarks}
+                favorites={favorites}
+                preferences={preferences}
+                saving={saves.busy}
+                unavailable={!ready || Boolean(readError)}
+                error={shownError ? errorMessage(shownError, t) : undefined}
+                preview={platform.mode === 'preview'}
+                onFavoriteChange={onFavoriteChange}
+                onPreferenceChange={onPreferenceChange}
+                returnFocus={returnFocus}
+              />
+            </Suspense>
+          </SettingsBoundary>
+        )}
+        {notices && (
+          <GlassPanel className="error-notice ui-surface" role="alert">
+            {errorMessage(notices, t)}
+            {readError ? (
+              <button
+                className="small-button"
+                onClick={() => {
+                  tree.retry();
+                  savedFavorites.retry();
+                  savedPreferences.retry();
+                }}
+              >
+                {t('retry')}
+              </button>
+            ) : (
+              <button className="small-button" onClick={() => setNotice(undefined)}>
+                {t('close')}
+              </button>
+            )}
+          </GlassPanel>
+        )}
+      </main>
+    </I18nContext.Provider>
+  );
 }

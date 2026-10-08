@@ -11,7 +11,13 @@
  */
 import { getEffect, THEME_BRIGHTNESS } from '../presets';
 import { releaseCanvas } from './surface';
-import { bindFullscreenTriangle, deleteProgram, linkProgram, loseContext, type LinkedProgram } from './webgl';
+import {
+  bindFullscreenTriangle,
+  deleteProgram,
+  linkProgram,
+  loseContext,
+  type LinkedProgram,
+} from './webgl';
 import type { DriverFactory, Pointer } from './types';
 
 /** Output brightness per theme, baked into the shader instead of a CSS filter. */
@@ -21,9 +27,9 @@ const CELL_CSS = 8;
 const RIPPLES = 10;
 /** Seconds a ripple stays visible; must match RIPPLE_LIFE in the shader. */
 const RIPPLE_LIFE = 2.6;
-const TRAIL_INTERVAL = .3;
-const TRAIL_DISTANCE = .07;
-const TRAIL_STRENGTH = .32;
+const TRAIL_INTERVAL = 0.3;
+const TRAIL_DISTANCE = 0.07;
+const TRAIL_STRENGTH = 0.32;
 const CLICK_STRENGTH = 1;
 
 const VERTEX = `
@@ -177,18 +183,24 @@ void main() {
 
 function rgb(hex: string): [number, number, number] {
   const value = parseInt(hex.slice(1), 16);
-  return [(value >> 16 & 255) / 255, (value >> 8 & 255) / 255, (value & 255) / 255];
+  return [((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
 }
 
 /** Pointer coordinates (-1..1, y up) to shader UV (0..1, y down), written into `out`. */
 function toUv(pointer: Pointer, out: { x: number; y: number }) {
-  out.x = (pointer.x + 1) * .5;
-  out.y = 1 - (pointer.y + 1) * .5;
+  out.x = (pointer.x + 1) * 0.5;
+  out.y = 1 - (pointer.y + 1) * 0.5;
 }
 
 export const createDriver: DriverFactory = (host, { theme, variant }) => {
   const canvas = document.createElement('canvas');
-  const options: WebGLContextAttributes = { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' };
+  const options: WebGLContextAttributes = {
+    alpha: false,
+    antialias: false,
+    depth: false,
+    stencil: false,
+    powerPreference: 'low-power',
+  };
   const gl = canvas.getContext('webgl2', options) ?? canvas.getContext('webgl', options);
   if (!gl) throw new Error('WebGL is unavailable');
   let linked: LinkedProgram | undefined;
@@ -216,8 +228,11 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
     /* Ripples push lit cells towards a lighter tint at night and a deeper one by day. */
     const ink = rgb(preset[theme][0]);
     gl.uniform3fv(uniform('uInk'), ink);
-    gl.uniform3fv(uniform('uGlow'), ink.map(channel => theme === 'day' ? channel * .7 : channel + (1 - channel) * .45));
-    gl.uniform1f(uniform('uInkStrength'), theme === 'day' ? .82 : .78);
+    gl.uniform3fv(
+      uniform('uGlow'),
+      ink.map(channel => (theme === 'day' ? channel * 0.7 : channel + (1 - channel) * 0.45)),
+    );
+    gl.uniform1f(uniform('uInkStrength'), theme === 'day' ? 0.82 : 0.78);
     gl.uniform1f(uniform('uBrightness'), THEME_BRIGHTNESS[theme]);
     gl.uniform1f(uniform('uShape'), SHAPES[variant] ?? 0);
 
@@ -228,9 +243,9 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
     let clock = 0;
     let lastTrail = -Infinity;
     const trailFrom = { x: 0, y: 0 };
-    const cursor = { x: .5, y: .5 };
-    const tap = { x: .5, y: .5 };
-    const smoothed = { x: .5, y: .5 };
+    const cursor = { x: 0.5, y: 0.5 };
+    const tap = { x: 0.5, y: 0.5 };
+    const smoothed = { x: 0.5, y: 0.5 };
     let lastMove = -Infinity;
     let hoverStrength = 0;
 
@@ -249,7 +264,7 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
       canvas,
       engine: 'shader-tab-webgl',
       resize(width, height, density) {
-        const pitch = Math.max(4, 2 * Math.round(CELL_CSS * density / 2));
+        const pitch = Math.max(4, 2 * Math.round((CELL_CSS * density) / 2));
         canvas.width = Math.max(1, Math.round(width * density));
         canvas.height = Math.max(1, Math.round(height * density));
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -258,7 +273,10 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
       },
       move(pointer) {
         toUv(pointer, cursor);
-        if (lastMove === -Infinity) { smoothed.x = cursor.x; smoothed.y = cursor.y; }
+        if (lastMove === -Infinity) {
+          smoothed.x = cursor.x;
+          smoothed.y = cursor.y;
+        }
         lastMove = clock;
         const aspect = canvas.width / canvas.height;
         const travelled = Math.hypot((cursor.x - trailFrom.x) * aspect, cursor.y - trailFrom.y);
@@ -279,7 +297,8 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
         smoothed.x += (cursor.x - smoothed.x) * follow;
         smoothed.y += (cursor.y - smoothed.y) * follow;
         const targetHover = clock - lastMove < 1.2 ? 1 : 0;
-        hoverStrength += (targetHover - hoverStrength) * (1 - Math.exp(-delta * (targetHover ? 4 : 1.5)));
+        hoverStrength +=
+          (targetHover - hoverStrength) * (1 - Math.exp(-delta * (targetHover ? 4 : 1.5)));
         gl.uniform3f(hover, smoothed.x, smoothed.y, hoverStrength);
         if (ripplesLive) {
           ripplesLive = false;

@@ -28,16 +28,25 @@ const isTheme = (value: unknown): value is Theme => value === 'day' || value ===
 const isTone = (value: unknown): value is Tone => value === 'light' || value === 'dark';
 
 function readStorage(): string | null {
-  try { return localStorage.getItem(KEY); } catch { return null; }
+  try {
+    return localStorage.getItem(KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function readBoot(): Partial<BootState> {
   let raw: unknown;
-  try { raw = JSON.parse(readStorage() ?? 'null'); } catch { return {}; }
+  try {
+    raw = JSON.parse(readStorage() ?? 'null');
+  } catch {
+    return {};
+  }
   if (!raw || typeof raw !== 'object') return {};
   const value = raw as Record<string, unknown>;
   const boot: Partial<BootState> = {};
-  if (value.appearance === 'system' || isTheme(value.appearance)) boot.appearance = value.appearance;
+  if (value.appearance === 'system' || isTheme(value.appearance))
+    boot.appearance = value.appearance;
   if (isLanguage(value.language)) boot.language = value.language;
   if (LOCALES.includes(value.locale as Locale)) boot.locale = value.locale as Locale;
   const background = value.background as Record<string, unknown> | undefined;
@@ -54,7 +63,11 @@ export function writeBoot(state: BootState) {
   const next = JSON.stringify(state);
   if (next === written) return;
   written = next;
-  try { localStorage.setItem(KEY, next); } catch { /* Private storage may be unavailable; the cache is optional. */ }
+  try {
+    localStorage.setItem(KEY, next);
+  } catch {
+    /* Private storage may be unavailable; the cache is optional. */
+  }
 }
 
 export function systemTheme(): Theme {

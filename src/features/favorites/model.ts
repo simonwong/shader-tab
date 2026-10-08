@@ -33,15 +33,20 @@ export function readFavorites(items: Record<string, unknown>): FavoriteRef[] {
   const saved = items[FAVORITES_KEY];
   if (Array.isArray(saved)) {
     const seen = new Set<string>();
-    return saved.flatMap(value => {
-      const ref = parseRef(value);
-      if (!ref || seen.has(ref.id)) return [];
-      seen.add(ref.id);
-      return [ref];
-    }).slice(0, MAX_FAVORITES);
+    return saved
+      .flatMap(value => {
+        const ref = parseRef(value);
+        if (!ref || seen.has(ref.id)) return [];
+        seen.add(ref.id);
+        return [ref];
+      })
+      .slice(0, MAX_FAVORITES);
   }
   return Object.entries(items)
-    .filter(([key, value]) => key.startsWith(FAVORITE_PREFIX) && key.length > FAVORITE_PREFIX.length && value === true)
+    .filter(
+      ([key, value]) =>
+        key.startsWith(FAVORITE_PREFIX) && key.length > FAVORITE_PREFIX.length && value === true,
+    )
     .map(([key]) => ({ id: key.slice(FAVORITE_PREFIX.length) }))
     .slice(0, MAX_FAVORITES);
 }
@@ -56,11 +61,15 @@ export function legacyFavoriteKeys(items: Record<string, unknown>): string[] {
  * a favorite whose id no longer exists falls back to an unused bookmark with
  * the same URL. Favorites that match nothing are skipped.
  */
-export function resolveFavorites(refs: readonly FavoriteRef[], bookmarks: readonly Bookmark[]): Bookmark[] {
+export function resolveFavorites(
+  refs: readonly FavoriteRef[],
+  bookmarks: readonly Bookmark[],
+): Bookmark[] {
   const byId = new Map(bookmarks.map(bookmark => [bookmark.id, bookmark]));
   const byUrl = new Map<string, Bookmark[]>();
-  for (const bookmark of bookmarks) byUrl.set(bookmark.url, [...byUrl.get(bookmark.url) ?? [], bookmark]);
-  const used = new Set(refs.flatMap(ref => byId.has(ref.id) ? [ref.id] : []));
+  for (const bookmark of bookmarks)
+    byUrl.set(bookmark.url, [...(byUrl.get(bookmark.url) ?? []), bookmark]);
+  const used = new Set(refs.flatMap(ref => (byId.has(ref.id) ? [ref.id] : [])));
   const resolved: Bookmark[] = [];
   const placed = new Set<string>();
   for (const ref of refs) {
@@ -79,7 +88,11 @@ export function resolveFavorites(refs: readonly FavoriteRef[], bookmarks: readon
 
 const toRef = (bookmark: Bookmark): FavoriteRef => ({ id: bookmark.id, url: bookmark.url });
 
-export function changeFavorites(current: readonly FavoriteRef[], action: FavoriteAction, bookmarks: readonly Bookmark[]): FavoriteRef[] {
+export function changeFavorites(
+  current: readonly FavoriteRef[],
+  action: FavoriteAction,
+  bookmarks: readonly Bookmark[],
+): FavoriteRef[] {
   const next = resolveFavorites(current, bookmarks).map(toRef);
   if (action.type === 'remove') return next.filter(ref => ref.id !== action.id);
   const target = bookmarks.find(bookmark => bookmark.id === action.id);

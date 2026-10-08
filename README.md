@@ -38,14 +38,14 @@ Shader Tab replaces Chrome’s new tab page with animated backgrounds and local 
   </tr>
 </table>
 
-| Background | Character | Built with |
-| --- | --- | --- |
-| Grain Gradient | Soft color fields and fine grain | Paper Shaders |
-| Dithering | Patterned gradients and retro texture | Paper Shaders |
-| Pixel Field | Dithered pixel grid with pointer ripples | Original WebGL shader |
-| Predictive Arc | Arcs, particles, ribbons, and fields | ThreeUI |
-| CRT | Phosphor glow and decorative screens | ThreeUI |
-| Shader Gradient | Plane, Sphere, and Water forms | Shader Gradient |
+| Background      | Character                                | Built with            |
+| --------------- | ---------------------------------------- | --------------------- |
+| Grain Gradient  | Soft color fields and fine grain         | Paper Shaders         |
+| Dithering       | Patterned gradients and retro texture    | Paper Shaders         |
+| Pixel Field     | Dithered pixel grid with pointer ripples | Original WebGL shader |
+| Predictive Arc  | Arcs, particles, ribbons, and fields     | ThreeUI               |
+| CRT             | Phosphor glow and decorative screens     | ThreeUI               |
+| Shader Gradient | Plane, Sphere, and Water forms           | Shader Gradient       |
 
 These are actual extension screenshots. Explore the motion on the [live demo](https://shadertab.simonwong.cn/en/#effects), or see the [full variant list](docs/effect-variants.md).
 
@@ -55,21 +55,21 @@ These are actual extension screenshots. Explore the motion on the [live demo](ht
 
 Once installed, open a new tab. Move your pointer to reveal the controls: Settings in the lower-left corner, favorites and bookmark folders at the bottom center, and the current background’s source at the lower right.
 
-| Shortcut | Action |
-| --- | --- |
-| `Tab` | Reveal and navigate controls |
-| `Escape` | Close the current panel |
-| `⌘ ,` / `Ctrl ,` | Open Settings |
+| Shortcut         | Action                       |
+| ---------------- | ---------------------------- |
+| `Tab`            | Reveal and navigate controls |
+| `Escape`         | Close the current panel      |
+| `⌘ ,` / `Ctrl ,` | Open Settings                |
 
 ## Your data stays in your browser
 
 The extension has no accounts, ads, or analytics. It reads Chrome bookmarks locally and never edits the original bookmark tree. Favorites and preferences stay in `chrome.storage.local`; the extension does not sync them across devices or upload bookmark data.
 
-| Permission | Purpose |
-| --- | --- |
-| `bookmarks` | Read the bookmark tree and keep navigation in sync |
-| `storage` | Save favorites, preferences, and shuffle state locally |
-| `favicon` | Display cached icons for visible bookmarks |
+| Permission  | Purpose                                                |
+| ----------- | ------------------------------------------------------ |
+| `bookmarks` | Read the bookmark tree and keep navigation in sync     |
+| `storage`   | Save favorites, preferences, and shuffle state locally |
+| `favicon`   | Display cached icons for visible bookmarks             |
 
 No host permissions, content scripts, or remote executable code. Scripts, shaders, and fonts ship with the extension.
 
@@ -101,13 +101,13 @@ Built with **WXT, React, TypeScript, Three.js, Base UI, and Hugeicons**. The [de
 
 ## Inside the project
 
-| Guide | Contents |
-| --- | --- |
-| [Development](docs/development.md) | Local setup, build outputs, website, and QA |
+| Guide                                | Contents                                          |
+| ------------------------------------ | ------------------------------------------------- |
+| [Development](docs/development.md)   | Local setup, build outputs, website, and QA       |
 | [Architecture](docs/architecture.md) | Data boundaries, storage, and rendering lifecycle |
-| [Backgrounds](docs/shaders.md) | Shader integrations and sources |
-| [Variants](docs/effect-variants.md) | All 49 combinations and shuffle behavior |
-| [Performance](docs/performance.md) | Rendering budgets and measurement results |
+| [Backgrounds](docs/shaders.md)       | Shader integrations and sources                   |
+| [Variants](docs/effect-variants.md)  | All 49 combinations and shuffle behavior          |
+| [Performance](docs/performance.md)   | Rendering budgets and measurement results         |
 
 Technical reference documents are currently in Chinese.
 

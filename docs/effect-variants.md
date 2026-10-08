@@ -2,13 +2,13 @@
 
 核对日期：2026-10-08。以下范围接入随机选择。先按用户勾选的背景类别抽取，再从该类别的独立洗牌袋抽取变体；同一轮不重复，多变体类别跨轮避免紧邻重复；CRT 仅有 Terminal。关闭类别随机仍会在每次打开新标签页时抽取该类别的变体；所有类别统一随机变体。
 
-| 背景 | 官方变体 | 随机范围 | 接入方式 |
-| --- | --- | --- | --- |
-| Grain Gradient | `wave`、`dots`、`truchet`、`corners`、`ripple`、`blob`、`sphere`，共 7 种 | 全部 7 种 | 切换已有 shader 的形态参数 |
-| Dithering | `simplex`、`warp`、`dots`、`wave`、`ripple`、`swirl`、`sphere`，共 7 种；点阵算法为 `random`、`2x2`、`4x4`、`8x8` | 27 种组合，排除 `ripple:4x4` | 参数组合；保留其他 Ripple 点阵算法 |
-| Pixel Field | `square`、`circle`、`triangle`、`diamond`，共 4 种 | 全部 4 种 | 自研 shader 的格子形状参数 |
-| CRT | `terminal`、`cinematic`、`retro-game`，共 3 种 | 仅 `terminal` | 使用已有屏幕绘制与材质；日间使用琥珀滤镜 |
-| Predictive Arc 系列 | `predictive`、`data-pixel`、`signal-particles`、`override-grid`；合集另含 `ribbon-field`、`void-field`、`halftone-flow`、`amber-halftone` | 7 种，排除 `halftone-flow` | 官方绘制核心按需加载，接入统一时钟、尺寸预算和销毁 |
+| 背景                | 官方变体                                                                                                                                  | 随机范围                     | 接入方式                                           |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------- |
+| Grain Gradient      | `wave`、`dots`、`truchet`、`corners`、`ripple`、`blob`、`sphere`，共 7 种                                                                 | 全部 7 种                    | 切换已有 shader 的形态参数                         |
+| Dithering           | `simplex`、`warp`、`dots`、`wave`、`ripple`、`swirl`、`sphere`，共 7 种；点阵算法为 `random`、`2x2`、`4x4`、`8x8`                         | 27 种组合，排除 `ripple:4x4` | 参数组合；保留其他 Ripple 点阵算法                 |
+| Pixel Field         | `square`、`circle`、`triangle`、`diamond`，共 4 种                                                                                        | 全部 4 种                    | 自研 shader 的格子形状参数                         |
+| CRT                 | `terminal`、`cinematic`、`retro-game`，共 3 种                                                                                            | 仅 `terminal`                | 使用已有屏幕绘制与材质；日间使用琥珀滤镜           |
+| Predictive Arc 系列 | `predictive`、`data-pixel`、`signal-particles`、`override-grid`；合集另含 `ribbon-field`、`void-field`、`halftone-flow`、`amber-halftone` | 7 种，排除 `halftone-flow`   | 官方绘制核心按需加载，接入统一时钟、尺寸预算和销毁 |
 
 合计 49 种组合，包含 Shader Gradient 的 3 种形态。变体在当前页面内保持不变，切换主题、展开设置和后台恢复不重新抽取。跨标签页通过 Web Locks 串行取号；每个背景有独立存储，互不消耗轮次。旧队列中的已移除变体自动丢弃。
 
