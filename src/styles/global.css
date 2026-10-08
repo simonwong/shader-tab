@@ -102,8 +102,10 @@ small {
 }
 
 /* Owned by the background work: the filter rules stay as they were; the layer fade follows the new stage code. */
-.ambient-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; filter: brightness(.94); }
-:root[data-theme='night'] .ambient-background { filter: brightness(.8); }
+.ambient-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+/* Theme dimming for the static fallback; animated drivers multiply THEME_BRIGHTNESS in their shaders. */
+.ambient-background::before { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 6%); }
+:root[data-theme='night'] .ambient-background::before { background: rgb(0 0 0 / 20%); }
 .effect-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 350ms ease-out; }
 .effect-layer[data-enter='crossfade'] { transition-duration: 600ms; transition-timing-function: ease-in-out; }
 .effect-layer.ready { opacity: 1; }

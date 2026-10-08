@@ -9,13 +9,12 @@
  * outward. Everything is drawn by one fragment shader over a fullscreen
  * triangle: one draw call per frame, no offscreen buffers.
  */
-import { getEffect, type Theme } from '../presets';
+import { getEffect, THEME_BRIGHTNESS, type Theme } from '../presets';
 import { releaseCanvas } from './surface';
 import { bindFullscreenTriangle, deleteProgram, linkProgram, loseContext, type LinkedProgram } from './webgl';
 import type { DriverFactory, Pointer } from './types';
 
 /** Output brightness per theme, baked into the shader instead of a CSS filter. */
-const THEME_BRIGHTNESS: Record<Theme, number> = { day: .94, night: .8 };
 const SHAPES: Record<string, number> = { square: 0, circle: 1, triangle: 2, diamond: 3 };
 /** Cell pitch in CSS pixels; rounded to an even number of device pixels. */
 const CELL_CSS = 8;

@@ -19,7 +19,7 @@ Paper 直接使用 npm 包导出的 shader 与 ShaderMount。ThreeUI 复用官�
 
 上游源码获取日期：2026-09-20；Predictive Arc 系列扩充于 2026-09-21。
 
-- [ThreeUI dataPixelArcRenderer.ts](https://github.com/MengTo/threeui/blob/main/src/shaders/data-pixel-arc/dataPixelArcRenderer.ts)：保留官方 Canvas 绘制，用公共时间与像素密度替换逐帧累加和内部密度选择，指针调节现有弧线参数。
+- [ThreeUI dataPixelArcRenderer.ts](https://github.com/MengTo/threeui/blob/main/src/shaders/data-pixel-arc/dataPixelArcRenderer.ts)：绘制由 Canvas 2D 改写为片元着色器（逐格逻辑保持一致），用公共时间与像素密度替换逐帧累加和内部密度选择，指针调节现有弧线参数。
 - [ThreeUI CRT](https://github.com/MengTo/threeui/tree/main/src/shaders/crt)：保留 crtRenderer 与 crtShaders 的 Terminal 屏幕，其余 CRT 屏幕已移除；改用公共时间推进打字与扫描线、统一像素预算，并让原有反光位置跟随鼠标。
 
 Paper Shaders 为 Apache-2.0；ThreeUI、Three.js 为 MIT。许可证与 Paper NOTICE 随扩展放入 `licenses/`。
