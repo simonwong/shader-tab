@@ -42,7 +42,7 @@ async function selectEffect(next: EffectId) {
  effect = next; stopDriver(); setStatus(false);
  const preset = getEffect(effect);
  const variant = resolveVariant(effect, variants[effect]);
- stage.dataset.effect = effect; stage.dataset.dark = String(theme === 'night' || effect === 'crt-terminal'); stage.setAttribute('aria-label', preset.name);
+ stage.dataset.effect = effect; stage.dataset.dark = String(variant.tone(theme) === 'dark'); stage.setAttribute('aria-label', preset.name);
  host.style.background = variant.background(theme);
  document.querySelectorAll<HTMLButtonElement>('[data-effect].effect-picker button, .effect-picker button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.effect === effect)));
  const source = document.querySelector<HTMLAnchorElement>('#effect-source')!;

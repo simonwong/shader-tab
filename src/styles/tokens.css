@@ -1,4 +1,57 @@
-:root, :root[data-theme='day'] {
+/*
+ * Design tokens.
+ *
+ * Two palettes. The page theme (`data-theme` on <html>) picks the palette for
+ * everything, including the settings dialog and menus. The controls drawn
+ * directly over the background follow the background's tone instead
+ * (`data-tone` on <main>), so a dark background in day mode still gets light
+ * text and dark glass.
+ */
+:root {
+  /* Type */
+  --font-ui: 'Space Grotesk Variable', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* Spacing, 4px grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Glass */
+  --blur-control: 16px;
+  --blur-surface: 32px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --duration-fast: 160ms;
+  --duration-enter: 220ms;
+  --duration-theme: 360ms;
+
+  /*
+   * Scale unit for controls over the background: 1px up to 1800px wide,
+   * growing to 1.25px on ultra-wide screens.
+   */
+  --u: clamp(1px, 100vw / 1800, 1.25px);
+  --dock-bottom: calc(36 * var(--u));
+}
+
+:root,
+:root[data-theme='day'],
+.new-tab[data-tone='light'] {
   color-scheme: light;
   --bg: #ece9e1;
   --fg: #1f1e1b;
@@ -6,7 +59,10 @@
   --glass: rgb(255 255 255 / 42%);
   --panel: rgb(250 250 252 / 78%);
   --line: rgb(255 255 255 / 52%);
-  --shadow: inset 0 1px 0 rgb(255 255 255 / 90%), inset 0 -1px 0 rgb(0 0 0 / 6%), 0 20px 60px rgb(0 0 0 / 14%);
+  --shadow:
+    inset 0 1px 0 rgb(255 255 255 / 90%),
+    inset 0 -1px 0 rgb(0 0 0 / 6%),
+    0 20px 60px rgb(0 0 0 / 14%);
   --on: rgb(0 0 0 / 8%);
   --field: rgb(0 0 0 / 5%);
   --gloss: rgb(255 255 255 / 30%);
@@ -14,29 +70,59 @@
   --grain-opacity: .025;
   --grain-blend: multiply;
   --veil: rgb(0 0 0 / 5%);
-  --dock-bottom: 36px;
-  --control-fill: rgb(250 250 255 / 12%);
-  --control-line: rgb(255 255 255 / 40%);
-  --control-shadow: inset 0 1px 0 rgb(255 255 255 / 62%), inset 0 -1px 0 rgb(0 0 0 / 7%), 0 2px 8px rgb(0 0 0 / 8%), 0 10px 28px rgb(0 0 0 / 10%);
+  --fill-control: rgb(250 250 252 / 38%);
+  --fill-surface: rgb(250 250 252 / 78%);
+  --control-line: rgb(255 255 255 / 48%);
+  --control-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 62%),
+    inset 0 -1px 0 rgb(0 0 0 / 7%),
+    0 2px 8px rgb(0 0 0 / 8%),
+    0 10px 28px rgb(0 0 0 / 10%);
+  /* Halo behind icons and text on controls, for busy backgrounds. */
+  --ink-halo: rgb(255 255 255 / 55%);
+  --favicon-plate: rgb(255 255 255 / 88%);
+  /* Outline for brand tiles that would vanish into a dark surface. */
+  --mark-outline: transparent;
 }
-:root[data-theme='night'] {
+
+:root[data-theme='night'],
+.new-tab[data-tone='dark'] {
   color-scheme: dark;
   --bg: #0f1013;
   --fg: #f4f2ec;
-  --fg-muted: rgb(244 242 236 / 64%);
+  --fg-muted: rgb(244 242 236 / 66%);
   --glass: rgb(18 19 26 / 50%);
   --panel: rgb(25 26 32 / 82%);
   --line: rgb(255 255 255 / 16%);
-  --shadow: inset 0 1px 0 rgb(255 255 255 / 22%), inset 0 -1px 0 rgb(0 0 0 / 35%), 0 20px 60px rgb(0 0 0 / 50%);
+  --shadow:
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    inset 0 -1px 0 rgb(0 0 0 / 35%),
+    0 20px 60px rgb(0 0 0 / 50%);
   --on: rgb(255 255 255 / 14%);
   --field: rgb(255 255 255 / 7%);
-  --gloss: rgb(255 255 255 / 14%);
-  --gloss-end: rgb(255 255 255 / 5%);
+  --gloss: rgb(255 255 255 / 12%);
+  --gloss-end: rgb(255 255 255 / 4%);
   --grain-opacity: .04;
   --grain-blend: soft-light;
   --veil: rgb(0 0 0 / 22%);
-  --control-fill: rgb(30 32 40 / 20%);
+  --fill-control: rgb(24 25 31 / 42%);
+  --fill-surface: rgb(25 26 32 / 82%);
   --control-line: rgb(255 255 255 / 14%);
-  --control-shadow: inset 0 1px 0 rgb(255 255 255 / 22%), inset 0 -1px 0 rgb(0 0 0 / 20%), 0 2px 8px rgb(0 0 0 / 16%), 0 10px 28px rgb(0 0 0 / 22%);
+  --control-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    inset 0 -1px 0 rgb(0 0 0 / 20%),
+    0 2px 8px rgb(0 0 0 / 16%),
+    0 10px 28px rgb(0 0 0 / 22%);
+  --ink-halo: rgb(0 0 0 / 45%);
+  --favicon-plate: rgb(255 255 255 / 78%);
+  --mark-outline: rgb(255 255 255 / 22%);
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme]) { --bg: #0f1013; --fg: #f4f2ec; color-scheme: dark; } }
+
+/* Before the boot script sets a theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #0f1013;
+    --fg: #f4f2ec;
+  }
+}
