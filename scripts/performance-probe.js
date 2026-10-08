@@ -1,5 +1,7 @@
 (() => {
   const stats = { draws: 0, raf: 0, submitMs: 0, longTasks: [], started: performance.now() };
+  // Never reset: startup long tasks would otherwise be lost by the first sample's reset().
+  const startup = { longTasks: [], layerReadyMs: null };
   const raf = window.requestAnimationFrame.bind(window);
   window.requestAnimationFrame = callback => raf(time => { stats.raf++; callback(time); });
   for (const name of ['WebGLRenderingContext', 'WebGL2RenderingContext']) {
@@ -21,9 +23,33 @@
     if (this.canvas.isConnected && args[0] === 0 && args[1] === 0 && args[2] === innerWidth) stats.draws++;
     return fill.apply(this, args);
   };
-  new PerformanceObserver(list => stats.longTasks.push(...list.getEntries().map(e => ({ start: e.startTime, duration: e.duration })))).observe({ type: 'longtask', buffered: true });
+  new PerformanceObserver(list => {
+    for (const entry of list.getEntries()) {
+      const task = { start: entry.startTime, duration: entry.duration };
+      stats.longTasks.push(task);
+      startup.longTasks.push(task);
+    }
+  }).observe({ type: 'longtask', buffered: true });
+  // Works with builds that predate the `ambient:ready` mark: the first layer that turns `.ready`.
+  new MutationObserver((records, observer) => {
+    if (records.some(record => record.target instanceof Element && record.target.matches('.effect-layer.ready'))) {
+      startup.layerReadyMs = performance.now();
+      observer.disconnect();
+    }
+  }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  const mark = name => performance.getEntriesByName(name, 'mark')[0]?.startTime ?? null;
   window.__glassProbe = {
     reset() { stats.draws = stats.raf = stats.submitMs = 0; stats.longTasks = []; stats.started = performance.now(); },
+    startup() {
+      const readyMs = mark('ambient:ready') ?? startup.layerReadyMs;
+      const before = readyMs === null ? Infinity : readyMs + 500;
+      const tasks = startup.longTasks.filter(task => task.start < before);
+      return {
+        startMs: mark('ambient:start'), readyMs, layerReadyMs: startup.layerReadyMs,
+        paints: performance.getEntriesByType('paint').map(e => ({ name: e.name, start: e.startTime })),
+        longTasks: tasks, longTaskMs: tasks.reduce((sum, task) => sum + task.duration, 0),
+      };
+    },
     read() {
       const canvas = document.querySelector('.ambient-background canvas');
       return { ...stats, elapsedMs: performance.now() - stats.started, buffer: canvas ? [canvas.width, canvas.height] : null,
