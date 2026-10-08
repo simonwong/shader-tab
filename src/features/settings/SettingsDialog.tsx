@@ -30,37 +30,55 @@ interface Props {
 
 export function SettingsDialog(props: Props) {
   const { locale, t } = useI18n();
-  return <Dialog.Root open={props.open} onOpenChange={open => props.onOpenChange(open)}>
-    <Dialog.Portal>
-      <Dialog.Backdrop className="settings-overlay" />
-      <Dialog.Popup className="glass settings-dialog ui-surface" finalFocus={props.returnFocus} aria-busy={props.saving}>
-        <header className="settings-header">
-          <Dialog.Title className="settings-title">{t('settings')}</Dialog.Title>
-          <Dialog.Close className="icon-button close-settings" aria-label={t('closeSettings')}>
-            <HugeiconsIcon aria-hidden="true" icon={Cancel01Icon} size={16} />
-          </Dialog.Close>
-        </header>
-        <Dialog.Description className="sr-only">{t('settingsDescription')}</Dialog.Description>
-        {props.error && <p className="settings-error" role="alert">{props.error}</p>}
-        <div className="settings-body">
-          <FavoriteSettings
-            tree={props.tree}
-            bookmarks={props.bookmarks}
-            favorites={props.favorites}
-            disabled={props.unavailable}
-            onChange={props.onFavoriteChange}
-          />
-          <AppearanceSettings preferences={props.preferences} disabled={props.unavailable} onChange={props.onPreferenceChange} />
-        </div>
-        <footer className="settings-footer">
-          <p className="settings-restore">{t('restoreDefault')}</p>
-          <nav className="settings-legal">
-            <a href={legalPath('privacy', locale)} target="_blank" rel="noopener noreferrer">{t('privacy')}</a>
-            <a href={legalPath('licenses', locale)} target="_blank" rel="noopener noreferrer">{t('licenses')}</a>
-          </nav>
-        </footer>
-        {props.preview && <p className="preview-note">{t('previewNote')}</p>}
-      </Dialog.Popup>
-    </Dialog.Portal>
-  </Dialog.Root>;
+  return (
+    <Dialog.Root open={props.open} onOpenChange={open => props.onOpenChange(open)}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="settings-overlay" />
+        <Dialog.Popup
+          className="glass settings-dialog ui-surface"
+          finalFocus={props.returnFocus}
+          aria-busy={props.saving}
+        >
+          <header className="settings-header">
+            <Dialog.Title className="settings-title">{t('settings')}</Dialog.Title>
+            <Dialog.Close className="icon-button close-settings" aria-label={t('closeSettings')}>
+              <HugeiconsIcon aria-hidden="true" icon={Cancel01Icon} size={16} />
+            </Dialog.Close>
+          </header>
+          <Dialog.Description className="sr-only">{t('settingsDescription')}</Dialog.Description>
+          {props.error && (
+            <p className="settings-error" role="alert">
+              {props.error}
+            </p>
+          )}
+          <div className="settings-body">
+            <FavoriteSettings
+              tree={props.tree}
+              bookmarks={props.bookmarks}
+              favorites={props.favorites}
+              disabled={props.unavailable}
+              onChange={props.onFavoriteChange}
+            />
+            <AppearanceSettings
+              preferences={props.preferences}
+              disabled={props.unavailable}
+              onChange={props.onPreferenceChange}
+            />
+          </div>
+          <footer className="settings-footer">
+            <p className="settings-restore">{t('restoreDefault')}</p>
+            <nav className="settings-legal">
+              <a href={legalPath('privacy', locale)} target="_blank" rel="noopener noreferrer">
+                {t('privacy')}
+              </a>
+              <a href={legalPath('licenses', locale)} target="_blank" rel="noopener noreferrer">
+                {t('licenses')}
+              </a>
+            </nav>
+          </footer>
+          {props.preview && <p className="preview-note">{t('previewNote')}</p>}
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
 }

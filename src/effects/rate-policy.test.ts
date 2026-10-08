@@ -1,10 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  BATTERY_DENSITY, IDLE_FREEZE_MS, IDLE_SLOW_MS, POINTER_BURST_MS, RATES, UNFOCUSED_GRACE_MS,
-  createRateMonitor, planRate, type RateConditions, type RatePlan,
+  BATTERY_DENSITY,
+  IDLE_FREEZE_MS,
+  IDLE_SLOW_MS,
+  POINTER_BURST_MS,
+  RATES,
+  UNFOCUSED_GRACE_MS,
+  createRateMonitor,
+  planRate,
+  type RateConditions,
+  type RatePlan,
 } from './rate-policy';
 
-const awake: RateConditions = { idleMs: 0, unfocusedMs: 0, onBattery: false, dialogOpen: false, pointerActive: false };
+const awake: RateConditions = {
+  idleMs: 0,
+  unfocusedMs: 0,
+  onBattery: false,
+  dialogOpen: false,
+  pointerActive: false,
+};
 const fps = (patch: Partial<RateConditions>) => planRate({ ...awake, ...patch }).fps;
 
 describe('planRate', () => {
@@ -26,7 +40,10 @@ describe('planRate', () => {
   });
 
   it('caps rate and density on battery, and caps the rate under the settings dialog', () => {
-    expect(planRate({ ...awake, onBattery: true })).toEqual({ fps: RATES.battery, densityCap: BATTERY_DENSITY });
+    expect(planRate({ ...awake, onBattery: true })).toEqual({
+      fps: RATES.battery,
+      densityCap: BATTERY_DENSITY,
+    });
     expect(planRate({ ...awake, onBattery: true, pointerActive: true }).fps).toBe(RATES.battery);
     expect(planRate(awake).densityCap).toBeUndefined();
     expect(fps({ dialogOpen: true, pointerActive: true })).toBe(RATES.dialog);
@@ -48,8 +65,10 @@ describe('createRateMonitor', () => {
     vi.useFakeTimers();
     focused = true;
     win = Object.assign(new EventTarget(), {
-      setTimeout: ((...args: Parameters<typeof setTimeout>) => setTimeout(...args)) as typeof setTimeout,
-      clearTimeout: ((id: ReturnType<typeof setTimeout>) => clearTimeout(id)) as typeof clearTimeout,
+      setTimeout: ((...args: Parameters<typeof setTimeout>) =>
+        setTimeout(...args)) as typeof setTimeout,
+      clearTimeout: ((id: ReturnType<typeof setTimeout>) =>
+        clearTimeout(id)) as typeof clearTimeout,
     });
     doc = Object.assign(new EventTarget(), { hidden: false, hasFocus: () => focused });
     battery = Object.assign(new EventTarget(), { charging: true });
@@ -57,7 +76,10 @@ describe('createRateMonitor', () => {
     vi.stubGlobal('document', doc);
     vi.stubGlobal('navigator', { getBattery: () => Promise.resolve(battery) });
   });
-  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
   it('steps down while idle and restores on the first input', () => {
     const changes: number[] = [];
@@ -103,7 +125,9 @@ describe('createRateMonitor', () => {
   it('follows the battery charging state', async () => {
     battery.charging = false;
     const monitor = createRateMonitor(() => {});
-    await vi.waitFor(() => expect(monitor.plan).toEqual({ fps: RATES.battery, densityCap: BATTERY_DENSITY }));
+    await vi.waitFor(() =>
+      expect(monitor.plan).toEqual({ fps: RATES.battery, densityCap: BATTERY_DENSITY }),
+    );
     battery.charging = true;
     battery.dispatchEvent(new Event('chargingchange'));
     expect(monitor.plan).toEqual({ fps: RATES.base, densityCap: undefined });

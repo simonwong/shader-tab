@@ -16,12 +16,12 @@
 
 `node scripts/diagnose-favicon-api.mjs` 创建两个临时扩展与独立浏览器配置，不读取日常浏览器。Chrome for Testing 152 的结果：
 
-| favicon 权限 | 查询 | 图片结果 |
-| --- | --- | --- |
-| 有 | pageUrl + size | 32 px 默认图标 |
-| 有 | pageUrl + size + fallbackToHost | 32 px 默认图标 |
-| 有 | 缺 pageUrl | 加载失败 |
-| 无 | 上述三种查询 | 全部加载失败 |
+| favicon 权限 | 查询                            | 图片结果       |
+| ------------ | ------------------------------- | -------------- |
+| 有           | pageUrl + size                  | 32 px 默认图标 |
+| 有           | pageUrl + size + fallbackToHost | 32 px 默认图标 |
+| 有           | 缺 pageUrl                      | 加载失败       |
+| 无           | 上述三种查询                    | 全部加载失败   |
 
 测试 URL 使用保留的 `.invalid` 域名，没有提前填充缓存。结果见 `artifacts/favicon-review/api-diagnosis.json`。此测试证明权限与请求解析是可区分的故障条件，不能单凭它判定用户配置的根因。
 

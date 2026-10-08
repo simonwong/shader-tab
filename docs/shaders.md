@@ -1,13 +1,13 @@
 # 框架背景
 
-| 效果 | 来源 | 引擎 | 交互 |
-| --- | --- | --- | --- |
-| Grain Gradient | [Paper Shaders](https://shaders.paper.design/grain-gradient) 0.0.81 | ShaderMount / WebGL2 | 渐变偏移与轻微旋转 |
-| Dithering | [Paper Shaders](https://shaders.paper.design/dithering) 0.0.81 | ShaderMount / WebGL2 | 点阵漩涡偏移 |
-| Pixel Field | 本项目原创 | 单 pass WebGL2 / WebGL1 | 指针拨动像素，移动与点击产生涟漪 |
-| Predictive Arc | [ThreeUI](https://threeui.com/backgrounds/predictive-arc/data-pixel) | Canvas 2D / WebGL / Three.js | 7 种变体，弧线、点阵或光带轻微跟随鼠标 |
-| Shader Gradient | [Shader Gradient](https://github.com/ruucm/shadergradient) | @shadergradient/react 2.4.20 + Fiber 9.7 | 连续动画，Plane / Sphere / Water 二级随机 |
-| CRT | [ThreeUI](https://threeui.com/backgrounds/crt/terminal) | WebGL + 离屏文字画布 | 显像管反光跟随鼠标 |
+| 效果            | 来源                                                                 | 引擎                                     | 交互                                      |
+| --------------- | -------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------- |
+| Grain Gradient  | [Paper Shaders](https://shaders.paper.design/grain-gradient) 0.0.81  | ShaderMount / WebGL2                     | 渐变偏移与轻微旋转                        |
+| Dithering       | [Paper Shaders](https://shaders.paper.design/dithering) 0.0.81       | ShaderMount / WebGL2                     | 点阵漩涡偏移                              |
+| Pixel Field     | 本项目原创                                                           | 单 pass WebGL2 / WebGL1                  | 指针拨动像素，移动与点击产生涟漪          |
+| Predictive Arc  | [ThreeUI](https://threeui.com/backgrounds/predictive-arc/data-pixel) | Canvas 2D / WebGL / Three.js             | 7 种变体，弧线、点阵或光带轻微跟随鼠标    |
+| Shader Gradient | [Shader Gradient](https://github.com/ruucm/shadergradient)           | @shadergradient/react 2.4.20 + Fiber 9.7 | 连续动画，Plane / Sphere / Water 二级随机 |
+| CRT             | [ThreeUI](https://threeui.com/backgrounds/crt/terminal)              | WebGL + 离屏文字画布                     | 显像管反光跟随鼠标                        |
 
 Paper 直接使用 npm 包导出的 shader 与 ShaderMount。ThreeUI 复用官方渲染核心，文件位于 `src/effects/vendor/`；不安装它们整套组件集合。适配层负责生命周期、分辨率、时钟和指针，保持官方视觉算法。
 

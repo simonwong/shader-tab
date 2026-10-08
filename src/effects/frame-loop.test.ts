@@ -4,12 +4,14 @@ import { createFrameLoop } from './frame-loop';
 const VSYNC = 1000 / 60;
 let rafCalls = 0;
 /** Fires rAF callbacks on the next vsync boundary (60 Hz by default), like a real display. */
-const vsyncRaf = (lag = 0, vsync = VSYNC) => (callback: FrameRequestCallback) => {
-  rafCalls++;
-  const now = performance.now();
-  const next = Math.floor(now / vsync + 1) * vsync;
-  return setTimeout(() => callback(next - lag), Math.max(0, next - now));
-};
+const vsyncRaf =
+  (lag = 0, vsync = VSYNC) =>
+  (callback: FrameRequestCallback) => {
+    rafCalls++;
+    const now = performance.now();
+    const next = Math.floor(now / vsync + 1) * vsync;
+    return setTimeout(() => callback(next - lag), Math.max(0, next - now));
+  };
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -18,9 +20,18 @@ beforeEach(() => {
   vi.stubGlobal('cancelAnimationFrame', (id: ReturnType<typeof setTimeout>) => clearTimeout(id));
   rafCalls = 0;
 });
-afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
 
-it.each([[20, 20], [30, 30], [15, 15], [10, 10], [5, 5]])('draws %i fps on a 60 Hz display without losing a vsync per frame', (fps, expected) => {
+it.each([
+  [20, 20],
+  [30, 30],
+  [15, 15],
+  [10, 10],
+  [5, 5],
+])('draws %i fps on a 60 Hz display without losing a vsync per frame', (fps, expected) => {
   const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, fps);
   loop.start();
@@ -28,8 +39,8 @@ it.each([[20, 20], [30, 30], [15, 15], [10, 10], [5, 5]])('draws %i fps on a 60 
   const before = draw.mock.calls.length;
   vi.advanceTimersByTime(5000);
   const rate = (draw.mock.calls.length - before) / 5;
-  expect(rate).toBeGreaterThanOrEqual(expected - .4);
-  expect(rate).toBeLessThanOrEqual(expected + .2);
+  expect(rate).toBeGreaterThanOrEqual(expected - 0.4);
+  expect(rate).toBeLessThanOrEqual(expected + 0.2);
   loop.stop();
 });
 
@@ -69,7 +80,8 @@ it('sleeps on a timer at low rates instead of waking every vsync', () => {
 it('keeps one clock and stops all work when paused', () => {
   const draw = vi.fn<(time: number) => void>();
   const loop = createFrameLoop(draw, 8);
-  loop.start(); loop.start();
+  loop.start();
+  loop.start();
   vi.advanceTimersByTime(1000);
   expect(draw.mock.calls.length).toBeGreaterThanOrEqual(7);
   expect(draw.mock.calls.length).toBeLessThanOrEqual(9);

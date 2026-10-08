@@ -36,7 +36,7 @@
   --blur-surface: 32px;
 
   /* Motion */
-  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-fast: 160ms;
   --duration-enter: 220ms;
   --duration-theme: 360ms;
@@ -60,23 +60,20 @@
   --panel: rgb(250 250 252 / 78%);
   --line: rgb(255 255 255 / 52%);
   --shadow:
-    inset 0 1px 0 rgb(255 255 255 / 90%),
-    inset 0 -1px 0 rgb(0 0 0 / 6%),
+    inset 0 1px 0 rgb(255 255 255 / 90%), inset 0 -1px 0 rgb(0 0 0 / 6%),
     0 20px 60px rgb(0 0 0 / 14%);
   --on: rgb(0 0 0 / 8%);
   --field: rgb(0 0 0 / 5%);
   --gloss: rgb(255 255 255 / 30%);
   --gloss-end: rgb(255 255 255 / 8%);
-  --grain-opacity: .025;
+  --grain-opacity: 0.025;
   --grain-blend: multiply;
   --veil: rgb(0 0 0 / 5%);
   --fill-control: rgb(250 250 252 / 38%);
   --fill-surface: rgb(250 250 252 / 78%);
   --control-line: rgb(255 255 255 / 48%);
   --control-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 62%),
-    inset 0 -1px 0 rgb(0 0 0 / 7%),
-    0 2px 8px rgb(0 0 0 / 8%),
+    inset 0 1px 0 rgb(255 255 255 / 62%), inset 0 -1px 0 rgb(0 0 0 / 7%), 0 2px 8px rgb(0 0 0 / 8%),
     0 10px 28px rgb(0 0 0 / 10%);
   /* Halo behind icons and text on controls, for busy backgrounds. */
   --ink-halo: rgb(255 255 255 / 55%);
@@ -95,24 +92,21 @@
   --panel: rgb(25 26 32 / 82%);
   --line: rgb(255 255 255 / 16%);
   --shadow:
-    inset 0 1px 0 rgb(255 255 255 / 16%),
-    inset 0 -1px 0 rgb(0 0 0 / 35%),
+    inset 0 1px 0 rgb(255 255 255 / 16%), inset 0 -1px 0 rgb(0 0 0 / 35%),
     0 20px 60px rgb(0 0 0 / 50%);
   --on: rgb(255 255 255 / 14%);
   --field: rgb(255 255 255 / 7%);
   --gloss: rgb(255 255 255 / 12%);
   --gloss-end: rgb(255 255 255 / 4%);
-  --grain-opacity: .04;
+  --grain-opacity: 0.04;
   --grain-blend: soft-light;
   --veil: rgb(0 0 0 / 22%);
   --fill-control: rgb(24 25 31 / 42%);
   --fill-surface: rgb(25 26 32 / 82%);
   --control-line: rgb(255 255 255 / 14%);
   --control-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 16%),
-    inset 0 -1px 0 rgb(0 0 0 / 20%),
-    0 2px 8px rgb(0 0 0 / 16%),
-    0 10px 28px rgb(0 0 0 / 22%);
+    inset 0 1px 0 rgb(255 255 255 / 16%), inset 0 -1px 0 rgb(0 0 0 / 20%),
+    0 2px 8px rgb(0 0 0 / 16%), 0 10px 28px rgb(0 0 0 / 22%);
   --ink-halo: rgb(0 0 0 / 45%);
   --favicon-plate: rgb(255 255 255 / 78%);
   --mark-outline: rgb(255 255 255 / 22%);

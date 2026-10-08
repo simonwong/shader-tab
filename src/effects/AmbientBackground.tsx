@@ -23,8 +23,16 @@ const HIDDEN_RELEASE_MS = 10_000;
 /** After a context loss while visible, wait this long before the one rebuild attempt. */
 const LOSS_RETRY_MS = 2_000;
 
-interface Scene { key: string; definition: VariantDef; theme: Theme }
-interface Layer { key: string; controller?: AmbientController; paused: boolean }
+interface Scene {
+  key: string;
+  definition: VariantDef;
+  theme: Theme;
+}
+interface Layer {
+  key: string;
+  controller?: AmbientController;
+  paused: boolean;
+}
 
 interface Stage {
   show: (scene: Scene) => void;
@@ -41,7 +49,10 @@ function fadeDuration(element: HTMLElement): number {
   const style = getComputedStyle(element);
   const durations = seconds(style.transitionDuration);
   const delays = seconds(style.transitionDelay);
-  return Math.max(0, ...durations.map((duration, index) => (duration + (delays[index] ?? 0)) * 1000));
+  return Math.max(
+    0,
+    ...durations.map((duration, index) => (duration + (delays[index] ?? 0)) * 1000),
+  );
 }
 
 /**
@@ -56,14 +67,20 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
   let live: Layer | undefined;
   let incoming: Layer | undefined;
   let outgoing: Layer | undefined;
-  let outgoingTimer = 0, releaseTimer = 0, retryTimer = 0;
-  let pointerBlocked = false, disposed = false, suspended = false;
+  let outgoingTimer = 0,
+    releaseTimer = 0,
+    retryTimer = 0;
+  let pointerBlocked = false,
+    disposed = false,
+    suspended = false;
   /** Scenes that failed for good (driver error, or a second context loss while visible). */
   const failed = new Set<string>();
   /** Scenes that already used their one rebuild after a context loss while visible. */
   const lossRetried = new Set<string>();
 
-  const setTransitioning = (value: boolean) => { host.dataset.transitioning = String(value); };
+  const setTransitioning = (value: boolean) => {
+    host.dataset.transitioning = String(value);
+  };
   const drop = (layer: Layer | undefined) => {
     if (!layer) return;
     layer.controller?.dispose();
@@ -82,7 +99,11 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     if (disposed) return;
     setTransitioning(Boolean(incoming || outgoing));
     if (document.hidden || !desired) report(live ? 'paused' : suspended ? 'suspended' : 'static');
-    else if (live && (incoming || outgoing || live.key !== desired.key && !failed.has(desired.key))) report('switching');
+    else if (
+      live &&
+      (incoming || outgoing || (live.key !== desired.key && !failed.has(desired.key)))
+    )
+      report('switching');
     else report(live ? 'live' : 'static');
   };
 
@@ -100,7 +121,10 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
         previous.controller?.pause();
         previous.paused = true;
         outgoing = previous;
-        outgoingTimer = window.setTimeout(() => { finishOutgoing(); publish(); }, fade + 50);
+        outgoingTimer = window.setTimeout(() => {
+          finishOutgoing();
+          publish();
+        }, fade + 50);
       } else {
         drop(previous);
       }
@@ -113,7 +137,11 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     const wasPaused = layer.paused || document.hidden;
     layer.controller = undefined;
     if (layer === incoming) incoming = undefined;
-    if (layer === outgoing) { finishOutgoing(); publish(); return; }
+    if (layer === outgoing) {
+      finishOutgoing();
+      publish();
+      return;
+    }
     if (layer === live) live = undefined;
     if (reason === 'lost' && wasPaused) {
       // The browser reclaimed the context of a background tab: a suspension, not a failure.
@@ -121,7 +149,10 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     } else if (reason === 'lost' && !lossRetried.has(layer.key)) {
       lossRetried.add(layer.key);
       window.clearTimeout(retryTimer);
-      retryTimer = window.setTimeout(() => { retryTimer = 0; sync(); }, LOSS_RETRY_MS);
+      retryTimer = window.setTimeout(() => {
+        retryTimer = 0;
+        sync();
+      }, LOSS_RETRY_MS);
     } else {
       failed.add(layer.key);
     }
@@ -135,15 +166,23 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     incoming = layer;
     performance.mark('ambient:start', { detail: scene.key });
     // Fetch the controller and the driver chunk in parallel.
-    void Promise.all([loadAmbient(), scene.definition.load()]).then(([{ mountAmbient }]) => {
-      if (layer !== incoming || disposed || document.hidden) return;
-      layer.controller = mountAmbient(host, scene.definition, scene.theme, () => onReady(layer), reason => onFailure(layer, reason));
-      layer.controller.setPointerBlocked(pointerBlocked);
-      // Lets CSS give a crossfade over a previous scene a different duration than the first fade-in.
-      layer.controller.layer.dataset.enter = live ? 'crossfade' : 'fade';
-    }).catch(() => {
-      if (layer === incoming) onFailure(layer, 'error');
-    });
+    void Promise.all([loadAmbient(), scene.definition.load()])
+      .then(([{ mountAmbient }]) => {
+        if (layer !== incoming || disposed || document.hidden) return;
+        layer.controller = mountAmbient(
+          host,
+          scene.definition,
+          scene.theme,
+          () => onReady(layer),
+          reason => onFailure(layer, reason),
+        );
+        layer.controller.setPointerBlocked(pointerBlocked);
+        // Lets CSS give a crossfade over a previous scene a different duration than the first fade-in.
+        layer.controller.layer.dataset.enter = live ? 'crossfade' : 'fade';
+      })
+      .catch(() => {
+        if (layer === incoming) onFailure(layer, 'error');
+      });
   };
 
   const sync = () => {
@@ -159,7 +198,10 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     if (document.hidden) {
       finishOutgoing();
       cancelIncoming();
-      if (live && live.key !== desired.key) { drop(live); live = undefined; }
+      if (live && live.key !== desired.key) {
+        drop(live);
+        live = undefined;
+      }
       if (live && !live.paused) {
         live.controller?.pause();
         live.paused = true;
@@ -250,13 +292,17 @@ export function AmbientBackground({ effect, variant, theme, pointerBlocked }: Pr
     const definition = resolveVariant(effect, variant);
     stage.current?.show({ key: `${effect}/${definition.id}/${theme}`, definition, theme });
   }, [effect, theme, variant]);
-  useLayoutEffect(() => { stage.current?.setPointerBlocked(pointerBlocked); }, [pointerBlocked]);
-  return <div
-    ref={host}
-    className="ambient-background"
-    aria-hidden="true"
-    data-renderer={renderer}
-    data-variant={variant}
-    style={{ background: resolveVariant(effect, variant).background(theme) }}
-  />;
+  useLayoutEffect(() => {
+    stage.current?.setPointerBlocked(pointerBlocked);
+  }, [pointerBlocked]);
+  return (
+    <div
+      ref={host}
+      className="ambient-background"
+      aria-hidden="true"
+      data-renderer={renderer}
+      data-variant={variant}
+      style={{ background: resolveVariant(effect, variant).background(theme) }}
+    />
+  );
 }

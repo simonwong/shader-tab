@@ -10,5 +10,5 @@ export function useTheme(appearance: Preferences['appearance']): Theme {
     update();
     return () => media.removeEventListener('change', update);
   }, []);
-  return appearance === 'system' ? dark ? 'night' : 'day' : appearance;
+  return appearance === 'system' ? (dark ? 'night' : 'day') : appearance;
 }

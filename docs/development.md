@@ -26,20 +26,20 @@ pnpm dev
 
 ## 命令
 
-| 命令 | 用途 |
-| --- | --- |
-| `pnpm dev` | 启动扩展开发服务 |
-| `pnpm typecheck` | WXT 类型生成与 TypeScript 检查 |
-| `pnpm test` | 运行单元和回归测试 |
-| `pnpm build` | 构建生产扩展 |
-| `pnpm lint` | oxlint 检查（配置见 `.oxlintrc.json`） |
+| 命令                                | 用途                                                |
+| ----------------------------------- | --------------------------------------------------- |
+| `pnpm dev`                          | 启动扩展开发服务                                    |
+| `pnpm typecheck`                    | WXT 类型生成与 TypeScript 检查                      |
+| `pnpm test`                         | 运行单元和回归测试                                  |
+| `pnpm build`                        | 构建生产扩展                                        |
+| `pnpm lint`                         | oxlint 检查（配置见 `.oxlintrc.json`）              |
 | `pnpm format` / `pnpm format:check` | oxfmt 格式化 / 只检查格式（配置见 `.oxfmtrc.json`） |
-| `pnpm check` | lint、格式检查、类型检查、测试、生产构建和产物校验 |
-| `pnpm zip` | 生成商店上传 ZIP |
-| `pnpm locales` | 生成 manifest 语言目录与多语言政策页 |
-| `pnpm site:build` | 构建扩展许可文件及官网 |
-| `pnpm site:preview` | 本机预览已构建的官网 |
-| `pnpm site:deploy` | 使用 Wrangler 发布官网 |
+| `pnpm check`                        | lint、格式检查、类型检查、测试、生产构建和产物校验  |
+| `pnpm zip`                          | 生成商店上传 ZIP                                    |
+| `pnpm locales`                      | 生成 manifest 语言目录与多语言政策页                |
+| `pnpm site:build`                   | 构建扩展许可文件及官网                              |
+| `pnpm site:preview`                 | 本机预览已构建的官网                                |
+| `pnpm site:deploy`                  | 使用 Wrangler 发布官网                              |
 
 生产目录为 `.output/chrome-mv3`，ZIP 为 `.output/shader-tab-<version>-chrome.zip`。开发截图、设计素材和官网不进入扩展包。
 
@@ -95,15 +95,15 @@ agent-browser install
 
 加载 `.output/chrome-mv3` 的脚本需要先 `pnpm build`；标注「开发服务」的脚本需要 `pnpm dev` 在 4317 端口运行。
 
-| 命令 | 前提 | 覆盖范围 |
-| --- | --- | --- |
-| `pnpm capture:effects [id…]` | 开发服务 | 六类背景日夜、横竖屏截图 |
-| `pnpm review:effects` | 开发服务 | 动画、指针交互、快速切换、静态回退、上下文丢失 |
-| `pnpm review:variants [id…]` | 自动构建 | 每个变体的日夜渲染、单类随机、窄屏设置 |
-| `pnpm review:locales` | 自动构建 | 八语切换、持久化、布局与离线政策页 |
-| `pnpm perf:measure [name]` | 自动构建 | 冷启动、各背景绘制次数、空闲帧率、后台 GPU 释放；结果写入 `artifacts/performance/<name>.json` |
-| `node scripts/review-favicons.mjs` | 构建产物 | 离线图标缓存、缺图与 Retina 渲染 |
-| `node scripts/diagnose-favicon-api.mjs` | 无 | `_favicon` 接口在有无 `favicon` 权限时的行为 |
+| 命令                                    | 前提     | 覆盖范围                                                                                      |
+| --------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `pnpm capture:effects [id…]`            | 开发服务 | 六类背景日夜、横竖屏截图                                                                      |
+| `pnpm review:effects`                   | 开发服务 | 动画、指针交互、快速切换、静态回退、上下文丢失                                                |
+| `pnpm review:variants [id…]`            | 自动构建 | 每个变体的日夜渲染、单类随机、窄屏设置                                                        |
+| `pnpm review:locales`                   | 自动构建 | 八语切换、持久化、布局与离线政策页                                                            |
+| `pnpm perf:measure [name]`              | 自动构建 | 冷启动、各背景绘制次数、空闲帧率、后台 GPU 释放；结果写入 `artifacts/performance/<name>.json` |
+| `node scripts/review-favicons.mjs`      | 构建产物 | 离线图标缓存、缺图与 Retina 渲染                                                              |
+| `node scripts/diagnose-favicon-api.mjs` | 无       | `_favicon` 接口在有无 `favicon` 权限时的行为                                                  |
 
 其余 `review-*.mjs`（导航、设置、书签排序、玻璃模糊、品牌图标、发布页、Shader Gradient、升级）用法相同，直接用 `node` 运行。
 

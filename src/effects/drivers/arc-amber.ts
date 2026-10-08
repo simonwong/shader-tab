@@ -7,9 +7,11 @@ import type { DriverFactory } from './types';
 
 /* three.js converted the original sRGB hex colours to linear RGB before passing
    them to the shader, which wrote them out unconverted; keep that look. */
-const linear = (hex: string) => hexColor(hex).map(channel =>
-  channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4) as [number, number, number];
-const SPACING = .085;
+const linear = (hex: string) =>
+  hexColor(hex).map(channel =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  ) as [number, number, number];
+const SPACING = 0.085;
 
 export const createDriver: DriverFactory = (host, { theme }) => {
   const light = theme === 'day';
@@ -17,8 +19,12 @@ export const createDriver: DriverFactory = (host, { theme }) => {
     engine: 'threeui-webgl',
     fragment,
     setup(gl, uniform) {
-      const canvas = uniform('uCanvas'), aspect = uniform('uAspect'), density = uniform('uDensity');
-      const columns = uniform('uColumns'), time = uniform('uTime'), offset = uniform('uOffset');
+      const canvas = uniform('uCanvas'),
+        aspect = uniform('uAspect'),
+        density = uniform('uDensity');
+      const columns = uniform('uColumns'),
+        time = uniform('uTime'),
+        offset = uniform('uOffset');
       gl.uniform3f(uniform('uColor1'), ...linear(light ? '#b45309' : '#fbbf24'));
       gl.uniform3f(uniform('uColor2'), ...linear(light ? '#1a1f2a' : '#ffffff'));
       gl.uniform3f(uniform('uBackground'), ...hexColor(ARC_SURFACE[theme]));
@@ -33,7 +39,7 @@ export const createDriver: DriverFactory = (host, { theme }) => {
         },
         frame(seconds, pointer) {
           gl.uniform1f(time, seconds);
-          gl.uniform2f(offset, pointer.x * .025, -pointer.y * .025);
+          gl.uniform2f(offset, pointer.x * 0.025, -pointer.y * 0.025);
         },
       };
     },

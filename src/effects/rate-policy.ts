@@ -71,7 +71,9 @@ export function planRate(conditions: RateConditions): RatePlan {
 
 const samePlan = (a: RatePlan, b: RatePlan) => a.fps === b.fps && a.densityCap === b.densityCap;
 
-interface BatteryLike extends EventTarget { charging: boolean }
+interface BatteryLike extends EventTarget {
+  charging: boolean;
+}
 
 export interface RateMonitor {
   readonly plan: RatePlan;
@@ -132,28 +134,50 @@ export function createRateMonitor(onChange: (plan: RatePlan) => void): RateMonit
     lastInput = now();
     if (plan.fps <= RATES.idle) update();
   };
-  const onFocus = () => { unfocusedSince = undefined; lastInput = now(); update(); };
-  const onBlur = () => { unfocusedSince ??= now(); update(); };
-  const onVisibility = () => { if (!document.hidden) { lastInput = now(); update(); } };
-  const onCharging = () => { onBattery = battery ? !battery.charging : false; update(); };
+  const onFocus = () => {
+    unfocusedSince = undefined;
+    lastInput = now();
+    update();
+  };
+  const onBlur = () => {
+    unfocusedSince ??= now();
+    update();
+  };
+  const onVisibility = () => {
+    if (!document.hidden) {
+      lastInput = now();
+      update();
+    }
+  };
+  const onCharging = () => {
+    onBattery = battery ? !battery.charging : false;
+    update();
+  };
 
-  for (const type of INPUT_EVENTS) window.addEventListener(type, onInput, { passive: true, capture: true });
+  for (const type of INPUT_EVENTS)
+    window.addEventListener(type, onInput, { passive: true, capture: true });
   window.addEventListener('focus', onFocus);
   window.addEventListener('blur', onBlur);
   document.addEventListener('visibilitychange', onVisibility);
-  const getBattery = (navigator as Navigator & { getBattery?: () => Promise<BatteryLike> }).getBattery;
+  const getBattery = (navigator as Navigator & { getBattery?: () => Promise<BatteryLike> })
+    .getBattery;
   if (typeof getBattery === 'function') {
-    getBattery.call(navigator).then(manager => {
-      if (disposed) return;
-      battery = manager;
-      battery.addEventListener('chargingchange', onCharging);
-      onCharging();
-    }).catch(() => {});
+    getBattery
+      .call(navigator)
+      .then(manager => {
+        if (disposed) return;
+        battery = manager;
+        battery.addEventListener('chargingchange', onCharging);
+        onCharging();
+      })
+      .catch(() => {});
   }
   update();
 
   return {
-    get plan() { return plan; },
+    get plan() {
+      return plan;
+    },
     setDialogOpen(open) {
       if (dialogOpen === open) return;
       dialogOpen = open;

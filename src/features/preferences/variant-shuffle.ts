@@ -12,13 +12,27 @@ export const LEGACY_SHUFFLE_KEYS: Partial<Record<EffectId, string>> = {
   'shader-gradient': 'shader-gradient:shuffle:v1',
 };
 
-export interface ShuffleState { remaining: string[]; last: string }
+export interface ShuffleState {
+  remaining: string[];
+  last: string;
+}
 
-export function drawVariant(effect: EffectId, saved: unknown, random = Math.random): { variant: string; state: ShuffleState } {
+export function drawVariant(
+  effect: EffectId,
+  saved: unknown,
+  random = Math.random,
+): { variant: string; state: ShuffleState } {
   const choices = variantIds(effect);
-  const previous = saved && typeof saved === 'object' ? saved as { remaining?: unknown; last?: unknown } : {};
+  const previous =
+    saved && typeof saved === 'object' ? (saved as { remaining?: unknown; last?: unknown }) : {};
   let remaining = Array.isArray(previous.remaining)
-    ? [...new Set(previous.remaining.filter((value): value is string => typeof value === 'string' && choices.includes(value)))]
+    ? [
+        ...new Set(
+          previous.remaining.filter(
+            (value): value is string => typeof value === 'string' && choices.includes(value),
+          ),
+        ),
+      ]
     : [];
   if (!remaining.length) {
     remaining = [...choices];
@@ -26,7 +40,8 @@ export function drawVariant(effect: EffectId, saved: unknown, random = Math.rand
       const next = Math.min(index, Math.max(0, Math.floor(random() * (index + 1))));
       [remaining[index], remaining[next]] = [remaining[next]!, remaining[index]!];
     }
-    if (remaining[0] === previous.last && remaining.length > 1) [remaining[0], remaining[1]] = [remaining[1]!, remaining[0]!];
+    if (remaining[0] === previous.last && remaining.length > 1)
+      [remaining[0], remaining[1]] = [remaining[1]!, remaining[0]!];
   }
   const variant = remaining.shift()!;
   return { variant, state: { remaining, last: variant } };
@@ -51,7 +66,11 @@ export interface StoredDraw {
  * exists it seeds the draw, so the user's queue carries over; the legacy key is
  * always scheduled for removal once seen.
  */
-export function drawStoredVariant(effect: EffectId, items: Record<string, unknown>, random = Math.random): StoredDraw {
+export function drawStoredVariant(
+  effect: EffectId,
+  items: Record<string, unknown>,
+  random = Math.random,
+): StoredDraw {
   const { saved, key, remove } = storedBag(effect, items);
   const { variant, state } = drawVariant(effect, saved, random);
   return { variant, set: { [key]: state }, remove };
@@ -74,16 +93,30 @@ function storedBag(effect: EffectId, items: Record<string, unknown>) {
  * tab already took it, the bag is left as is. In every case `last` becomes
  * `variant`, so the next round does not open with it.
  */
-export function settleVariant(effect: EffectId, items: Record<string, unknown>, variant: string, random = Math.random): Omit<StoredDraw, 'variant'> {
+export function settleVariant(
+  effect: EffectId,
+  items: Record<string, unknown>,
+  variant: string,
+  random = Math.random,
+): Omit<StoredDraw, 'variant'> {
   const { saved, key, remove } = storedBag(effect, items);
   const choices = variantIds(effect);
-  const previous = saved && typeof saved === 'object' ? saved as { remaining?: unknown } : {};
+  const previous = saved && typeof saved === 'object' ? (saved as { remaining?: unknown }) : {};
   let remaining = Array.isArray(previous.remaining)
-    ? [...new Set(previous.remaining.filter((value): value is string => typeof value === 'string' && choices.includes(value)))]
+    ? [
+        ...new Set(
+          previous.remaining.filter(
+            (value): value is string => typeof value === 'string' && choices.includes(value),
+          ),
+        ),
+      ]
     : [];
   if (!remaining.length) {
     const round = drawVariant(effect, undefined, random);
     remaining = [round.variant, ...round.state.remaining];
   }
-  return { set: { [key]: { remaining: remaining.filter(value => value !== variant), last: variant } }, remove };
+  return {
+    set: { [key]: { remaining: remaining.filter(value => value !== variant), last: variant } },
+    remove,
+  };
 }

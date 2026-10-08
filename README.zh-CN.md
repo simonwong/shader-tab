@@ -38,14 +38,14 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
   </tr>
 </table>
 
-| 背景 | 画面特点 | 使用框架 |
-| --- | --- | --- |
-| Grain Gradient | 柔和色彩与细腻颗粒 | Paper Shaders |
-| Dithering | 网点渐变与复古纹理 | Paper Shaders |
-| Pixel Field | 抖动像素网格与指针涟漪 | 原创 WebGL shader |
-| Predictive Arc | 弧线、粒子、丝带与场景变体 | ThreeUI |
-| CRT | 荧光与装饰屏幕 | ThreeUI |
-| Shader Gradient | Plane、Sphere、Water 三种形态 | Shader Gradient |
+| 背景            | 画面特点                      | 使用框架          |
+| --------------- | ----------------------------- | ----------------- |
+| Grain Gradient  | 柔和色彩与细腻颗粒            | Paper Shaders     |
+| Dithering       | 网点渐变与复古纹理            | Paper Shaders     |
+| Pixel Field     | 抖动像素网格与指针涟漪        | 原创 WebGL shader |
+| Predictive Arc  | 弧线、粒子、丝带与场景变体    | ThreeUI           |
+| CRT             | 荧光与装饰屏幕                | ThreeUI           |
+| Shader Gradient | Plane、Sphere、Water 三种形态 | Shader Gradient   |
 
 以上为实际扩展截图。前往[官网体验动态背景](https://shadertab.simonwong.cn/#effects)，或查看[完整变体清单](docs/effect-variants.md)。
 
@@ -55,21 +55,21 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 
 安装后打开新标签页，移动鼠标显示控件：左下角是设置，底部中央是收藏与书签目录，右下角可访问当前背景的参考来源。
 
-| 快捷键 | 功能 |
-| --- | --- |
-| `Tab` | 唤醒并浏览控件 |
-| `Escape` | 关闭当前弹层 |
-| `⌘ ,` / `Ctrl ,` | 打开设置 |
+| 快捷键           | 功能           |
+| ---------------- | -------------- |
+| `Tab`            | 唤醒并浏览控件 |
+| `Escape`         | 关闭当前弹层   |
+| `⌘ ,` / `Ctrl ,` | 打开设置       |
 
 ## 数据留在浏览器里
 
 扩展无需账户，不含广告和分析统计。Chrome 原始书签只读，收藏与偏好使用 `chrome.storage.local` 保存；扩展不跨设备同步，也不上传书签数据。
 
-| 权限 | 用途 |
-| --- | --- |
+| 权限        | 用途                           |
+| ----------- | ------------------------------ |
 | `bookmarks` | 读取书签树，监听变化并同步展示 |
-| `storage` | 本地保存收藏、偏好和随机队列 |
-| `favicon` | 读取当前展示书签的缓存图标 |
+| `storage`   | 本地保存收藏、偏好和随机队列   |
+| `favicon`   | 读取当前展示书签的缓存图标     |
 
 无网站访问权限、内容脚本或远程执行代码。脚本、shader 和字体均随扩展打包。
 
@@ -101,13 +101,13 @@ pnpm zip
 
 ## 项目文档
 
-| 文档 | 内容 |
-| --- | --- |
-| [开发指南](docs/development.md) | 本地环境、构建产物、官网与验证 |
-| [架构](docs/architecture.md) | 数据边界、存储与渲染生命周期 |
-| [背景实现](docs/shaders.md) | Shader 接入与来源 |
-| [变体清单](docs/effect-variants.md) | 49 种组合与随机规则 |
-| [性能记录](docs/performance.md) | 渲染预算与实测结果 |
+| 文档                                | 内容                           |
+| ----------------------------------- | ------------------------------ |
+| [开发指南](docs/development.md)     | 本地环境、构建产物、官网与验证 |
+| [架构](docs/architecture.md)        | 数据边界、存储与渲染生命周期   |
+| [背景实现](docs/shaders.md)         | Shader 接入与来源              |
+| [变体清单](docs/effect-variants.md) | 49 种组合与随机规则            |
+| [性能记录](docs/performance.md)     | 渲染预算与实测结果             |
 
 ## 致谢
 

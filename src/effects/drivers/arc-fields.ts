@@ -2,7 +2,10 @@ import { THEME_BRIGHTNESS } from '../presets';
 import { mountFullscreenShader } from './webgl';
 import type { DriverFactory } from './types';
 
-interface FieldShaders { vertex: string; fragment: string }
+interface FieldShaders {
+  vertex: string;
+  fragment: string;
+}
 interface FieldConfig {
   shaders: () => Promise<FieldShaders>;
   uniforms: { resolution: string; time: string; pointer: string };
@@ -23,10 +26,12 @@ function createFieldDriver({ shaders: loadShaders, uniforms }: FieldConfig): Dri
         gl.uniform1f(uniform('lightMode'), theme === 'day' ? 1 : 0);
         gl.uniform1f(uniform('uDim'), THEME_BRIGHTNESS[theme]);
         return {
-          resize(surface) { gl.uniform2f(resolution, surface.pixelWidth, surface.pixelHeight); },
+          resize(surface) {
+            gl.uniform2f(resolution, surface.pixelWidth, surface.pixelHeight);
+          },
           frame(seconds, mouse) {
             gl.uniform1f(time, seconds);
-            gl.uniform2f(pointer, .5 + mouse.x * .15, .5 - mouse.y * .15);
+            gl.uniform2f(pointer, 0.5 + mouse.x * 0.15, 0.5 - mouse.y * 0.15);
           },
         };
       },

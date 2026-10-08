@@ -34,7 +34,9 @@ export function useEffectSelection({ platform, preferences, ready, onDrawError }
   const [generations, setGenerations] = useState<Partial<Record<EffectId, number>>>({});
   const effect = chooseEffect(preferences, seed);
   const [selection, setSelection] = useState<Selection>();
-  const draws = useRef<Partial<Record<EffectId, { generation: number; variant: Promise<string> }>>>({});
+  const draws = useRef<Partial<Record<EffectId, { generation: number; variant: Promise<string> }>>>(
+    {},
+  );
   // Reads the latest handler without making it an effect dependency, so a new handler never redraws.
   const reportError = useEffectEvent((error: unknown) => onDrawError(error));
 
@@ -45,27 +47,37 @@ export function useEffectSelection({ platform, preferences, ready, onDrawError }
     let active = true;
     let draw = draws.current[effect];
     if (draw?.generation !== generation) {
-      const drawn: Promise<string> = platform.nextEffectVariant(effect).then(({ variant, saved }) => {
-        saved.catch((error: unknown) => reportError(error));
-        return variant;
-      }, (error: unknown) => {
-        // Never keep a rejected draw cached: the next selection of this effect retries,
-        // and this page still animates with a local pick that is not persisted.
-        if (draws.current[effect] === request) delete draws.current[effect];
-        reportError(error);
-        return drawVariant(effect, undefined).variant;
-      });
+      const drawn: Promise<string> = platform.nextEffectVariant(effect).then(
+        ({ variant, saved }) => {
+          saved.catch((error: unknown) => reportError(error));
+          return variant;
+        },
+        (error: unknown) => {
+          // Never keep a rejected draw cached: the next selection of this effect retries,
+          // and this page still animates with a local pick that is not persisted.
+          if (draws.current[effect] === request) delete draws.current[effect];
+          reportError(error);
+          return drawVariant(effect, undefined).variant;
+        },
+      );
       const request = { generation, variant: drawn };
       draws.current[effect] = draw = request;
     }
     void draw.variant.then(variant => {
-      if (active) setSelection(previous => previous?.effect === effect && previous.variant === variant ? previous : { effect, variant });
+      if (active)
+        setSelection(previous =>
+          previous?.effect === effect && previous.variant === variant
+            ? previous
+            : { effect, variant },
+        );
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [effect, generation, ready, platform]);
 
   const pool = useMemo(
-    () => preferences.shuffle ? preferences.effects : [preferences.activeEffect],
+    () => (preferences.shuffle ? preferences.effects : [preferences.activeEffect]),
     [preferences.shuffle, preferences.effects, preferences.activeEffect],
   );
   const canReshuffle = pool.length > 1 || variantIds(effect).length > 1;
@@ -76,7 +88,7 @@ export function useEffectSelection({ platform, preferences, ready, onDrawError }
     if (pool.length > 1) {
       const others = pool.filter(id => id !== effect);
       next = others[Math.floor(Math.random() * others.length)] ?? effect;
-      setSeed((pool.indexOf(next) + .5) / pool.length);
+      setSeed((pool.indexOf(next) + 0.5) / pool.length);
     }
     setGenerations(current => ({ ...current, [next]: (current[next] ?? 0) + 1 }));
   }, [effect, pool]);

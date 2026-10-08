@@ -1,6 +1,9 @@
 import type { EffectId, Theme } from '../presets';
 
-export interface Pointer { x: number; y: number }
+export interface Pointer {
+  x: number;
+  y: number;
+}
 
 export interface EffectDriver {
   canvas: HTMLCanvasElement;
@@ -19,4 +22,7 @@ export interface DriverContext {
   variant: string;
 }
 
-export type DriverFactory = (host: HTMLElement, context: DriverContext) => EffectDriver | Promise<EffectDriver>;
+export type DriverFactory = (
+  host: HTMLElement,
+  context: DriverContext,
+) => EffectDriver | Promise<EffectDriver>;

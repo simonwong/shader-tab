@@ -14,13 +14,17 @@ export function useIdleControls(delay: number, held: boolean) {
     let timer: ReturnType<typeof setTimeout>;
     const schedule = (wait: number) => {
       clearTimeout(timer);
-      timer = setTimeout(() => { if (!held) setVisible(false); }, wait);
+      timer = setTimeout(() => {
+        if (!held) setVisible(false);
+      }, wait);
     };
     const wake = () => {
       setVisible(true);
       schedule(delay);
     };
-    const hide = () => { if (!held) setVisible(false); };
+    const hide = () => {
+      if (!held) setVisible(false);
+    };
     window.addEventListener('pointermove', wake, { passive: true });
     window.addEventListener('pointerdown', wake, { passive: true });
     window.addEventListener('keydown', wake);

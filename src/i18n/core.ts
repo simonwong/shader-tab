@@ -1,8 +1,17 @@
 import { en, type MessageKey, type Messages } from './en';
 export const LOCALES = ['en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'fr', 'de', 'es'] as const;
-export type Locale = typeof LOCALES[number];
+export type Locale = (typeof LOCALES)[number];
 export type Language = 'auto' | Locale;
-export const LANGUAGE_NAMES: Record<Locale, string> = { ja: '日本語', ko: '한국어', fr: 'Français', de: 'Deutsch', es: 'Español', en: 'English', 'zh-CN': '简体中文', 'zh-TW': '繁體中文' };
+export const LANGUAGE_NAMES: Record<Locale, string> = {
+  ja: '日本語',
+  ko: '한국어',
+  fr: 'Français',
+  de: 'Deutsch',
+  es: 'Español',
+  en: 'English',
+  'zh-CN': '简体中文',
+  'zh-TW': '繁體中文',
+};
 export const messages: Partial<Record<Locale, Messages>> = { en };
 const loaders = {
   'zh-CN': () => import('./zh-CN').then(module => module.zhCN),
@@ -16,12 +25,17 @@ const loaders = {
 const pending: Partial<Record<Locale, Promise<void>>> = {};
 export function loadLocale(locale: Locale): Promise<void> {
   if (messages[locale] || locale === 'en') return Promise.resolve();
-  return pending[locale] ??= loaders[locale]().then(dictionary => { messages[locale] = dictionary; })
-    .finally(() => { delete pending[locale]; });
+  return (pending[locale] ??= loaders[locale]()
+    .then(dictionary => {
+      messages[locale] = dictionary;
+    })
+    .finally(() => {
+      delete pending[locale];
+    }));
 }
 export type Translator = (key: MessageKey, values?: Record<string, string | number>) => string;
 export function isLanguage(value: unknown): value is Language {
-  return value === 'auto' || typeof value === 'string' && LOCALES.includes(value as Locale);
+  return value === 'auto' || (typeof value === 'string' && LOCALES.includes(value as Locale));
 }
 export function matchLocale(value: string): Locale | undefined {
   const tag = value.replaceAll('_', '-').toLowerCase();
@@ -30,12 +44,16 @@ export function matchLocale(value: string): Locale | undefined {
   if (['en', 'ja', 'ko', 'fr', 'de', 'es'].includes(base)) return base as Locale;
   if (parts[0] !== 'zh') return undefined;
   if (parts.includes('hans')) return 'zh-CN';
-  if (parts.includes('hant') || parts.some(part => ['tw', 'hk', 'mo'].includes(part))) return 'zh-TW';
+  if (parts.includes('hant') || parts.some(part => ['tw', 'hk', 'mo'].includes(part)))
+    return 'zh-TW';
   return 'zh-CN';
 }
 export function resolveLocale(language: Language, preferred: readonly string[]): Locale {
   if (language !== 'auto') return language;
-  for (const tag of preferred) { const locale = matchLocale(tag); if (locale) return locale; }
+  for (const tag of preferred) {
+    const locale = matchLocale(tag);
+    if (locale) return locale;
+  }
   return 'en';
 }
 export function browserLanguages(): string[] {
@@ -43,13 +61,19 @@ export function browserLanguages(): string[] {
   return [...(ui ? [ui] : []), ...(typeof navigator !== 'undefined' ? navigator.languages : [])];
 }
 export function createTranslator(locale: Locale): Translator {
-  return (key, values = {}) => (messages[locale] ?? en)[key].replace(/\{(\w+)\}/g, (placeholder, name: string) => String(values[name] ?? placeholder));
+  return (key, values = {}) =>
+    (messages[locale] ?? en)[key].replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+      String(values[name] ?? placeholder),
+    );
 }
 export function legalPath(page: 'privacy' | 'licenses', locale: Locale): string {
   return locale === 'zh-CN' ? `/${page}.html` : `/locales/${locale}/${page}.html`;
 }
 export class MessageError extends Error {
-  constructor(readonly key: MessageKey) { super(key); this.name = 'MessageError'; }
+  constructor(readonly key: MessageKey) {
+    super(key);
+    this.name = 'MessageError';
+  }
 }
 export function errorMessage(error: Error, t: Translator): string {
   return error instanceof MessageError ? t(error.key) : error.message;
