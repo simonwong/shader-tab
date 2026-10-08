@@ -21,6 +21,6 @@ export const zhCN: Messages = {
   idleHide: '鼠标静止后隐藏按钮', idleDelay: '隐藏延迟', seconds: '{count} 秒',
   language: '语言', interfaceLanguage: '界面语言', browserLanguage: '跟随浏览器', languageHint: '立即生效并保存在本地。书签名称保持原样。',
   'effect.grain-gradient': '细腻颗粒与流动渐变，光色随鼠标轻移', 'effect.dithering': '黑白点阵漩涡，连续流动的像素纹理',
-  'effect.pixel-blast': '移动鼠标拨动像素，点击空白处激起涟漪', 'effect.data-pixel-arc': 'Data Pixel、粒子、光带与半色调等 8 种官方样式',
-  'effect.crt-terminal': 'Phosphor、Cinematic、Retro Game 三种装饰画面', 'effect.shader-gradient': '官方 Halo 平面、Pensive 球面与 Mint 水面；每次打开随机形态',
+  'effect.pixel-blast': '移动鼠标拨动像素，点击空白处激起涟漪', 'effect.data-pixel-arc': 'Data Pixel、粒子、光带与半色调样式',
+  'effect.crt-terminal': '荧光终端文字与轻微扫描线', 'effect.shader-gradient': '官方 Halo 平面、Pensive 球面与 Mint 水面；每次打开随机形态',
 };

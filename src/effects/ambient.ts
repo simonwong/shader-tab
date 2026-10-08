@@ -40,8 +40,8 @@ export function mountAmbient(host: HTMLElement, effect: EffectId, theme: Theme, 
     if (disposed || paused || document.hidden || !driver) return;
     const delta = lastFrame ? Math.min((now - lastFrame) / 1000, .25) : 0;
     lastFrame = now; seconds += delta;
-    const follow = 1 - Math.exp(-delta * 2.5);
-    pointer.x += (target.x - pointer.x) * follow; pointer.y += (target.y - pointer.y) * follow;
+    const follow = 1 - Math.exp(-delta * 1.2);
+    pointer.x += (target.x * .35 - pointer.x) * follow; pointer.y += (target.y * .35 - pointer.y) * follow;
     try { driver.render(breathingTime(seconds), delta, pointer); } catch { fail(); }
   };
   const loop = createFrameLoop(render, 20);

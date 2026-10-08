@@ -14,7 +14,7 @@ export const createDriver: DriverFactory = (host, effect, theme, _shape, variant
     uClickPos: { value: Array.from({ length: MAX_CLICKS }, () => new THREE.Vector2(-1, -1)) },
     uClickTimes: { value: new Float32Array(MAX_CLICKS).fill(-1000) }, uShapeType: { value: Math.max(0, ['square', 'circle', 'triangle', 'diamond'].indexOf(variant ?? 'square')) },
     uPixelSize: { value: 3 }, uScale: { value: 2 }, uDensity: { value: 1 }, uPixelJitter: { value: 0 },
-    uEnableRipples: { value: 1 }, uRippleSpeed: { value: .3 }, uRippleThickness: { value: .1 }, uRippleIntensity: { value: 1 }, uEdgeFade: { value: .2 },
+    uEnableRipples: { value: 1 }, uRippleSpeed: { value: .3 }, uRippleThickness: { value: .1 }, uRippleIntensity: { value: .25 }, uEdgeFade: { value: .2 },
   };
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -22,7 +22,7 @@ export const createDriver: DriverFactory = (host, effect, theme, _shape, variant
   const geometry = new THREE.PlaneGeometry(2, 2);
   scene.add(new THREE.Mesh(geometry, material));
   const touch = createTouchTexture();
-  const liquid = createLiquidEffect(touch.texture, { strength: .1, freq: 4.5 });
+  const liquid = createLiquidEffect(touch.texture, { strength: .025, freq: 2 });
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(new EffectPass(camera, liquid));

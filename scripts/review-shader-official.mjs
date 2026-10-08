@@ -28,7 +28,7 @@ try {
     const engine=evaluate("document.querySelector('.ambient-background').dataset.engine");
     assert.equal(engine,'shadergradient-official');
     const timing=evaluate(`(async()=>{const start=performance.now(),before=window.__shaderProbe.uniforms.uTime;await new Promise(r=>setTimeout(r,1500));return {wall:(performance.now()-start)/1000,shader:window.__shaderProbe.uniforms.uTime-before};})()`);
-    assert.ok(timing.shader/timing.wall>.2&&timing.shader/timing.wall<.45,JSON.stringify(timing));
+    assert.ok(timing.shader/timing.wall>.07&&timing.shader/timing.wall<.18,JSON.stringify(timing));
     run('screenshot',resolve(output,`${shape}-app.png`));
     results.push({shape,engine,timing,queuedShape:true});
   }

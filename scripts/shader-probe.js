@@ -1,6 +1,6 @@
 (() => {
   const locations = new WeakMap();
-  window.__shaderProbe = { uniforms: {}, uploads: 0, arcFrames: 0 };
+  window.__shaderProbe = { uniforms: {}, uploads: 0, draws: 0, arcFrames: 0, crtTextReady: false };
   for (const name of ['WebGLRenderingContext', 'WebGL2RenderingContext']) {
     const proto = window[name]?.prototype;
     if (!proto) continue;
@@ -18,11 +18,18 @@
         return original.call(this, location, ...values);
       };
     }
+    const draw = proto.drawArrays;
+    proto.drawArrays = function (...args) { window.__shaderProbe.draws++; return draw.apply(this, args); };
     for (const method of ['texImage2D', 'texSubImage2D']) {
       const upload = proto[method];
       proto[method] = function (...args) { window.__shaderProbe.uploads++; return upload.apply(this, args); };
     }
   }
+  const text = CanvasRenderingContext2D.prototype.fillText;
+  CanvasRenderingContext2D.prototype.fillText = function (...args) {
+    if (args[0] === 'A little space between things.') window.__shaderProbe.crtTextReady = true;
+    return text.apply(this, args);
+  };
   const fill = CanvasRenderingContext2D.prototype.fillRect;
   CanvasRenderingContext2D.prototype.fillRect = function (...args) {
     if (this.canvas.isConnected && args[0] === 0 && args[1] === 0 && args[2] === innerWidth) window.__shaderProbe.arcFrames++;

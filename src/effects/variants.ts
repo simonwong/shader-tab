@@ -2,10 +2,10 @@ import { getEffect, type EffectId } from './presets';
 
 export const EFFECT_VARIANTS: Record<EffectId, readonly string[]> = {
   'grain-gradient': ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'],
-  dithering: ['simplex', 'warp', 'dots', 'wave', 'ripple', 'swirl', 'sphere'].flatMap(shape => ['random', '2x2', '4x4', '8x8'].map(type => `${shape}:${type}`)),
+  dithering: ['simplex', 'warp', 'dots', 'wave', 'ripple', 'swirl', 'sphere'].flatMap(shape => ['random', '2x2', '4x4', '8x8'].map(type => `${shape}:${type}`)).filter(variant => variant !== 'ripple:4x4'),
   'pixel-blast': ['square', 'circle', 'triangle', 'diamond'],
-  'data-pixel-arc': ['data-pixel', 'predictive', 'signal-particles', 'override-grid', 'ribbon-field', 'void-field', 'halftone-flow', 'amber-halftone'],
-  'crt-terminal': ['terminal', 'cinematic', 'retro-game'],
+  'data-pixel-arc': ['data-pixel', 'predictive', 'signal-particles', 'override-grid', 'ribbon-field', 'void-field', 'amber-halftone'],
+  'crt-terminal': ['terminal'],
   'shader-gradient': ['plane', 'sphere', 'waterPlane'],
 };
 export function variantLabel(variant: string): string {
@@ -22,7 +22,7 @@ export function variantBackground(effect: EffectId, variant: string | undefined,
   if (effect === 'crt-terminal') return variant === 'retro-game' ? '#101020' : variant === 'cinematic' ? '#080b10' : undefined;
   if (effect !== 'data-pixel-arc' || !variant || variant === 'data-pixel') return undefined;
   if (variant === 'void-field') return 'radial-gradient(ellipse, #201033, #030305)';
-  if (variant === 'ribbon-field') return 'radial-gradient(ellipse at 75% 55%, #143a44, #030305 70%)';
+  if (variant === 'ribbon-field') return theme === 'day' ? 'radial-gradient(ellipse at 75% 55%, #d3e5ee, #f0f5f9 70%)' : 'radial-gradient(ellipse at 75% 55%, #143a44, #030305 70%)';
   if (variant === 'halftone-flow') return 'radial-gradient(ellipse, #51200b, #050000)';
   return theme === 'day' ? '#eef1f6' : '#0a0a0a';
 }

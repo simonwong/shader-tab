@@ -4,7 +4,7 @@ export const copy = {
     home: '/', otherLanguage: '/en/', otherName: 'EN', navEffects: '背景', navDetails: '功能', navHelp: '使用指南', navDownload: '获取扩展',
     eyebrow: '为每一次新的开始', heading: '打开新标签，<br>留一点<span>空白。</span>', intro: '光慢慢流动，书签恰好在手边。<br>一个会呼吸的新标签页，让浏览从容一点。', primary: '在 Chrome 中安装', secondary: '探索背景', version: 'Chrome 扩展 · 支持 8 种语言',
     scene: '一点光，一点秩序。', live: '真实 shader 实时预览', try: '移动鼠标，轻轻拨动背景', effectGroup: '选择预览背景', theme: '切换预览明暗', pause: '暂停动画', play: '播放动画', day: '日间', night: '夜间', static: '静态预览', source: '背景来源',
-    facts: [['06', '种背景效果'], ['53', '种变体组合'], ['08', '种界面语言']],
+    facts: [['06', '种背景效果'], ['49', '种变体组合'], ['08', '种界面语言']],
     detailLabel: '少一点打扰', detailTitle: '只留下你需要的。',
     features: [
       ['01', '书签，伸手就到。', '收藏常用的网页，沿文件夹浏览 Chrome 书签。图标读取浏览器已有缓存，熟悉的地方一眼就能找到。', 'bookmarks'],
@@ -31,7 +31,7 @@ export const copy = {
     home: '/en/', otherLanguage: '/', otherName: '中文', navEffects: 'Backgrounds', navDetails: 'Features', navHelp: 'Get started', navDownload: 'Get the extension',
     eyebrow: 'A FRESH START, EVERY TAB', heading: 'A little room<br>to <span>breathe.</span>', intro: 'Light in motion. Your favorite places within reach.<br>A calmer way to open your next tab.', primary: 'Add to Chrome', secondary: 'Explore backgrounds', version: 'Chrome extension · 8 languages',
     scene: 'A little light. A little order.', live: 'Live shader preview', try: 'Move your pointer. Let the light follow.', effectGroup: 'Choose a preview background', theme: 'Switch preview appearance', pause: 'Pause animation', play: 'Play animation', day: 'Light', night: 'Dark', static: 'Still preview', source: 'Background source',
-    facts: [['06', 'background effects'], ['53', 'variant combinations'], ['08', 'interface languages']],
+    facts: [['06', 'background effects'], ['49', 'variant combinations'], ['08', 'interface languages']],
     detailLabel: 'LESS IN THE WAY', detailTitle: 'Just what you came for.',
     features: [
       ['01', 'Your places, within reach.', 'Pin the pages you return to. Explore your Chrome bookmark folders, with familiar icons from the browser’s existing cache.', 'bookmarks'],

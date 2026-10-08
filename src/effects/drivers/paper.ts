@@ -11,7 +11,7 @@ export const createDriver: DriverFactory = async (host, effect, theme, _shape, v
   const uniforms: ShaderMountUniforms = grain ? {
     ...sizing, u_colorBack: getShaderColorFromString(preset.base[theme]),
     u_colors: [...preset[theme].map(getShaderColorFromString), ...Array.from({ length: 4 }, () => [0, 0, 0, 0])],
-    u_colorsCount: 3, u_softness: .65, u_intensity: .38, u_noise: .12, u_shape: GrainGradientShapes[shape as keyof typeof GrainGradientShapes] ?? GrainGradientShapes.corners, u_noiseTexture: noise,
+    u_colorsCount: 3, u_softness: .75, u_intensity: .38, u_noise: .045, u_shape: GrainGradientShapes[shape as keyof typeof GrainGradientShapes] ?? GrainGradientShapes.corners, u_noiseTexture: noise,
   } : {
     ...sizing, u_colorBack: getShaderColorFromString(preset.base[theme]), u_colorFront: getShaderColorFromString(preset[theme][0]),
     u_shape: DitheringShapes[shape as keyof typeof DitheringShapes] ?? DitheringShapes.swirl, u_type: DitheringTypes[pattern as keyof typeof DitheringTypes] ?? DitheringTypes['4x4'], u_pxSize: 3,

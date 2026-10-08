@@ -15,7 +15,8 @@ h2 { font-size: 14px; font-weight: 500; }
 small { font-size: 12px; color: var(--fg-muted); }
 .truncate { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .new-tab { position: relative; width: 100%; height: 100%; isolation: isolate; }
-.ambient-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ambient-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; filter: brightness(.94); }
+:root[data-theme='night'] .ambient-background { filter: brightness(.8); }
 .ambient-background canvas { display: block; width: 100%; height: 100%; }
 .glass { position: relative; isolation: isolate; color: var(--fg); background: var(--glass); border: 1px solid var(--line); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(28px) saturate(1.5); backdrop-filter: blur(28px) saturate(1.5); }
 .glass::before, .glass::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; }

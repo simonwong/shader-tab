@@ -25,7 +25,7 @@ export const ko: Messages = {
   'effect.grain-gradient': '미세한 입자와 흐르는 색이 포인터에 부드럽게 반응합니다',
   'effect.dithering': '흐르는 픽셀 질감과 흑백 소용돌이',
   'effect.pixel-blast': '포인터로 픽셀을 움직이고 배경을 클릭해 물결을 만드세요',
-  'effect.data-pixel-arc': '데이터 픽셀, 입자, 리본, 하프톤 등 8가지 원본 스타일',
-  'effect.crt-terminal': 'Phosphor, Cinematic, Retro Game의 장식용 화면 3종',
+  'effect.data-pixel-arc': '데이터 픽셀, 입자, 리본, 하프톤 스타일',
+  'effect.crt-terminal': '빛나는 터미널 텍스트와 은은한 주사선',
   'effect.shader-gradient': '원본 Halo 평면, Pensive 구, Mint 수면. 새 탭마다 형태를 무작위로 선택합니다',
 };

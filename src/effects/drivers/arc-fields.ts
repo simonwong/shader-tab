@@ -1,5 +1,5 @@
 import type { DriverFactory } from './types';
-export const createDriver: DriverFactory = async (host, _effect, _theme, _shape, variant) => {
+export const createDriver: DriverFactory = async (host, _effect, theme, _shape, variant) => {
   const shaders = variant === 'void-field' ? await import('../vendor/void-field-shaders')
     : variant === 'halftone-flow' ? await import('../vendor/halftone-flow-shaders') : await import('../vendor/ribbon-field-shaders');
   const canvas = document.createElement('canvas');
@@ -23,6 +23,7 @@ export const createDriver: DriverFactory = async (host, _effect, _theme, _shape,
     gl.enableVertexAttribArray(position); gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
     const names = variant === 'void-field' ? ['iResolution', 'iTime', 'uMouse'] : variant === 'halftone-flow' ? ['u_resolution', 'u_time', ''] : ['resolution', 'time', 'pointer'];
     const [resolution, time, pointer] = names.map(name => gl.getUniformLocation(program!, name));
+    gl.uniform1f(gl.getUniformLocation(program, 'lightMode'), theme === 'day' ? 1 : 0);
     host.append(canvas);
     return {
       canvas, engine: 'threeui-webgl',

@@ -4,10 +4,10 @@ import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 const variants = {
  'grain-gradient': ['wave','dots','truchet','corners','ripple','blob','sphere'],
- dithering: ['simplex','warp','dots','wave','ripple','swirl','sphere'].flatMap(shape=>['random','2x2','4x4','8x8'].map(type=>`${shape}:${type}`)),
+ dithering: ['simplex','warp','dots','wave','ripple','swirl','sphere'].flatMap(shape=>['random','2x2','4x4','8x8'].map(type=>`${shape}:${type}`)).filter(variant=>variant!=='ripple:4x4'),
  'pixel-blast': ['square','circle','triangle','diamond'],
- 'data-pixel-arc': ['data-pixel','predictive','signal-particles','override-grid','ribbon-field','void-field','halftone-flow','amber-halftone'],
- 'crt-terminal': ['terminal','cinematic','retro-game'],
+ 'data-pixel-arc': ['data-pixel','predictive','signal-particles','override-grid','ribbon-field','void-field','amber-halftone'],
+ 'crt-terminal': ['terminal'],
  'shader-gradient': ['plane','sphere','waterPlane'],
 };
 const session=`glass-variants-${process.pid}`, profile=await mkdtemp('/private/tmp/glass-variants-'), output=resolve('artifacts/variants-review');
@@ -53,7 +53,7 @@ try {
   const before=evaluate("document.querySelector('.ambient-background').dataset.variant");
   run('reload');wait("document.querySelector('.ambient-background')?.dataset.renderer==='live'");
   const after=evaluate("document.querySelector('.ambient-background').dataset.variant");
-  assert.ok(choices.includes(after));assert.notEqual(after,before);
+  assert.ok(choices.includes(after));if(choices.length>1)assert.notEqual(after,before);
  }
  run('set','viewport','390','844');preference({shuffle:false,activeEffect:'data-pixel-arc'});run('reload');wait("document.querySelector('.ambient-background')?.dataset.renderer==='live'");
  run('press','Control+,');wait("document.querySelector('[role=dialog]')!==null");assert.equal(evaluate('document.documentElement.scrollWidth>innerWidth'),false);

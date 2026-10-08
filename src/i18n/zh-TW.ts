@@ -21,6 +21,6 @@ export const zhTW: Messages = {
   idleHide: '游標靜止後隱藏按鈕', idleDelay: '隱藏延遲', seconds: '{count} 秒',
   language: '語言', interfaceLanguage: '介面語言', browserLanguage: '跟隨瀏覽器', languageHint: '立即生效並儲存在本機。書籤名稱保持原樣。',
   'effect.grain-gradient': '細緻顆粒與流動漸層，光色隨游標輕移', 'effect.dithering': '黑白點陣漩渦，持續流動的像素紋理',
-  'effect.pixel-blast': '移動游標撥動像素，點擊空白處激起漣漪', 'effect.data-pixel-arc': 'Data Pixel、粒子、光帶與半色調等 8 種官方樣式',
-  'effect.crt-terminal': 'Phosphor、Cinematic、Retro Game 三種裝飾畫面', 'effect.shader-gradient': '官方 Halo 平面、Pensive 球體與 Mint 水面；每次開啟隨機形態',
+  'effect.pixel-blast': '移動游標撥動像素，點擊空白處激起漣漪', 'effect.data-pixel-arc': 'Data Pixel、粒子、光帶與半色調樣式',
+  'effect.crt-terminal': '螢光終端文字與輕微掃描線', 'effect.shader-gradient': '官方 Halo 平面、Pensive 球體與 Mint 水面；每次開啟隨機形態',
 };

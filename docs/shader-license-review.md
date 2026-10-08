@@ -24,8 +24,8 @@
 - 构建从实际渲染的打包模块识别运行时依赖，生成 `licenses/dependencies.txt` 完整版权和许可文本，以及含版本与文本 SHA-256 的 `dependencies.json`。缺少许可文本时构建失败。
 - Shader Gradient 的发布包另含预打包代码，补充声明覆盖 query-string、strict-uri-encode、decode-uri-component、split-on-first、filter-obj、three-stdlib；Fiber 内嵌的 React reconciler 也保留 Meta 许可。源码未声明的内嵌版本不冒充已确认版本，补充文件标明许可文本来源版本。
 - 主要 shader、camera-controls、GLSL noise、字体的完整许可及 Paper NOTICE 随包提供。postprocessing 使用 Zlib。许可页从设置底部进入；来源链接用于署名导航，不替代完整许可文本。
-- CRT 包含 Terminal、Cinematic、Retro Game 三种装饰效果。没有蓝屏故障、STOP、内存转储或重启提示；终端文案标明生成艺术、不执行命令。Retro Game 使用中性名称，来源链接仍指向原作者页面。
-- 当前共 53 种变体；旧随机队列中的已移除变体会自动丢弃。
+- CRT 仅启用 Terminal 装饰效果。没有蓝屏故障、STOP、内存转储或重启提示；终端文案标明生成艺术、不执行命令。
+- 当前共 49 种变体；旧随机队列中的已移除变体会自动丢弃。
 
 ## Chrome 商店
 

@@ -11,6 +11,7 @@ export const fragment = `
         uniform vec2 resolution;
         uniform float time;
         uniform vec2 pointer;
+        uniform float lightMode;
 
         float hash(vec2 p) {
           p = fract(p * vec2(123.34, 456.21));
@@ -71,6 +72,12 @@ export const fragment = `
           vec3 base = vec3(0.005, 0.005, 0.005);
           vec3 finalColor = mix(base, col, clamp(alpha * 1.55, 0.0, 1.0));
           finalColor += micro * rightFade;
+
+          if (lightMode > 0.5) {
+            vec3 ink = clamp(col * 0.42, 0.0, 1.0);
+            finalColor = mix(vec3(0.94, 0.96, 0.975), ink, alpha * 0.68);
+            finalColor -= micro * rightFade * 0.35;
+          }
 
           gl_FragColor = vec4(finalColor, 1.0);
         }
