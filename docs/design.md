@@ -22,7 +22,7 @@
 | --- | --- |
 | Grain Gradient | Paper Shaders 的颗粒渐变，持续流动并随鼠标偏移 |
 | Dithering | Paper Shaders 的点阵漩涡，缓慢旋转与偏移 |
-| Pixel Blast | React Bits 像素噪声，鼠标液化与点击涟漪 |
+| Pixel Field | 自研像素网格，噪声经有序抖动成形，移动与点击产生涟漪 |
 | Data Pixel Arc | ThreeUI 的翡翠像素弧线，流光与鼠标控制起伏 |
 | Shader Gradient | 官方 Halo / Plane、Pensive / Sphere、Mint / Water；每轮不重复随机 |
 | CRT Terminal | ThreeUI 复古终端，逐字显示、扫描线、磷光与指针反光 |

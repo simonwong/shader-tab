@@ -122,6 +122,7 @@ export const EFFECT_VARIANTS: Record<EffectId, readonly VariantDef[]> = {
   'grain-gradient': define('grain-gradient', ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'], { load: paper }),
   // Ripple fills most of the frame with the front colour, so it reads dark in both themes.
   dithering: define('dithering', DITHERING_IDS, id => ({ load: paper, ...(id.startsWith('ripple:') ? { tone: alwaysDark } : {}) })),
+  // Pixel Field: an original shader; the `pixel-blast` id is kept for stored preferences.
   'pixel-blast': define('pixel-blast', ['square', 'circle', 'triangle', 'diamond'], {
     load: () => import('./drivers/pixel-blast').then(module => module.createDriver),
   }),

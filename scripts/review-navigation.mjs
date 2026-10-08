@@ -60,7 +60,7 @@ try {
   const sources={
     'grain-gradient':'https://shaders.paper.design/grain-gradient',
     dithering:'https://shaders.paper.design/dithering',
-    'pixel-blast':'https://reactbits.dev/backgrounds/pixel-blast',
+    'pixel-blast':'https://github.com/simonwong/shader-tab',
     'data-pixel-arc':'https://threeui.com/backgrounds/predictive-arc/data-pixel',
     'crt-terminal':'https://threeui.com/backgrounds/crt/terminal',
     'shader-gradient':'https://shadergradient.co/customize',

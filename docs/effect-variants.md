@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | Grain Gradient | `wave`、`dots`、`truchet`、`corners`、`ripple`、`blob`、`sphere`，共 7 种 | 全部 7 种 | 切换已有 shader 的形态参数 |
 | Dithering | `simplex`、`warp`、`dots`、`wave`、`ripple`、`swirl`、`sphere`，共 7 种；点阵算法为 `random`、`2x2`、`4x4`、`8x8` | 27 种组合，排除 `ripple:4x4` | 参数组合；保留其他 Ripple 点阵算法 |
-| Pixel Blast | `square`、`circle`、`triangle`、`diamond`，共 4 种 | 全部 4 种 | 切换现有 shader 的像素形状 |
+| Pixel Field | `square`、`circle`、`triangle`、`diamond`，共 4 种 | 全部 4 种 | 自研 shader 的格子形状参数 |
 | CRT | `terminal`、`cinematic`、`retro-game`，共 3 种 | 仅 `terminal` | 使用已有屏幕绘制与材质；日间使用琥珀滤镜 |
 | Predictive Arc 系列 | `predictive`、`data-pixel`、`signal-particles`、`override-grid`；合集另含 `ribbon-field`、`void-field`、`halftone-flow`、`amber-halftone` | 7 种，排除 `halftone-flow` | 官方绘制核心按需加载，接入统一时钟、尺寸预算和销毁 |
 
@@ -20,7 +20,6 @@ Predictive Arc 新增渲染器使用 ThreeUI 的官方 GLSL 与 Canvas 绘制核
 
 - [Paper Grain Gradient 源码](https://github.com/paper-design/shaders/blob/main/packages/shaders/src/shaders/grain-gradient.ts)
 - [Paper Dithering 源码](https://github.com/paper-design/shaders/blob/main/packages/shaders/src/shaders/dithering.ts)
-- [React Bits Pixel Blast 源码](https://github.com/DavidHDev/react-bits/blob/main/src/ts-default/Backgrounds/PixelBlast/PixelBlast.tsx)
 - [ThreeUI CRT 源码](https://github.com/MengTo/threeui/blob/main/src/shaders/crt/crtRenderer.ts)
 - [ThreeUI Predictive Arc 组件](https://github.com/MengTo/threeui/blob/main/src/shaders/predictive-arc/PredictiveArcCanvas.tsx)
 - [ThreeUI Predictive Arc 合集](https://github.com/MengTo/threeui/blob/main/src/shaders/predictive-arc/PredictiveArcCollection.tsx)

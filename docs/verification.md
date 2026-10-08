@@ -104,7 +104,7 @@
 ## 框架背景
 
 - 六种效果的日夜、横竖屏共 24 张实际渲染截图已生成。图集 `artifacts/effects/index.html`，总览 `artifacts/effects-overview.png`。
-- `scripts/review-effects.mjs` 检查六种效果实际动画。Paper 使用真实时间与偏移 uniform；Pixel Blast 检查时间、触摸纹理上传与点击时间；CRT 检查时间和指针反光；Arc 检查 Canvas 帧推进与前后截图。
+- `scripts/review-effects.mjs` 检查六种效果实际动画。Paper 使用真实时间与偏移 uniform；Pixel Field（原 Pixel Blast）检查时间推进与点击涟漪 uniform；CRT 检查时间和指针反光；Arc 检查 Canvas 帧推进与前后截图。
 - 快速切换十二次后只保留最新选择和一个可见画布。设置显示六张卡，固定选择刷新后保留。
 - 十二套日夜 CSS 配色均不引用图片；减少动态效果时没有画布。主动丢失 WebGL 上下文后静态降级，画布释放。
 - 390 × 844 设置和页面无横向溢出。图像和记录在 `artifacts/shader-review/`。

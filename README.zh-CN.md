@@ -29,11 +29,11 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/pixel-blast.png" alt="Pixel Blast 淡紫色像素背景" /></td>
+    <td width="50%"><img src="docs/images/pixel-blast.png" alt="Pixel Field 淡紫色像素背景" /></td>
     <td width="50%"><img src="docs/images/crt.png" alt="CRT 荧光终端装饰背景" /></td>
   </tr>
   <tr>
-    <td align="center">Pixel Blast</td>
+    <td align="center">Pixel Field</td>
     <td align="center">CRT Terminal</td>
   </tr>
 </table>
@@ -42,7 +42,7 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 | --- | --- | --- |
 | Grain Gradient | 柔和色彩与细腻颗粒 | Paper Shaders |
 | Dithering | 网点渐变与复古纹理 | Paper Shaders |
-| Pixel Blast | 像素交互与点击涟漪 | React Bits / Three.js |
+| Pixel Field | 抖动像素网格与指针涟漪 | 原创 WebGL shader |
 | Predictive Arc | 弧线、粒子、丝带与场景变体 | ThreeUI |
 | CRT | 荧光与装饰屏幕 | ThreeUI |
 | Shader Gradient | Plane、Sphere、Water 三种形态 | Shader Gradient |
@@ -111,8 +111,8 @@ pnpm zip
 
 ## 致谢与许可
 
-背景使用 [Paper Shaders](https://github.com/paper-design/shaders)、[React Bits](https://github.com/DavidHDev/react-bits)、[ThreeUI](https://github.com/MengTo/threeui) 和 [Shader Gradient](https://github.com/ruucm/shadergradient)；图标使用 [Hugeicons](https://github.com/hugeicons/hugeicons)，字体使用 Space Grotesk。
+背景使用 [Paper Shaders](https://github.com/paper-design/shaders)、[ThreeUI](https://github.com/MengTo/threeui) 和 [Shader Gradient](https://github.com/ruucm/shadergradient)；图标使用 [Hugeicons](https://github.com/hugeicons/hugeicons)，字体使用 Space Grotesk。
 
-第三方代码和素材保留各自许可。React Bits 代码包含附加限制，不能将本仓库所有文件一概视为 MIT 授权。详见[许可核对](docs/shader-license-review.md)和[许可原文](public/licenses/)。
+第三方代码和素材保留各自许可，不能将本仓库所有文件一概视为 MIT 授权。详见[许可核对](docs/shader-license-review.md)和[许可原文](public/licenses/)。
 
 问题与建议请[提交 Issue](https://github.com/simonwong/shader-tab/issues)。私人支持联系 [support@simonwong.cn](mailto:support@simonwong.cn)。

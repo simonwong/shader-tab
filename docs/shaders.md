@@ -4,30 +4,33 @@
 | --- | --- | --- | --- |
 | Grain Gradient | [Paper Shaders](https://shaders.paper.design/grain-gradient) 0.0.81 | ShaderMount / WebGL2 | 渐变偏移与轻微旋转 |
 | Dithering | [Paper Shaders](https://shaders.paper.design/dithering) 0.0.81 | ShaderMount / WebGL2 | 点阵漩涡偏移 |
-| Pixel Blast | [React Bits](https://reactbits.dev/backgrounds/pixel-blast) | Three.js 0.186.0 + postprocessing 6.39.5 | 移动液化、点击涟漪 |
+| Pixel Field | 本项目原创 | 单 pass WebGL2 / WebGL1 | 指针拨动像素，移动与点击产生涟漪 |
 | Predictive Arc | [ThreeUI](https://threeui.com/backgrounds/predictive-arc/data-pixel) | Canvas 2D / WebGL / Three.js | 7 种变体，弧线、点阵或光带轻微跟随鼠标 |
 | Shader Gradient | [Shader Gradient](https://github.com/ruucm/shadergradient) | @shadergradient/react 2.4.20 + Fiber 9.7 | 连续动画，Plane / Sphere / Water 二级随机 |
 | CRT | [ThreeUI](https://threeui.com/backgrounds/crt/terminal) | WebGL + 离屏文字画布 | 显像管反光跟随鼠标 |
 
-Paper 直接使用 npm 包导出的 shader 与 ShaderMount。React Bits 和 ThreeUI 复用官方渲染核心，文件位于 `src/effects/vendor/`；不安装它们整套组件集合。适配层负责生命周期、分辨率、时钟和指针，保持官方视觉算法。
+Paper 直接使用 npm 包导出的 shader 与 ShaderMount。ThreeUI 复用官方渲染核心，文件位于 `src/effects/vendor/`；不安装它们整套组件集合。适配层负责生命周期、分辨率、时钟和指针，保持官方视觉算法。
+
+## Pixel Field
+
+2026-10-08 起替换原 React Bits Pixel Blast 移植版，为本项目从零编写的实现（`src/effects/drivers/pixel-blast.ts`，效果与变体 id 保持不变）。全屏三角形上的单个片元着色器把屏幕划为 8 CSS px 的格子；域扭曲梯度噪声给出每格密度，8×8 Bayer 有序抖动阈值决定亮灭，密集处连成实色，稀疏处散成单点。格子形状按变体为方形、圆形、三角形或菱形，边缘按 1 设备像素抗锯齿。指针移动产生弱涟漪，点击产生强涟漪；波峰点亮并外推格子，波后短暂清空。日夜亮度系数 0.94 / 0.8 写在输出颜色中。
 
 ## 上游与修改
 
 上游源码获取日期：2026-09-20；Predictive Arc 系列扩充于 2026-09-21。
 
-- [React Bits PixelBlast.tsx](https://github.com/DavidHDev/react-bits/blob/main/src/ts-default/Backgrounds/PixelBlast/PixelBlast.tsx)：提取触摸纹理、液化 Effect 与图形 shader，替换 React 包装为公共生命周期；触摸衰减按时间计算，统一限制帧率和像素数。
 - [ThreeUI dataPixelArcRenderer.ts](https://github.com/MengTo/threeui/blob/main/src/shaders/data-pixel-arc/dataPixelArcRenderer.ts)：保留官方 Canvas 绘制，用公共时间与像素密度替换逐帧累加和内部密度选择，指针调节现有弧线参数。
 - [ThreeUI CRT](https://github.com/MengTo/threeui/tree/main/src/shaders/crt)：保留 crtRenderer 与 crtShaders 的 Terminal 屏幕，其余 CRT 屏幕已移除；改用公共时间推进打字与扫描线、统一像素预算，并让原有反光位置跟随鼠标。
 
-Paper Shaders 为 Apache-2.0；ThreeUI、Three.js 为 MIT；postprocessing 为 Zlib。React Bits 为 MIT + Commons Clause，附组件再分发限制，不能简称纯 MIT。许可证与 Paper NOTICE 随扩展放入 `licenses/`。
+Paper Shaders 为 Apache-2.0；ThreeUI、Three.js 为 MIT。许可证与 Paper NOTICE 随扩展放入 `licenses/`。
 
 ## 运行
 
-所有脚本、文字纹理、噪声和设置缩略图都在扩展内，无 CDN 依赖。每次只加载选中后端；首次打开设置才加载设置组件。Three.js 共用分块约 737 KB；Pixel Blast 后端约 50 KB，Shader Gradient 与 Fiber 后端约 384 KB，独立于约 311 KB 的首屏分块。
+所有脚本、文字纹理、噪声和设置缩略图都在扩展内，无 CDN 依赖。每次只加载选中后端；首次打开设置才加载设置组件。Three.js 共用分块约 737 KB；Pixel Field 后端约 7 KB，不依赖 Three.js；Shader Gradient 与 Fiber 后端约 384 KB，独立于约 311 KB 的首屏分块。
 
-背景保留原始配色与饱和度。日间亮度为原始输出的 94%，夜间为 80%；静态承接背景与动态画布使用同一亮度处理。Grain Gradient 减少颗粒并柔化边缘，Shader Gradient 保留官方预设的完整颗粒后处理。CRT 关闭亮度闪动、滚动亮带，并减弱扫描线与光晕。CRT 的纹理重绘使用真实经过时间，动画相位使用慢时钟，低速运动仍逐帧更新。运动以 12 秒为周期平滑加速、减速，平均每秒推进 0.12 秒动画时间；呼吸节奏不调制背景亮度。指针跟随幅度为归一化位移的 35%，Pixel Blast 的液化与点击涟漪减弱。
+背景保留原始配色与饱和度。日间亮度为原始输出的 94%，夜间为 80%；静态承接背景与动态画布使用同一亮度处理。Grain Gradient 减少颗粒并柔化边缘，Shader Gradient 保留官方预设的完整颗粒后处理。CRT 关闭亮度闪动、滚动亮带，并减弱扫描线与光晕。CRT 的纹理重绘使用真实经过时间，动画相位使用慢时钟，低速运动仍逐帧更新。运动以 12 秒为周期平滑加速、减速，平均每秒推进 0.12 秒动画时间；呼吸节奏不调制背景亮度。指针跟随幅度为归一化位移的 35%。
 
-共享时钟：空闲目标 20 fps，鼠标交互上限 30 fps。Paper 的原生自动循环关闭；指针 uniform 有实际变化时另提交一次 uniform 更新。Pixel Blast 每帧包含场景与液化两个 GPU pass。Data Pixel Arc 在 Canvas 2D 绘制。各引擎成本不能仅用 draw 次数横向比较。
+共享时钟：空闲目标 20 fps，鼠标交互上限 30 fps。Paper 的原生自动循环关闭；指针 uniform 有实际变化时另提交一次 uniform 更新。Pixel Field 每帧一个 draw，涟漪存于 10 个槽位的 uniform 环形缓冲，没有离屏纹理。Data Pixel Arc 在 Canvas 2D 绘制。各引擎成本不能仅用 draw 次数横向比较。
 
 隐藏时立即暂停，30 秒后释放；减少动态效果时不创建渲染器。切换先用 CSS 配色承接，新画布就绪后淡入 900 ms；过期的加载结果立即销毁。缓冲区按 DPR、最长边 2560 与 400 万像素限制选择，保留少量取整余量。
 

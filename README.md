@@ -29,11 +29,11 @@ Shader Tab replaces Chrome’s new tab page with animated backgrounds and local 
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/pixel-blast.png" alt="Pixel Blast with soft lavender pixel patterns" /></td>
+    <td width="50%"><img src="docs/images/pixel-blast.png" alt="Pixel Field with soft lavender pixel patterns" /></td>
     <td width="50%"><img src="docs/images/crt.png" alt="CRT background with glowing decorative terminal text" /></td>
   </tr>
   <tr>
-    <td align="center">Pixel Blast</td>
+    <td align="center">Pixel Field</td>
     <td align="center">CRT Terminal</td>
   </tr>
 </table>
@@ -42,7 +42,7 @@ Shader Tab replaces Chrome’s new tab page with animated backgrounds and local 
 | --- | --- | --- |
 | Grain Gradient | Soft color fields and fine grain | Paper Shaders |
 | Dithering | Patterned gradients and retro texture | Paper Shaders |
-| Pixel Blast | Interactive pixels and ripples | React Bits / Three.js |
+| Pixel Field | Dithered pixel grid with pointer ripples | Original WebGL shader |
 | Predictive Arc | Arcs, particles, ribbons, and fields | ThreeUI |
 | CRT | Phosphor glow and decorative screens | ThreeUI |
 | Shader Gradient | Plane, Sphere, and Water forms | Shader Gradient |
@@ -113,8 +113,8 @@ Technical reference documents are currently in Chinese.
 
 ## Credits & licensing
 
-Shader Tab uses work from [Paper Shaders](https://github.com/paper-design/shaders), [React Bits](https://github.com/DavidHDev/react-bits), [ThreeUI](https://github.com/MengTo/threeui), and [Shader Gradient](https://github.com/ruucm/shadergradient), alongside [Hugeicons](https://github.com/hugeicons/hugeicons) and Space Grotesk.
+Shader Tab uses work from [Paper Shaders](https://github.com/paper-design/shaders), [ThreeUI](https://github.com/MengTo/threeui), and [Shader Gradient](https://github.com/ruucm/shadergradient), alongside [Hugeicons](https://github.com/hugeicons/hugeicons) and Space Grotesk.
 
-Third-party code and assets retain their respective licenses. In particular, the bundled React Bits code includes additional restrictions; do not assume every file in this repository is MIT-licensed. See the [license review](docs/shader-license-review.md) and [license texts](public/licenses/).
+Third-party code and assets retain their respective licenses; do not assume every file in this repository is MIT-licensed. See the [license review](docs/shader-license-review.md) and [license texts](public/licenses/).
 
 Found a bug or have an idea? [Open an issue](https://github.com/simonwong/shader-tab/issues). For private support, contact [support@simonwong.cn](mailto:support@simonwong.cn).

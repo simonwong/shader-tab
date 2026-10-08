@@ -10,7 +10,7 @@
       if (location) locations.set(location, name);
       return location;
     };
-    for (const method of ['uniform1f', 'uniform2f', 'uniform2fv', 'uniform1fv']) {
+    for (const method of ['uniform1f', 'uniform2f', 'uniform3f', 'uniform1fv', 'uniform2fv', 'uniform4fv']) {
       const original = proto[method];
       proto[method] = function (location, ...values) {
         const name = locations.get(location);

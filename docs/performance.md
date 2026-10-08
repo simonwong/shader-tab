@@ -5,7 +5,7 @@
 - 六种框架效果按需加载，首屏先显示 CSS 配色。每次只有一个可见画布。
 - 公共时钟空闲目标 20 fps，交互上限 30 fps；隐藏立即停绘，30 秒后释放资源，返回重建。
 - 缓冲区最长边 2560、总像素不超过 400 万、DPR 上限 2。Paper 显式接收所选像素密度，避免尺寸观察器与浏览器 DPR 不一致时落到低分辨率。
-- Paper 自动时钟关闭，用 setFrame 推进；指针 uniform 改变时另提交一次更新。Pixel Blast 每帧有场景与液化两次 GPU pass，另有 64 × 64 离屏触摸纹理。Arc 使用 Canvas 2D，CRT 使用 WebGL 与离屏文字纹理。
+- Paper 自动时钟关闭，用 setFrame 推进；指针 uniform 改变时另提交一次更新。Pixel Field 每帧一个 draw，无离屏纹理。Arc 使用 Canvas 2D，CRT 使用 WebGL 与离屏文字纹理。
 - 切换时释放旧后端，用 CSS 配色承接，新画布淡入 900 ms；不同时渲染两个背景。过期异步结果释放资源。
 - 玻璃仅覆盖导航、收藏条、设置与来源胶囊；材质纹理按尺寸缓存。设置和拖拽代码首次打开才加载。首屏 JS 预算 340 KB。
 
@@ -17,7 +17,7 @@
 | --- | ---: | ---: | ---: |
 | grain-gradient | 37 / 37 | 35 / 35 | [] |
 | dithering | 37 / 37 | 36 / 36 | [] |
-| pixel-blast | 72 / 36 | 72 / 36 | [] |
+| pixel-blast（旧 Pixel Blast） | 72 / 36 | 72 / 36 | [] |
 | data-pixel-arc | 32 / 32 | 33 / 33 | [] |
 | crt-terminal | 36 / 36 | 37 / 37 | [] |
 | shader-gradient | 76 / 38 | 70 / 35 | [] |
@@ -26,11 +26,11 @@
 
 后台两次采样绘制计数保持相同，后一次画布已释放；返回恢复渲染，设置可打开。脚本错误为零。原始记录：`artifacts/performance/latest.json`。
 
-Pixel Blast 与 Shader Gradient 的两个 GPU pass 使 draw 数约为 rAF 的两倍，不能与单 pass 或 Canvas 2D 的 draw 直接比较。计数反映调度和部分主线程工作，不代表 GPU 时间、功耗或电池续航。尚未做低性能设备和长期功耗测试。
+上表为 2026-09-21 的记录，当时 Pixel Blast 仍为两个 GPU pass；2026-10-08 换成单 pass 的 Pixel Field 后，draw 数与 rAF 一致。Shader Gradient 的两个 GPU pass 使 draw 数约为 rAF 的两倍，不能与单 pass 或 Canvas 2D 的 draw 直接比较。计数反映调度和部分主线程工作，不代表 GPU 时间、功耗或电池续航。尚未做低性能设备和长期功耗测试。
 
 ## 体积与重现
 
-首屏约 306.85 KB 原始 JS；Paper 约 58 KB、Pixel Blast 约 50 KB、Arc 约 2 KB、CRT 约 22 KB、Shader Gradient 与 Fiber 约 384 KB，Three.js 共用分块约 737 KB。ZIP 525.33 KB。新增体积来自官方组件和 Fiber，背景仍不加载备用图片。12 个缩略图引用中，Shader Gradient 日夜共用一张，构建输出 11 张。Shader Gradient 像素密度上限为所选预设的 1。
+首屏约 306.85 KB 原始 JS；Paper 约 58 KB、Pixel Field 约 7 KB（2026-10-08）、Arc 约 2 KB、CRT 约 22 KB、Shader Gradient 与 Fiber 约 384 KB，Three.js 共用分块约 737 KB。ZIP 525.33 KB。新增体积来自官方组件和 Fiber，背景仍不加载备用图片。12 个缩略图引用中，Shader Gradient 日夜共用一张，构建输出 11 张。Shader Gradient 像素密度上限为所选预设的 1。
 
 ```sh
 pnpm check
