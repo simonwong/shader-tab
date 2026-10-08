@@ -35,6 +35,6 @@ void main() {
   if (length(gl_FragCoord.xy - center) <= size * 0.5) {
     color = mix(color, mix(uColor2, uColor1, (node.y + 1.0) * 0.5), scale * 0.9);
   }
-  gl_FragColor = vec4(color * uDim, 1.0);
+  gl_FragColor = vec4(clamp(color, 0.0, 1.0) * uDim, 1.0);
 }
 `;

@@ -2,7 +2,7 @@
 // Modified by Shader Tab: Signal Particles and Override Grid use the shared clock
 // and resolution budget, and run as fragment shaders instead of per-dot Canvas 2D
 // draws. Grid layout, timing, colours and alpha follow the original loops.
-import { ARC_SURFACE, type Theme } from '../presets';
+import { ARC_SURFACE, THEME_BRIGHTNESS, type Theme } from '../presets';
 import { cssSurfaceUniforms, glslColor, mountFullscreenShader } from './webgl';
 import type { DriverFactory } from './types';
 
@@ -79,7 +79,7 @@ function createParticleDriver(fragment: (theme: Theme) => string, timeScale: num
     fragment: fragment(theme),
     setup(gl, uniform) {
       const time = uniform('uTime'), pointer = uniform('uPointer');
-      gl.uniform1f(uniform('uDim'), 1);
+      gl.uniform1f(uniform('uDim'), THEME_BRIGHTNESS[theme]);
       return {
         resize: cssSurfaceUniforms(gl, uniform),
         frame(seconds, mouse) {

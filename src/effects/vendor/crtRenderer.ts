@@ -3,12 +3,18 @@
 // pointer-following sheen; only the authored terminal screen is kept (the other
 // ThreeUI CRT screens and their screen text are retired). The text canvas is
 // half the tube resolution and is redrawn and uploaded only when the typed text
-// changes; the blinking cursor is drawn by the tube shader from uniforms.
+// changes; the blinking cursor is drawn by the tube shader from uniforms. A final
+// colour grade (theme tint and brightness) is applied in the shader.
 import { CRT_FRAGMENT_SHADER, CRT_VERTEX_SHADER } from "./crtShaders";
 import { bindFullscreenTriangle, deleteProgram, linkProgram } from "../drivers/webgl";
 
 export type CrtOptions = { speed: number; typeSpeed: number; motion: number };
 export const CRT_DEFAULTS: CrtOptions = { speed: 1, typeSpeed: 1, motion: 1 };
+/** Final colour grade: two 3x3 colour matrices (row-major, each followed by a
+    clamp, like chained CSS filter functions) and an output multiplier. */
+export type CrtGrade = { first: Float32Array; second: Float32Array; dim: number };
+const IDENTITY = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+export const CRT_NO_GRADE: CrtGrade = { first: IDENTITY, second: IDENTITY, dim: 1 };
 
 /* Tube material for the terminal screen. */
 const STYLE = {
@@ -48,7 +54,7 @@ const lineLength = (line: Segment[]) => line.reduce((total, item) => total + ite
 const TOTAL = LOG.reduce((total, line) => total + lineLength(line), 0);
 const MAX_CHARS = Math.max(...LOG.map(lineLength));
 
-export function createCrtRenderer(canvas: HTMLCanvasElement, getOptions: () => CrtOptions) {
+export function createCrtRenderer(canvas: HTMLCanvasElement, getOptions: () => CrtOptions, grade: CrtGrade = CRT_NO_GRADE) {
   const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: "low-power" });
   if (!gl) throw new Error("CRT requires WebGL");
   const textCanvas = document.createElement("canvas");
@@ -85,6 +91,11 @@ export function createCrtRenderer(canvas: HTMLCanvasElement, getOptions: () => C
   gl.uniform1f(uniform("uHalo"), STYLE.halo);
   gl.uniform3f(uniform("uSheen"), STYLE.sheen[0], STYLE.sheen[1], STYLE.sheen[2]);
   gl.uniform3f(uniform("uRoom"), STYLE.room[0], STYLE.room[1], STYLE.room[2]);
+  /* Row-major data read as column-major gives the transpose, so the shader
+     multiplies with the colour on the left (col * matrix). */
+  gl.uniformMatrix3fv(uniform("uGradeFirst"), false, grade.first);
+  gl.uniformMatrix3fv(uniform("uGradeSecond"), false, grade.second);
+  gl.uniform1f(uniform("uDim"), grade.dim);
 
   let width = 1, height = 1;
   let fontSize = 14, lineHeight = 20, startY = 0, charWidth = 8, caretX = 0, caretY = 0;

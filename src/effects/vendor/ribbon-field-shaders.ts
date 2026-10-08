@@ -1,4 +1,6 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
+// Modified by Shader Tab: added the lightMode branch for the day theme, and the
+// output is clamped and multiplied by uDim (theme brightness).
 export const vertex = `
         attribute vec2 position;
         void main() {
@@ -12,6 +14,7 @@ export const fragment = `
         uniform float time;
         uniform vec2 pointer;
         uniform float lightMode;
+        uniform float uDim;
 
         float hash(vec2 p) {
           p = fract(p * vec2(123.34, 456.21));
@@ -79,6 +82,6 @@ export const fragment = `
             finalColor -= micro * rightFade * 0.35;
           }
 
-          gl_FragColor = vec4(finalColor, 1.0);
+          gl_FragColor = vec4(clamp(finalColor, 0.0, 1.0) * uDim, 1.0);
         }
       `;

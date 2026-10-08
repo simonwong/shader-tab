@@ -1,6 +1,7 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
 // Modified by Shader Tab: the phosphor sheen follows the pointer, and the cursor
-// block and its glow are drawn here from uniforms instead of into the text canvas.
+// block and its glow are drawn here from uniforms instead of into the text canvas,
+// and the output goes through a final colour grade (uGradeFirst, uGradeSecond, uDim).
 export const CRT_VERTEX_SHADER = "attribute vec2 aPos;\nvoid main(){ gl_Position = vec4(aPos,0.0,1.0); }";
 
 export const CRT_FRAGMENT_SHADER = `precision highp float;
@@ -28,6 +29,9 @@ uniform vec3 uRoom;
 uniform vec4 uCursorRect;
 uniform vec4 uCursorGlow;
 uniform float uCursorOn;
+uniform mat3 uGradeFirst;
+uniform mat3 uGradeSecond;
+uniform float uDim;
 
 float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 
@@ -144,5 +148,7 @@ void main(){
   vec3 room = uRoom + uSheen*spill*0.42;
   col = mix(room, col, inside);
   col = max(col, uRoom*0.34);
-  gl_FragColor = vec4(col,1.0);
+  col = clamp(clamp(col, 0.0, 1.0) * uGradeFirst, 0.0, 1.0);
+  col = clamp(col * uGradeSecond, 0.0, 1.0);
+  gl_FragColor = vec4(col * uDim, 1.0);
 }`;

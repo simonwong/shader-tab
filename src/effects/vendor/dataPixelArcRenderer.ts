@@ -93,6 +93,6 @@ void main() {
       }
     }
   }
-  gl_FragColor = vec4(color * uDim, 1.0);
+  gl_FragColor = vec4(clamp(color, 0.0, 1.0) * uDim, 1.0);
 }
 `;

@@ -1,7 +1,7 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
 // Modified by Shader Tab: drawn with raw WebGL instead of three.js.
 import { fragment } from '../vendor/amber-halftone-shaders';
-import { ARC_SURFACE } from '../presets';
+import { ARC_SURFACE, THEME_BRIGHTNESS } from '../presets';
 import { hexColor, mountFullscreenShader } from './webgl';
 import type { DriverFactory } from './types';
 
@@ -22,7 +22,7 @@ export const createDriver: DriverFactory = (host, { theme }) => {
       gl.uniform3f(uniform('uColor1'), ...linear(light ? '#b45309' : '#fbbf24'));
       gl.uniform3f(uniform('uColor2'), ...linear(light ? '#1a1f2a' : '#ffffff'));
       gl.uniform3f(uniform('uBackground'), ...hexColor(ARC_SURFACE[theme]));
-      gl.uniform1f(uniform('uDim'), 1);
+      gl.uniform1f(uniform('uDim'), THEME_BRIGHTNESS[theme]);
       return {
         resize(surface) {
           const ratio = surface.width / surface.height;

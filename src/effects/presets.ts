@@ -40,3 +40,10 @@ export function effectBackground(id: EffectId, theme: Theme): string {
 
 /** Solid surface behind the ThreeUI Arc collection renderers (canvas clear colour and CSS fallback). */
 export const ARC_SURFACE: Record<Theme, string> = { day: '#eef1f6', night: '#0a0a0a' };
+
+/**
+ * Output brightness per theme. Every renderer multiplies its final colour by
+ * this factor (it replaces a CSS `filter: brightness()` on the animated layer,
+ * which cost an extra full-screen compositing pass per frame).
+ */
+export const THEME_BRIGHTNESS: Record<Theme, number> = { day: .94, night: .8 };
