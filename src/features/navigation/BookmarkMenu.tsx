@@ -39,7 +39,7 @@ function Items({ entries, onEnter, onLeave, onOpenUrl }: ItemsProps) {
               href={entry.bookmark.url}
               title={entry.bookmark.title}
               label={entry.bookmark.title}
-              onClick={bookmarkClick(entry.bookmark.url, onOpenUrl)}
+              {...bookmarkClick(entry.bookmark.url, onOpenUrl)}
             >
               <SiteMark bookmark={entry.bookmark} size="menu" />
               <span className="truncate">{entry.bookmark.title}</span>

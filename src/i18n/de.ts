@@ -53,6 +53,7 @@ export const de: Messages = {
   effectsPool: '{count} Effekte; Auswahl für den Zufallswechsel',
   fixedEffectHint: 'Feste Kategorie; zufällige Variante für jeden neuen Tab',
   variantsCount: '{count} Varianten',
+  variantsCountOne: '1 Variante',
   shuffle: 'Zufällige Hintergründe',
   shuffleHint: 'Für jeden neuen Tab erst Kategorie, dann Variante wählen',
   shuffleNote:

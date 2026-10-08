@@ -51,6 +51,7 @@ export const zhTW: Messages = {
   effectsPool: '{count} 種效果；勾選以加入隨機輪播',
   fixedEffectHint: '固定背景類別；每次開啟隨機變體',
   variantsCount: '{count} 種變體',
+  variantsCountOne: '1 種變體',
   shuffle: '隨機輪播',
   shuffleHint: '每次開啟先選背景，再選變體',
   shuffleNote: '各類變體抽完一輪後再重新排列；目前頁面保持不變。',

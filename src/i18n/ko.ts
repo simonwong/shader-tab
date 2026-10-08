@@ -52,6 +52,7 @@ export const ko: Messages = {
   effectsPool: '효과 {count}개 중 무작위로 표시할 항목 선택',
   fixedEffectHint: '종류는 고정하고 새 탭마다 변형을 무작위로 선택',
   variantsCount: '변형 {count}개',
+  variantsCountOne: '변형 1개',
   shuffle: '배경 무작위 선택',
   shuffleHint: '새 탭마다 종류를 고른 후 변형을 선택합니다',
   shuffleNote: '종류별 변형을 한 번씩 모두 표시한 후 다시 섞습니다. 현재 탭은 바뀌지 않습니다.',

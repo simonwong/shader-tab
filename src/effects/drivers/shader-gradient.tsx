@@ -3,6 +3,7 @@ import { createRoot, extend, useThree, type RootState } from '@react-three/fiber
 import { ShaderGradient, presets } from '@shadergradient/react';
 import * as THREE from 'three';
 import { THEME_BRIGHTNESS } from '../presets';
+import { releaseCanvas } from './surface';
 import type { DriverFactory } from './types';
 
 extend({
@@ -86,6 +87,16 @@ export const createDriver: DriverFactory = async (host, { theme, variant }) => {
   const preset = PRESETS[shape];
   /* Replaces a CSS brightness() filter on the effect layer. */
   const dim = createDimPass(THEME_BRIGHTNESS[theme]);
+  let state: RootState;
+  // R3F's unmount defers forceContextLoss by 500ms; lose the context now so a
+  // quick scene switch never holds a third live WebGL context.
+  const release = () => {
+    dim.dispose();
+    const gl = (state as RootState | undefined)?.gl;
+    if (gl && !gl.getContext().isContextLost()) gl.forceContextLoss();
+    root.unmount();
+    releaseCanvas(canvas);
+  };
   try {
     await root.configure({
       frameloop: 'never',
@@ -101,7 +112,6 @@ export const createDriver: DriverFactory = async (host, { theme, variant }) => {
         left: 0,
       },
     });
-    let state: RootState;
     await new Promise<void>((resolve, reject) => {
       const timer = window.setTimeout(
         () => reject(new Error('Shader Gradient initialization timed out')),
@@ -156,16 +166,10 @@ export const createDriver: DriverFactory = async (host, { theme, variant }) => {
         state.advance(seconds);
         dim.render(state.gl);
       },
-      dispose() {
-        root.unmount();
-        dim.dispose();
-        canvas.remove();
-      },
+      dispose: release,
     };
   } catch (error) {
-    root.unmount();
-    dim.dispose();
-    canvas.remove();
+    release();
     throw error;
   }
 };

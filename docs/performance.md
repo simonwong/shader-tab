@@ -5,7 +5,7 @@
 - 六种框架效果按需加载，首屏先显示 CSS 配色（首屏缓存记住上次的背景色）。稳定状态只有一个可见画布，切换淡入期间最多两个。
 - 帧率由 `rate-policy.ts` 决定：默认 20 fps，指针绘制类背景移动时 30 fps，电池 15，失焦超过 15 秒或设置打开 10，2 分钟无输入 5，10 分钟无输入停在当前帧。绘制只发生在 rAF 回调内。隐藏立即停绘，10 秒后释放资源，返回重建。细节见[架构](architecture.md#帧率策略)。
 - 缓冲区最长边 2560、总像素不超过 400 万、DPR 上限 2；Grain Gradient 密度上限 1.25，使用电池时所有背景上限 1。Paper 显式接收所选像素密度，避免尺寸观察器与浏览器 DPR 不一致时落到低分辨率。
-- Paper 自动时钟关闭，用 setFrame 推进；指针 uniform 改变时另提交一次更新。Pixel Field 每帧一个 draw，无离屏纹理。Arc 使用 Canvas 2D，CRT 使用 WebGL 与离屏文字纹理。
+- Paper 自动时钟关闭，用 setFrame 推进；指针 uniform 改变时另提交一次更新。Pixel Field 每帧一个 draw，无离屏纹理。Arc 全部变体为片元着色器（Amber Halftone 不再加载 Three.js）；CRT 文字纹理只在内容变化时上传，光标在着色器中绘制，打字结束后不再上传。
 - 切换时新场景在旧场景上淡入（首次 350 ms，切换 600 ms），淡入期间旧画面冻结、不再绘制，结束后释放。过期异步结果释放资源。
 - 玻璃仅覆盖导航、收藏条、设置与来源胶囊；材质纹理按尺寸缓存。设置和拖拽代码首次打开才加载，书签菜单空闲时预取。首屏 JS 预算 265 KB。
 
@@ -29,7 +29,7 @@
 - 基线用定时器调度，draw 数等于 rAF 数，实际约 18 fps。基础设施版本的 rAF 回调按显示器频率（约 60 Hz）触发，只在帧槽到达时绘制，绘制稳定在 20 fps。rAF 数变多不代表绘制变多；空回调只比较时间戳。
 - 设置打开时降到 10 fps，绘制减半；展开书签菜单不再提高帧率。
 - 隐藏释放时间从 30 秒改为 10 秒。隐藏期间两版均不再绘制。
-- Pixel Field 与 Shader Gradient 每帧计到 2 次 draw，绘制帧率同为 20 fps。Pixel Field 源码每帧只调用一次 `drawArrays`，计数翻倍的原因尚未查明。
+- Shader Gradient 每帧 2 次 draw（场景加亮度 pass）。表中“Pixel Field”一栏实际测的是 ca7d41c 上仍未替换的 Pixel Blast（Three.js 加 EffectComposer，两个 pass）；在 6ddcb77 上实测 Pixel Field 静止时 40 draw / 2 s，指针移动时升到 30 fps 共 60 draw / 2 s，每帧 1 次。
 - Grain Gradient 的像素约减半（密度 1.25）；Shader Gradient 两次均为 1440 × 900。
 - 计数不代表 GPU 时间、功耗或电池续航。
 
@@ -50,11 +50,11 @@
 
 后台两次采样绘制计数保持相同，后一次画布已释放；返回恢复渲染，设置可打开。脚本错误为零。原始记录：`artifacts/performance/latest.json`。
 
-上表为 2026-09-21 的记录，当时 Pixel Blast 仍为两个 GPU pass；2026-10-08 换成 Pixel Field 后，第二阶段测量中每帧仍计到 2 次 draw（见上节）。Shader Gradient 的两个 GPU pass 使 draw 数约为 rAF 的两倍，不能与单 pass 或 Canvas 2D 的 draw 直接比较。计数反映调度和部分主线程工作，不代表 GPU 时间、功耗或电池续航。尚未做低性能设备和长期功耗测试。
+上表为 2026-09-21 的记录，当时 Pixel Blast 仍为两个 GPU pass；2026-10-08 换成 Pixel Field 后为每帧 1 次 draw（见上节）。Shader Gradient 的两个 GPU pass 使 draw 数约为 rAF 的两倍，不能与单 pass 或 Canvas 2D 的 draw 直接比较。计数反映调度和部分主线程工作，不代表 GPU 时间、功耗或电池续航。尚未做低性能设备和长期功耗测试。
 
 ## 体积与重现
 
-首屏约 306.85 KB 原始 JS；Paper 约 58 KB、Pixel Field 约 7 KB（2026-10-08）、Arc 约 2 KB、CRT 约 22 KB、Shader Gradient 与 Fiber 约 384 KB，Three.js 共用分块约 737 KB。ZIP 525.33 KB。新增体积来自官方组件和 Fiber，背景仍不加载备用图片。12 个缩略图引用中，Shader Gradient 日夜共用一张，构建输出 11 张。Shader Gradient 像素密度上限为所选预设的 1。
+首屏约 306.85 KB 原始 JS；Paper 约 58 KB、Pixel Field 约 7 KB（2026-10-08）、Arc 约 2 KB、CRT 约 22 KB、Shader Gradient 与 Fiber 约 384 KB，Three.js 约 737 KB（2026-10-08 起只有 Shader Gradient 加载）。2026-10-08 换用 Base UI 并懒加载书签菜单后，首屏 JS 为 242.7 KB（gzip 78.1 KB）。ZIP 525.33 KB。新增体积来自官方组件和 Fiber，背景仍不加载备用图片。12 个缩略图引用中，Shader Gradient 日夜共用一张，构建输出 11 张。Shader Gradient 像素密度上限为所选预设的 1。
 
 ```sh
 pnpm check
