@@ -1,12 +1,14 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
-// Adapted to elapsed time, shared resolution limits, and pointer-following sheen.
-// Only the authored terminal screen is kept; the other ThreeUI CRT screens are retired.
+// Modified by Shader Tab: adapted to elapsed time, shared resolution limits, and a
+// pointer-following sheen; only the authored terminal screen is kept (the other
+// ThreeUI CRT screens and their screen text are retired). The text canvas is
+// half the tube resolution and is redrawn and uploaded only when the typed text
+// changes; the blinking cursor is drawn by the tube shader from uniforms.
 import { CRT_FRAGMENT_SHADER, CRT_VERTEX_SHADER } from "./crtShaders";
-import { MAX_RENDER_EDGE, MAX_RENDER_PIXELS, pixelDensity } from "../drivers/surface";
 import { bindFullscreenTriangle, deleteProgram, linkProgram } from "../drivers/webgl";
 
-export type CrtOptions = { speed: number; typeSpeed: number; motion: number; brightness: number; opacity: number; hue: number; saturation: number };
-export const CRT_DEFAULTS: CrtOptions = { speed: 1, typeSpeed: 1, motion: 1, brightness: 1, opacity: 1, hue: 0, saturation: 1 };
+export type CrtOptions = { speed: number; typeSpeed: number; motion: number };
+export const CRT_DEFAULTS: CrtOptions = { speed: 1, typeSpeed: 1, motion: 1 };
 
 /* Tube material for the terminal screen. */
 const STYLE = {
@@ -16,6 +18,8 @@ const STYLE = {
 } as const;
 const SCREEN_BACKGROUND = "#03100a";
 const FONT_STACK = 'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace';
+/* The tube's blur, halation and scanlines hide the text canvas resolution. */
+const TEXT_SCALE = 0.5;
 
 type Segment = { t: string; c: "p" | "d" | "a" | "h" };
 const segment = (text: string, color: Segment["c"] = "p"): Segment => ({ t: text, c: color });
@@ -44,8 +48,8 @@ const lineLength = (line: Segment[]) => line.reduce((total, item) => total + ite
 const TOTAL = LOG.reduce((total, line) => total + lineLength(line), 0);
 const MAX_CHARS = Math.max(...LOG.map(lineLength));
 
-export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, getOptions: () => CrtOptions) {
-  const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, premultipliedAlpha: false });
+export function createCrtRenderer(canvas: HTMLCanvasElement, getOptions: () => CrtOptions) {
+  const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: "low-power" });
   if (!gl) throw new Error("CRT requires WebGL");
   const textCanvas = document.createElement("canvas");
   const textContext = textCanvas.getContext("2d");
@@ -58,6 +62,7 @@ export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, 
   const uniform = (name: string) => gl.getUniformLocation(program, name);
   const uPointer = uniform("uPointer"), uResolution = uniform("uRes"), uTime = uniform("uTime");
   const uMotion = uniform("uMotion"), uScan = uniform("uScan"), uTriad = uniform("uTriad");
+  const uCursorRect = uniform("uCursorRect"), uCursorGlow = uniform("uCursorGlow"), uCursorOn = uniform("uCursorOn");
 
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -81,15 +86,15 @@ export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, 
   gl.uniform3f(uniform("uSheen"), STYLE.sheen[0], STYLE.sheen[1], STYLE.sheen[2]);
   gl.uniform3f(uniform("uRoom"), STYLE.room[0], STYLE.room[1], STYLE.room[2]);
 
-  let width = 1, height = 1, cssWidth = 1, cssHeight = 1;
+  let width = 1, height = 1;
   let fontSize = 14, lineHeight = 20, startY = 0, charWidth = 8, caretX = 0, caretY = 0;
-  let typed = 0, done = false, textDirty = true, lastTextAt = 0, lastReveal = -1, lastBlink = -1;
+  let typed = 0, done = false, drawnReveal = -1, cursorOn = -1;
 
   const font = () => `600 ${fontSize.toFixed(2)}px ${FONT_STACK}`;
   const layout = () => {
     startY = height * 0.135;
     lineHeight = height * 0.74 / LOG.length;
-    fontSize = Math.max(5, Math.min(lineHeight * 0.8, width * 0.88 / (Math.max(MAX_CHARS, 1) * 0.62)));
+    fontSize = Math.max(5 * TEXT_SCALE, Math.min(lineHeight * 0.8, width * 0.88 / (Math.max(MAX_CHARS, 1) * 0.62)));
     textContext.font = font();
     charWidth = textContext.measureText("M").width || fontSize * 0.6;
   };
@@ -103,6 +108,7 @@ export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, 
      the shadow off so the stroke core stays crisp at any backing resolution */
   const drawScreen = (reveal: number) => {
     textContext.setTransform(1, 0, 0, 1, 0, 0);
+    textContext.shadowBlur = 0;
     textContext.fillStyle = SCREEN_BACKGROUND;
     textContext.fillRect(0, 0, width, height);
     textContext.textAlign = "left";
@@ -140,71 +146,46 @@ export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, 
       if (visible !== Infinity && remaining <= 0) break;
     }
   };
-  const drawCursor = () => {
-    const cursorWidth = Math.max(charWidth * 0.92, 4);
-    textContext.shadowColor = COLORS.p.glow;
-    textContext.shadowBlur = fontSize * 0.42;
-    textContext.fillStyle = "#bdf8d2";
-    textContext.fillRect(caretX, caretY + fontSize * 0.06, cursorWidth, fontSize * 0.96);
-    textContext.shadowBlur = 0;
-    textContext.fillRect(caretX, caretY + fontSize * 0.06, cursorWidth, fontSize * 0.96);
+  /* Cursor block in texture coordinates (v grows upwards because the upload flips Y).
+     Its glow is the canvas shadow it used to be drawn with: blur fontSize * 0.42,
+     i.e. a Gaussian with sigma fontSize * 0.21. */
+  const placeCursor = () => {
+    const cursorWidth = Math.max(charWidth * 0.92, 4 * TEXT_SCALE);
+    const top = caretY + fontSize * 0.06;
+    gl.uniform4f(uCursorRect, caretX / width, 1 - (top + fontSize * 0.96) / height, (caretX + cursorWidth) / width, 1 - top / height);
+    gl.uniform4f(uCursorGlow, fontSize * 0.21 / width, fontSize * 0.21 / height, 1 / width, 1 / height);
   };
-  const uploadTexture = () => {
+  const uploadText = (reveal: number) => {
+    drawScreen(reveal);
+    placeCursor();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    textDirty = false;
+    drawnReveal = reveal;
   };
-  /* backing-store ceiling: the composite is one triangle, so the cost that matters is
-     the 2D screen redraw and its upload, not the fragment pass */
-  const resize = () => {
-    const bounds = host.getBoundingClientRect();
-    cssWidth = Math.max(1, bounds.width);
-    cssHeight = Math.max(1, bounds.height);
-    const density = pixelDensity(cssWidth, cssHeight);
-    let nextWidth = Math.max(1, Math.round(Math.min(cssWidth * density, MAX_RENDER_EDGE)));
-    let nextHeight = Math.max(1, Math.round(nextWidth * cssHeight / cssWidth));
-    if (nextWidth * nextHeight > MAX_RENDER_PIXELS) {
-      const fit = Math.sqrt(MAX_RENDER_PIXELS / (nextWidth * nextHeight));
-      nextWidth = Math.round(nextWidth * fit);
-      nextHeight = Math.round(nextHeight * fit);
-    }
-    if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
-      canvas.width = nextWidth;
-      canvas.height = nextHeight;
-    }
-    if (textCanvas.width !== nextWidth || textCanvas.height !== nextHeight) {
-      textCanvas.width = width = nextWidth;
-      textCanvas.height = height = nextHeight;
+  const resize = (cssWidth: number, cssHeight: number, density: number) => {
+    const nextWidth = Math.max(1, Math.round(cssWidth * density));
+    const nextHeight = Math.max(1, Math.round(cssHeight * density));
+    canvas.width = nextWidth;
+    canvas.height = nextHeight;
+    const textWidth = Math.max(1, Math.round(nextWidth * TEXT_SCALE));
+    const textHeight = Math.max(1, Math.round(nextHeight * TEXT_SCALE));
+    if (textCanvas.width !== textWidth || textCanvas.height !== textHeight) {
+      textCanvas.width = width = textWidth;
+      textCanvas.height = height = textHeight;
       layout();
-      lastReveal = -1;
-      lastBlink = -1;
-      lastTextAt = 0;
-      textDirty = true;
+      drawnReveal = -1;
     }
     gl.useProgram(program);
     gl.viewport(0, 0, nextWidth, nextHeight);
     gl.uniform2f(uResolution, nextWidth, nextHeight);
     gl.uniform1f(uScan, Math.max(120, Math.min(cssHeight * STYLE.scanDensity, 900)));
-    gl.uniform1f(uTriad, Math.max(2, STYLE.triadCss * nextWidth / cssWidth));
-  };
-  const maybeRedrawText = (animationMs: number, elapsedMs: number) => {
-    const reveal = done ? Infinity : Math.floor(typed);
-    const blink = Math.floor(animationMs / 420) % 2 === 0 ? 1 : 0;
-    const due = !done ? elapsedMs - lastTextAt > 42 : blink !== lastBlink;
-    if (reveal === lastReveal && blink === lastBlink && !due) return;
-    if (!done && elapsedMs - lastTextAt <= 42 && reveal === lastReveal && blink === lastBlink) return;
-    drawScreen(reveal);
-    if (blink) drawCursor();
-    lastTextAt = elapsedMs;
-    lastReveal = reveal;
-    lastBlink = blink;
-    textDirty = true;
+    gl.uniform1f(uTriad, Math.max(2, STYLE.triadCss * density));
   };
   return {
     resize,
-    render(animationMs: number, elapsedMs: number, pointer = { x: 0, y: 0 }) {
+    render(animationMs: number, pointer: { x: number; y: number }) {
       const options = getOptions();
       const seconds = animationMs * 0.001 * options.speed;
       if (!done) {
@@ -214,9 +195,13 @@ export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, 
           done = true;
         }
       }
-      maybeRedrawText(animationMs, elapsedMs);
-      if (textDirty) uploadTexture();
-      gl.useProgram(program);
+      const reveal = done ? Infinity : Math.floor(typed);
+      if (reveal !== drawnReveal) uploadText(reveal);
+      const blink = Math.floor(animationMs / 420) % 2 === 0 ? 1 : 0;
+      if (blink !== cursorOn) {
+        gl.uniform1f(uCursorOn, blink);
+        cursorOn = blink;
+      }
       gl.uniform2f(uPointer, pointer.x, pointer.y);
       gl.uniform1f(uTime, seconds);
       gl.uniform1f(uMotion, options.motion);
@@ -226,6 +211,7 @@ export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, 
       gl.deleteBuffer(buffer);
       gl.deleteTexture(texture);
       deleteProgram(gl, linked);
+      textCanvas.width = textCanvas.height = 1;
     },
   };
 }
