@@ -1,29 +1,41 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
-import * as THREE from 'three';
-import { vertex, fragment } from '../vendor/amber-halftone-shaders';
+// Modified by Shader Tab: drawn with raw WebGL instead of three.js.
+import { fragment } from '../vendor/amber-halftone-shaders';
 import { ARC_SURFACE } from '../presets';
+import { hexColor, mountFullscreenShader } from './webgl';
 import type { DriverFactory } from './types';
+
+/* three.js converted the original sRGB hex colours to linear RGB before passing
+   them to the shader, which wrote them out unconverted; keep that look. */
+const linear = (hex: string) => hexColor(hex).map(channel =>
+  channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4) as [number, number, number];
+const SPACING = .085;
+
 export const createDriver: DriverFactory = (host, { theme }) => {
   const light = theme === 'day';
-  const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'low-power' });
-  const canvas = renderer.domElement; host.append(canvas);
-  renderer.setClearColor(ARC_SURFACE[theme], 1);
-  const scene = new THREE.Scene(), camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 10);
-  camera.position.z = 1;
-  const geometry = new THREE.BufferGeometry();
-  const material = new THREE.ShaderMaterial({ vertexShader: vertex, fragmentShader: fragment, transparent: true,
-    uniforms: { time: { value: 0 }, pixelRatio: { value: 1 }, color1: { value: new THREE.Color(light ? 0xb45309 : 0xfbbf24) }, color2: { value: new THREE.Color(light ? 0x1a1f2a : 0xffffff) } } });
-  const points = new THREE.Points(geometry, material); scene.add(points);
-  return {
-    canvas, engine: 'threeui-three',
-    resize(width, height, density) {
-      renderer.setPixelRatio(density); renderer.setSize(width, height, false); material.uniforms.pixelRatio!.value = density;
-      const aspect = width / height; camera.left = -aspect; camera.right = aspect; camera.updateProjectionMatrix();
-      const positions: number[] = [], scales: number[] = [], spacing = .085;
-      for (let x = -Math.ceil(aspect / spacing); x <= Math.ceil(aspect / spacing); x++) for (let y = -13; y <= 13; y++) { positions.push(x * spacing, y * spacing, 0); scales.push(1); }
-      geometry.dispose(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); geometry.setAttribute('scale', new THREE.Float32BufferAttribute(scales, 1)); geometry.computeBoundingSphere();
+  return mountFullscreenShader(host, {
+    engine: 'threeui-webgl',
+    fragment,
+    setup(gl, uniform) {
+      const canvas = uniform('uCanvas'), aspect = uniform('uAspect'), density = uniform('uDensity');
+      const columns = uniform('uColumns'), time = uniform('uTime'), offset = uniform('uOffset');
+      gl.uniform3f(uniform('uColor1'), ...linear(light ? '#b45309' : '#fbbf24'));
+      gl.uniform3f(uniform('uColor2'), ...linear(light ? '#1a1f2a' : '#ffffff'));
+      gl.uniform3f(uniform('uBackground'), ...hexColor(ARC_SURFACE[theme]));
+      gl.uniform1f(uniform('uDim'), 1);
+      return {
+        resize(surface) {
+          const ratio = surface.width / surface.height;
+          gl.uniform2f(canvas, surface.pixelWidth, surface.pixelHeight);
+          gl.uniform1f(aspect, ratio);
+          gl.uniform1f(density, surface.density);
+          gl.uniform1f(columns, Math.ceil(ratio / SPACING));
+        },
+        frame(seconds, pointer) {
+          gl.uniform1f(time, seconds);
+          gl.uniform2f(offset, pointer.x * .025, -pointer.y * .025);
+        },
+      };
     },
-    render(seconds, delta, pointer) { material.uniforms.time!.value = seconds; points.position.set(pointer.x * .025, -pointer.y * .025, 0); renderer.render(scene, camera); },
-    dispose() { geometry.dispose(); material.dispose(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); },
-  };
+  });
 };
