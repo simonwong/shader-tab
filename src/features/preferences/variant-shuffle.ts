@@ -52,10 +52,38 @@ export interface StoredDraw {
  * always scheduled for removal once seen.
  */
 export function drawStoredVariant(effect: EffectId, items: Record<string, unknown>, random = Math.random): StoredDraw {
+  const { saved, key, remove } = storedBag(effect, items);
+  const { variant, state } = drawVariant(effect, saved, random);
+  return { variant, set: { [key]: state }, remove };
+}
+
+function storedBag(effect: EffectId, items: Record<string, unknown>) {
   const key = variantShuffleKey(effect);
   const legacy = LEGACY_SHUFFLE_KEYS[effect];
   const legacySaved = legacy === undefined ? undefined : items[legacy];
   const saved = items[key] === undefined ? legacySaved : items[key];
-  const { variant, state } = drawVariant(effect, saved, random);
-  return { variant, set: { [key]: state }, remove: legacy !== undefined && legacySaved !== undefined ? [legacy] : [] };
+  return { key, saved, remove: legacy !== undefined && legacySaved !== undefined ? [legacy] : [] };
+}
+
+/**
+ * Records that `variant` was shown, given the bag as it is stored now.
+ *
+ * A page peeks at the bag head and paints right away; this commit runs later,
+ * under a lock, against a fresh read. If the bag still holds `variant` it is
+ * taken out; if the bag is used up, a new round starts without it; if another
+ * tab already took it, the bag is left as is. In every case `last` becomes
+ * `variant`, so the next round does not open with it.
+ */
+export function settleVariant(effect: EffectId, items: Record<string, unknown>, variant: string, random = Math.random): Omit<StoredDraw, 'variant'> {
+  const { saved, key, remove } = storedBag(effect, items);
+  const choices = variantIds(effect);
+  const previous = saved && typeof saved === 'object' ? saved as { remaining?: unknown } : {};
+  let remaining = Array.isArray(previous.remaining)
+    ? [...new Set(previous.remaining.filter((value): value is string => typeof value === 'string' && choices.includes(value)))]
+    : [];
+  if (!remaining.length) {
+    const round = drawVariant(effect, undefined, random);
+    remaining = [round.variant, ...round.state.remaining];
+  }
+  return { set: { [key]: { remaining: remaining.filter(value => value !== variant), last: variant } }, remove };
 }

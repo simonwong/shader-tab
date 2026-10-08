@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
+
+/** How long the controls stay up after the page opens, so first-time users see where they are. */
+const FIRST_LOOK = 3000;
+
+/**
+ * Whether the page controls are shown. Any pointer or keyboard activity wakes
+ * them; they fade after `delay` ms of inactivity unless `held`. A focused
+ * control fades with the rest; the next key press brings everything back.
+ */
 export function useIdleControls(delay: number, held: boolean) {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
-    let keyboard = false;
-    const wake = (event?: Event) => {
-      if (event?.type === 'keydown') keyboard = true;
-      if (event?.type.startsWith('pointer')) keyboard = false;
-      setVisible(true);
+    const schedule = (wait: number) => {
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        if (!held && !(keyboard && document.activeElement?.closest('.ui-surface'))) setVisible(false);
-      }, delay);
+      timer = setTimeout(() => { if (!held) setVisible(false); }, wait);
+    };
+    const wake = () => {
+      setVisible(true);
+      schedule(delay);
     };
     const hide = () => { if (!held) setVisible(false); };
     window.addEventListener('pointermove', wake, { passive: true });
@@ -19,8 +26,7 @@ export function useIdleControls(delay: number, held: boolean) {
     window.addEventListener('keydown', wake);
     window.addEventListener('blur', hide);
     document.addEventListener('focusout', wake);
-    if (held) wake();
-    else timer = setTimeout(() => setVisible(false), delay);
+    schedule(Math.max(delay, FIRST_LOOK - performance.now()));
     return () => {
       clearTimeout(timer);
       window.removeEventListener('pointermove', wake);
