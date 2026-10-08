@@ -25,7 +25,7 @@ export const ja: Messages = {
   'effect.grain-gradient': '微細な粒子と流れる色がポインターに穏やかに反応',
   'effect.dithering': '流れるピクセル模様とモノクロの渦',
   'effect.pixel-blast': 'ポインターでピクセルを動かし、背景をクリックして波紋を表示',
-  'effect.data-pixel-arc': 'データピクセル、粒子、リボン、ハーフトーンなど 8 種類のオリジナルスタイル',
-  'effect.crt-terminal': 'Phosphor、Cinematic、Retro Game の 3 種類の装飾画面',
+  'effect.data-pixel-arc': 'データピクセル、粒子、リボン、ハーフトーンのスタイル',
+  'effect.crt-terminal': '発光するターミナル文字と控えめな走査線',
   'effect.shader-gradient': 'オリジナルの Halo 平面、Pensive 球体、Mint 水面。新しいタブごとに形状を選択',
 };

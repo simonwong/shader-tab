@@ -53,16 +53,16 @@ export function createCrtRenderer(host: HTMLElement, canvas: HTMLCanvasElement, 
     if (canvas.width !== nextWidth || canvas.height !== nextHeight) { canvas.width = nextWidth; canvas.height = nextHeight; }
     if (textCanvas.width !== screenWidth || textCanvas.height !== screenHeight) { textCanvas.width = screenWidth; textCanvas.height = screenHeight; width = screenWidth; height = screenHeight; layout(); lastReveal = -1; lastBlink = -1; lastTextAt = 0; textDirty = true; }
     gl.useProgram(program); gl.viewport(0, 0, nextWidth, nextHeight); gl.uniform2f(uResolution, nextWidth, nextHeight); gl.uniform1f(uScan, Math.max(120, Math.min(cssHeight * style.scanDensity, 900))); gl.uniform1f(uTriad, Math.max(2, style.triadCss * nextWidth / cssWidth)); };
-  const maybeRedrawText = (now: number) => { const reveal = done ? Infinity : Math.floor(typed), blink = Math.floor((now - startedAt) / 420) % 2 === 0 ? 1 : 0, due = !done ? now - lastTextAt > 42 : blink !== lastBlink; if (reveal === lastReveal && blink === lastBlink && !due) return; if (!done && now - lastTextAt <= 42 && reveal === lastReveal && blink === lastBlink) return; drawScreen(reveal); if (blink) drawCursor(); lastTextAt = now; lastReveal = reveal; lastBlink = blink; textDirty = true; };
+  const maybeRedrawText = (animationMs: number, elapsedMs: number) => { const reveal = done ? Infinity : Math.floor(typed), blink = Math.floor((animationMs - startedAt) / 420) % 2 === 0 ? 1 : 0, due = !done ? elapsedMs - lastTextAt > 42 : blink !== lastBlink; if (reveal === lastReveal && blink === lastBlink && !due) return; if (!done && elapsedMs - lastTextAt <= 42 && reveal === lastReveal && blink === lastBlink) return; drawScreen(reveal); if (blink) drawCursor(); lastTextAt = elapsedMs; lastReveal = reveal; lastBlink = blink; textDirty = true; };
   applyStyle();
   return {
     resize,
-    render(now: number, pointer = { x: 0, y: 0 }) {
+    render(animationMs: number, elapsedMs: number, pointer = { x: 0, y: 0 }) {
       const options = getOptions(), requested = CRT_STYLES[options.variant] ? options.variant : "terminal";
       if (requested !== variant) { variant = requested; style = crtStyle(variant); applyStyle(); typed = 0; done = false; lastReveal = -1; lastBlink = -1; lastTextAt = 0; resize(); }
-      const seconds = (now - startedAt) * 0.001 * options.speed;
-      if (variant === "terminal") { if (!done) { typed = seconds * 264 * options.typeSpeed; if (typed >= TOTAL) { typed = TOTAL; done = true; } } maybeRedrawText(now); }
-      else if (now - lastTextAt >= style.redrawMs || textDirty) { CRT_SCREENS[variant](textContext, width, height, seconds); lastTextAt = now; textDirty = true; }
+      const seconds = (animationMs - startedAt) * 0.001 * options.speed;
+      if (variant === "terminal") { if (!done) { typed = seconds * 264 * options.typeSpeed; if (typed >= TOTAL) { typed = TOTAL; done = true; } } maybeRedrawText(animationMs, elapsedMs); }
+      else if (elapsedMs - lastTextAt >= style.redrawMs || textDirty) { CRT_SCREENS[variant](textContext, width, height, seconds); lastTextAt = elapsedMs; textDirty = true; }
       if (textDirty) uploadTexture();
       gl.useProgram(program); gl.uniform2f(uPointer, pointer.x, pointer.y); gl.uniform1f(uTime, seconds); gl.uniform1f(uMotion, options.motion); gl.drawArrays(gl.TRIANGLES, 0, 3);
     },

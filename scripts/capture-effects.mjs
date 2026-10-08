@@ -15,15 +15,18 @@ function browser(...args) {
   return result.data;
 }
 try {
-  browser('open', 'http://localhost:4317/src/entrypoints/newtab/index.html');
+  browser('open', '--init-script', resolve('scripts/shader-probe.js'), 'http://127.0.0.1:4317/src/entrypoints/newtab/index.html');
   browser('set', 'viewport', '1440', '900');
-  browser('open', 'http://localhost:4317/src/entrypoints/newtab/index.html');
+  browser('eval', `localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:crt-terminal', JSON.stringify({ remaining: ['terminal'] }))`);
+  browser('eval', `localStorage.setItem('glass-tab-preview:shader-gradient:shuffle:v1', JSON.stringify({ remaining: ['plane'] }))`);
+  browser('reload');
   browser('wait', '--fn', "document.querySelector('.ambient-background')?.dataset.renderer === 'live'");
   browser('eval', "(() => { const style=document.createElement('style'); style.textContent='main > :not(.ambient-background) { visibility: hidden !important; }'; document.head.append(style); })()");
   for (const [shape, width, height] of [['wide', 2560, 1600], ['tall', 780, 1688]]) {
   browser('set', 'viewport', String(width), String(height));
   for (const theme of ['day', 'night']) for (const id of captureIds) {
     browser('eval', `(async () => {
+      window.__shaderProbe.crtTextReady = false;
       for (const [key, value] of Object.entries({ appearance: '${theme}', activeEffect: '${id}', shuffle: false })) localStorage.setItem('glass-tab-preview:preference:v1:' + key, JSON.stringify(value));
       dispatchEvent(new StorageEvent('storage', { key: 'glass-tab-preview:preference:v1:activeEffect' }));
       await new Promise(resolve => setTimeout(resolve, 5000));
@@ -31,6 +34,7 @@ try {
       return true;
     })()`);
     browser('wait', '--fn', "document.querySelector('.ambient-background').dataset.transitioning === 'false'");
+    if (id === 'crt-terminal') browser('wait', '--fn', 'window.__shaderProbe.crtTextReady');
     browser('screenshot', resolve(output, `${id}-${theme}${shape === 'tall' ? '-tall' : ''}.png`));
     console.log(`${id} ${theme} ${shape}: framework rendered`);
   }

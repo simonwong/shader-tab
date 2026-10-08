@@ -25,7 +25,7 @@ export const fr: Messages = {
   'effect.grain-gradient': 'Un grain fin et des couleurs fluides réagissent doucement au pointeur',
   'effect.dithering': 'Des tourbillons monochromes aux textures de pixels en mouvement',
   'effect.pixel-blast': 'Déplacez le pointeur pour agiter les pixels ; cliquez sur le fond pour créer des ondes',
-  'effect.data-pixel-arc': 'Huit styles originaux : pixels de données, particules, rubans et trames',
-  'effect.crt-terminal': 'Trois écrans décoratifs : Phosphor, Cinematic et Retro Game',
+  'effect.data-pixel-arc': 'Styles originaux avec pixels de données, particules, rubans et trames',
+  'effect.crt-terminal': 'Texte de terminal lumineux avec de discrètes lignes de balayage',
   'effect.shader-gradient': 'Les formes originales Halo, Pensive et Mint : plan, sphère et eau, choisies au hasard à chaque nouvel onglet',
 };

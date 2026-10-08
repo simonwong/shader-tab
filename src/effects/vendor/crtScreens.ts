@@ -36,20 +36,20 @@ export type CrtStyle = {
 
 export const CRT_STYLES: Record<CrtVariant, CrtStyle> = {
   terminal: {
-    curve: [0.115, 0.165], scanDensity: 0.44, scanDepth: 0.30, triadCss: 3.2, grille: 0.34, chroma: 1,
-    bar: 0.045, flicker: 0.028, grain: 0.022, noise: 0, vignette: 0.58, mono: 0, gain: 1.34, halo: 0.10,
+    curve: [0.115, 0.165], scanDensity: 0.44, scanDepth: 0.12, triadCss: 3.2, grille: 0.12, chroma: 1,
+    bar: 0, flicker: 0, grain: 0.006, noise: 0, vignette: 0.58, mono: 0, gain: 1.05, halo: 0.04,
     sheen: [0.55, 1.0, 0.78], room: [0.012, 0.03, 0.022], background: "#03100a",
     filtering: "linear", surface: { mode: "buffer" }, redrawMs: 0,
   },
   cinematic: {
-    curve: [0.085, 0.125], scanDensity: 0.40, scanDepth: 0.22, triadCss: 3.6, grille: 0.14, chroma: 0.7,
-    bar: 0.022, flicker: 0.020, grain: 0.055, noise: 0, vignette: 0.74, mono: 1, gain: 1.16, halo: 0.20,
+    curve: [0.085, 0.125], scanDensity: 0.40, scanDepth: 0.10, triadCss: 3.6, grille: 0.08, chroma: 0.7,
+    bar: 0, flicker: 0, grain: 0.006, noise: 0, vignette: 0.74, mono: 1, gain: 1.02, halo: 0.06,
     sheen: [0.86, 0.90, 1.0], room: [0.016, 0.016, 0.018], background: "#07070a",
     filtering: "linear", surface: { mode: "cap", width: 1280 }, redrawMs: 33,
   },
   "retro-game": {
-    curve: [0.070, 0.100], scanDensity: 0.34, scanDepth: 0.26, triadCss: 3.4, grille: 0.20, chroma: 0.55,
-    bar: 0.018, flicker: 0.014, grain: 0.014, noise: 0, vignette: 0.46, mono: 0, gain: 1.20, halo: 0.06,
+    curve: [0.070, 0.100], scanDensity: 0.34, scanDepth: 0.12, triadCss: 3.4, grille: 0.10, chroma: 0.55,
+    bar: 0, flicker: 0, grain: 0.006, noise: 0, vignette: 0.46, mono: 0, gain: 1.02, halo: 0.03,
     sheen: [0.72, 0.84, 1.0], room: [0.020, 0.024, 0.040], background: "#0a1030",
     filtering: "nearest", surface: { mode: "fixed", width: 320, height: 180 }, redrawMs: 16,
   },
@@ -124,8 +124,6 @@ const paintCinematic: ScreenPainter = (context, width, height, time) => {
     context.fillText(String(label), cx, cy + radius * 0.02);
     context.shadowBlur = 0;
   } else {
-    const flash = Math.max(0, 1 - (phase - 7) / 0.10);
-    if (flash > 0) { context.fillStyle = `rgba(250,250,252,${(flash * 0.62).toFixed(3)})`; context.fillRect(0, top, width, frameHeight); }
     context.textAlign = "center"; context.textBaseline = "middle";
     context.fillStyle = "rgba(244,244,248,0.92)";
     const size = height * 0.052;

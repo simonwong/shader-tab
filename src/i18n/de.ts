@@ -25,7 +25,7 @@ export const de: Messages = {
   'effect.grain-gradient': 'Feine Körnung und fließende Farben reagieren sanft auf den Zeiger',
   'effect.dithering': 'Monochrome Wirbel mit fließenden Pixeltexturen',
   'effect.pixel-blast': 'Pixel mit dem Zeiger bewegen; für Wellen auf den Hintergrund klicken',
-  'effect.data-pixel-arc': 'Acht Originalstile mit Datenpixeln, Partikeln, Bändern und Rastern',
-  'effect.crt-terminal': 'Drei dekorative Bildschirme: Phosphor, Cinematic und Retro Game',
+  'effect.data-pixel-arc': 'Originalstile mit Datenpixeln, Partikeln, Bändern und Rastern',
+  'effect.crt-terminal': 'Leuchtender Terminaltext mit dezenten Scanlinien',
   'effect.shader-gradient': 'Originalformen Halo-Ebene, Pensive-Kugel und Mint-Wasser; eine zufällige Form für jeden neuen Tab',
 };

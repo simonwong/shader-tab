@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 const session = `glass-framework-review-${process.pid}`;
 const output = resolve('artifacts/shader-review');
-const url = 'http://localhost:4317/src/entrypoints/newtab/index.html';
+const url = 'http://127.0.0.1:4317/src/entrypoints/newtab/index.html';
 const ids = ['grain-gradient', 'dithering', 'pixel-blast', 'data-pixel-arc', 'crt-terminal', 'shader-gradient'];
 const run = (...args) => {
   const result = JSON.parse(execFileSync('agent-browser', ['--session', session, '--json', ...args], { encoding: 'utf8', timeout: 60_000 }));
@@ -19,27 +19,35 @@ try {
   await mkdir(output, { recursive: true });
   run('open', '--init-script', resolve('scripts/shader-probe.js'), url);
   run('set', 'viewport', '1440', '900', '2');
+  evaluate(`(() => {
+    const variants = { 'grain-gradient': 'blob', dithering: 'swirl:4x4', 'pixel-blast': 'square', 'data-pixel-arc': 'data-pixel', 'crt-terminal': 'terminal' };
+    for (const [id, variant] of Object.entries(variants)) localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:' + id, JSON.stringify({ remaining: [variant] }));
+    localStorage.setItem('glass-tab-preview:shader-gradient:shuffle:v1', JSON.stringify({ remaining: ['sphere'] }));
+  })()`);
   preference({ appearance: 'night', shuffle: false, activeEffect: ids[0] });
+  run('reload'); settled(ids[0]);
   const effects = [];
   for (const id of ids) {
     preference({ activeEffect: id }); settled(id); wait(1000);
     const before = evaluate('JSON.parse(JSON.stringify(window.__shaderProbe))');
     run('screenshot', resolve(output, `${id}-before.png`));
-    run('mouse', 'move', '100', '180'); wait(1000);
+    run('mouse', 'move', '100', '180'); wait(1800);
     const left = evaluate('JSON.parse(JSON.stringify(window.__shaderProbe))');
-    run('mouse', 'move', '1340', '650'); run('mouse', 'down'); run('mouse', 'up'); wait(1000);
+    run('mouse', 'move', '1340', '650'); run('mouse', 'down'); run('mouse', 'up'); wait(1800);
     const right = evaluate('JSON.parse(JSON.stringify(window.__shaderProbe))');
     run('screenshot', resolve(output, `${id}-pointer.png`));
     if (id === 'grain-gradient' || id === 'dithering') {
       assert.ok(right.uniforms.u_time > before.uniforms.u_time);
-      assert.ok(left.uniforms.u_offsetX < -.03 && right.uniforms.u_offsetX > .03);
+      assert.ok(left.uniforms.u_offsetX < -.012 && right.uniforms.u_offsetX > .012, 'Paper must follow both pointer directions');
+      assert.ok(Math.abs(left.uniforms.u_offsetX) <= .0211 && Math.abs(right.uniforms.u_offsetX) <= .0211, 'Paper pointer must stay gentle');
     } else if (id === 'pixel-blast') {
       assert.ok(right.uniforms.uTime > before.uniforms.uTime);
       assert.ok(right.uploads > left.uploads);
       assert.ok(right.uniforms['uClickTimes[0]'].some(x => x > 0));
     } else if (id === 'crt-terminal') {
       assert.ok(right.uniforms.uTime > before.uniforms.uTime);
-      assert.ok(left.uniforms.uPointer[0] < -.6 && right.uniforms.uPointer[0] > .6);
+      assert.ok(left.uniforms.uPointer[0] < -.2 && right.uniforms.uPointer[0] > .2, 'CRT must follow both pointer directions');
+      assert.ok(Math.abs(left.uniforms.uPointer[0]) <= .351 && Math.abs(right.uniforms.uPointer[0]) <= .351, 'CRT pointer must stay gentle');
     } else if (id === 'shader-gradient') assert.ok(right.uniforms.uTime > before.uniforms.uTime);
     else assert.ok(right.arcFrames > before.arcFrames);
     const state = evaluate(`(()=>{const h=document.querySelector('.ambient-background'),c=h.querySelector('canvas');return {engine:h.dataset.engine,buffer:[c.width,c.height],canvases:h.querySelectorAll('canvas').length};})()`);
@@ -66,7 +74,8 @@ try {
     run('wait', '--fn', `document.querySelector('main').dataset.effect==='${id}' && document.documentElement.dataset.theme==='${appearance}'`);
     const background = evaluate('getComputedStyle(document.querySelector(".ambient-background")).backgroundImage');
     assert.ok(!background.includes('url('));
-    assert.ok(id === 'crt-terminal' ? background === 'none' : background.includes('radial-gradient'));
+    const backgroundColor = evaluate('getComputedStyle(document.querySelector(".ambient-background")).backgroundColor');
+    assert.ok(background.includes('gradient(') || background === 'none' && backgroundColor !== 'rgba(0, 0, 0, 0)', 'Static fallback must contain a gradient or an opaque color');
     assert.equal(evaluate('document.querySelectorAll("canvas").length'), 0);
     fallbacks.push({ id, appearance });
   }

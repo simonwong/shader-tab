@@ -24,8 +24,8 @@ export const en = {
   'effect.grain-gradient': 'Fine grain and flowing color that respond gently to your pointer',
   'effect.dithering': 'Monochrome swirls with continuously flowing pixel textures',
   'effect.pixel-blast': 'Move your pointer to stir the pixels; click the background for ripples',
-  'effect.data-pixel-arc': 'Eight original styles including data pixels, particles, ribbons and halftones',
-  'effect.crt-terminal': 'Three decorative screens: Phosphor, Cinematic and Retro Game',
+  'effect.data-pixel-arc': 'Original styles with data pixels, particles, ribbons and halftones',
+  'effect.crt-terminal': 'Glowing terminal text with subtle scanlines',
   'effect.shader-gradient': 'Original Halo plane, Pensive sphere and Mint water; a random shape on each new tab',
 } as const;
 export type MessageKey = keyof typeof en;
