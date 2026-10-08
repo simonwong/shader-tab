@@ -175,7 +175,7 @@ export function Dock(props: DockProps) {
                   className="favorite-tile"
                   href={bookmark.url}
                   title={bookmark.title}
-                  onClick={bookmarkClick(bookmark.url, onOpenUrl)}
+                  {...bookmarkClick(bookmark.url, onOpenUrl)}
                 >
                   <SiteMark bookmark={bookmark} />
                   <span className="truncate">{bookmark.title}</span>

@@ -52,6 +52,7 @@ export const ja: Messages = {
   effectsPool: '{count} 種類からランダム表示する背景を選択',
   fixedEffectHint: 'カテゴリを固定し、新しいタブごとにバリエーションを選択',
   variantsCount: '{count} 種類のバリエーション',
+  variantsCountOne: '1 種類のバリエーション',
   shuffle: '背景をランダムに表示',
   shuffleHint: '新しいタブごとにカテゴリとバリエーションを選択',
   shuffleNote: '各カテゴリの全バリエーションを一巡してから再抽選します。現在のタブは変わりません。',

@@ -52,6 +52,7 @@ export const en = {
   effectsPool: '{count} effects; select which ones to shuffle',
   fixedEffectHint: 'Fixed category; a random variant on each new tab',
   variantsCount: '{count} variants',
+  variantsCountOne: '1 variant',
   shuffle: 'Shuffle backgrounds',
   shuffleHint: 'Choose a category, then a variant on each new tab',
   shuffleNote:

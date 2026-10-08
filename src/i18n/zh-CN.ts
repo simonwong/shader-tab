@@ -51,6 +51,7 @@ export const zhCN: Messages = {
   effectsPool: '{count} 种效果；勾选参与轮播',
   fixedEffectHint: '固定背景类别；每次打开随机变体',
   variantsCount: '{count} 种变体',
+  variantsCountOne: '1 种变体',
   shuffle: '随机轮播',
   shuffleHint: '每次打开先选背景，再选变体',
   shuffleNote: '各类变体抽完一轮再重排；当前页面保持不变。',

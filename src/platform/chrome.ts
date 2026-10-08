@@ -29,15 +29,19 @@ function watchStorage(matches: (key: string) => boolean, listener: Listener) {
 }
 
 /**
- * Reads all of local storage. Concurrent callers share one request, so the
- * favorites and preferences queries at startup cost a single read.
+ * Reads all of local storage. The favorites and preferences queries at startup
+ * share one request; later refreshes read on their own, so a refresh triggered
+ * by a write never joins a read that started before it.
  */
-let pendingRead: Promise<Record<string, unknown>> | undefined;
+let startupRead: Promise<Record<string, unknown>> | undefined;
+let startupReadDone = false;
 function readAll(): Promise<Record<string, unknown>> {
-  pendingRead ??= chrome.storage.local.get(null).finally(() => {
-    pendingRead = undefined;
+  if (startupReadDone) return chrome.storage.local.get(null);
+  startupRead ??= chrome.storage.local.get(null).finally(() => {
+    startupReadDone = true;
+    startupRead = undefined;
   });
-  return pendingRead;
+  return startupRead;
 }
 
 export const chromePlatform: Platform = {

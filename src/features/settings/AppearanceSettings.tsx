@@ -43,7 +43,8 @@ function EffectGrid({ preferences, disabled, onChange }: Props) {
         const selected = shuffle
           ? preferences.effects.includes(effect.id)
           : preferences.activeEffect === effect.id;
-        const variants = t('variantsCount', { count: EFFECT_VARIANTS[effect.id].length });
+        const count = EFFECT_VARIANTS[effect.id].length;
+        const variants = count === 1 ? t('variantsCountOne') : t('variantsCount', { count });
         return (
           <button
             key={effect.id}

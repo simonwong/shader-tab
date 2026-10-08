@@ -12,24 +12,31 @@ export function useIdleControls(delay: number, held: boolean) {
   const [visible, setVisible] = useState(true);
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
+    // Hidden controls become `visibility: hidden`, which blurs a focused one;
+    // that focusout must not wake them again.
+    let asleep = false;
+    const hide = () => {
+      if (held) return;
+      asleep = true;
+      setVisible(false);
+    };
     const schedule = (wait: number) => {
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        if (!held) setVisible(false);
-      }, wait);
+      timer = setTimeout(hide, wait);
     };
     const wake = () => {
+      asleep = false;
       setVisible(true);
       schedule(delay);
     };
-    const hide = () => {
-      if (!held) setVisible(false);
+    const focusOut = () => {
+      if (!asleep) wake();
     };
     window.addEventListener('pointermove', wake, { passive: true });
     window.addEventListener('pointerdown', wake, { passive: true });
     window.addEventListener('keydown', wake);
     window.addEventListener('blur', hide);
-    document.addEventListener('focusout', wake);
+    document.addEventListener('focusout', focusOut);
     schedule(Math.max(delay, FIRST_LOOK - performance.now()));
     return () => {
       clearTimeout(timer);
@@ -37,7 +44,7 @@ export function useIdleControls(delay: number, held: boolean) {
       window.removeEventListener('pointerdown', wake);
       window.removeEventListener('keydown', wake);
       window.removeEventListener('blur', hide);
-      document.removeEventListener('focusout', wake);
+      document.removeEventListener('focusout', focusOut);
     };
   }, [delay, held]);
   return visible || held;

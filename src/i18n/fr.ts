@@ -53,6 +53,7 @@ export const fr: Messages = {
   effectsPool: '{count} effets ; sélectionnez ceux à mélanger',
   fixedEffectHint: 'Catégorie fixe ; variante aléatoire à chaque nouvel onglet',
   variantsCount: '{count} variantes',
+  variantsCountOne: '1 variante',
   shuffle: 'Arrière-plans aléatoires',
   shuffleHint: 'Une catégorie, puis une variante à chaque nouvel onglet',
   shuffleNote:

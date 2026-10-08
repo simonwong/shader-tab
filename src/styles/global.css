@@ -17,8 +17,10 @@ body {
   font-family: var(--font-ui);
   font-size: 14px;
   color: var(--fg);
-  /* The cached background of the last page, so the first paint is not a flat default. */
-  background: var(--boot-background, var(--bg));
+  /* The cached background of the last page, so the first paint is not a flat default.
+     Dimmed like .ambient-background::before so React mounting doesn't shift its brightness. */
+  background:
+    linear-gradient(var(--theme-dim), var(--theme-dim)), var(--boot-background, var(--bg));
   -webkit-font-smoothing: antialiased;
 }
 
@@ -103,7 +105,6 @@ small {
   isolation: isolate;
 }
 
-/* Owned by the background work: the filter rules stay as they were; the layer fade follows the new stage code. */
 .ambient-background {
   position: absolute;
   inset: 0;
@@ -112,14 +113,17 @@ small {
   pointer-events: none;
 }
 /* Theme dimming for the static fallback; animated drivers multiply THEME_BRIGHTNESS in their shaders. */
+:root {
+  --theme-dim: rgb(0 0 0 / 6%);
+}
+:root[data-theme='night'] {
+  --theme-dim: rgb(0 0 0 / 20%);
+}
 .ambient-background::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0 / 6%);
-}
-:root[data-theme='night'] .ambient-background::before {
-  background: rgb(0 0 0 / 20%);
+  background: var(--theme-dim);
 }
 .effect-layer {
   position: absolute;
@@ -199,6 +203,14 @@ small {
   box-shadow: var(--control-shadow);
   -webkit-backdrop-filter: blur(var(--blur-control)) saturate(1.3);
   backdrop-filter: blur(var(--blur-control)) saturate(1.3);
+}
+
+/* Two-tone dithers can put their darkest band right under light-tone controls: back them with more glass. */
+.new-tab[data-effect='dithering'][data-tone='light'] {
+  --fill-control: rgb(250 250 252 / 62%);
+}
+.new-tab[data-effect='dithering'][data-tone='dark'] {
+  --fill-control: rgb(24 25 31 / 62%);
 }
 
 .dock.glass::before,
