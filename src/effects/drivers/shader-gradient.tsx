@@ -5,18 +5,29 @@ import * as THREE from 'three';
 import type { DriverFactory } from './types';
 
 extend({ Mesh: THREE.Mesh, PlaneGeometry: THREE.PlaneGeometry, IcosahedronGeometry: THREE.IcosahedronGeometry, AmbientLight: THREE.AmbientLight, Group: THREE.Group });
-// Match the official Canvas compatibility setup while the shared clock owns rendering.
-for (const chunk of ['uv2_pars_vertex', 'uv2_vertex', 'uv2_pars_fragment', 'encodings_fragment']) {
-  (THREE.ShaderChunk as unknown as Record<string, string>)[chunk] = '';
+
+/*
+ * Shader Gradient's materials still `#include` chunks that current three.js no
+ * longer ships (uv2_* and encodings_fragment), so three would refuse to compile
+ * them. The official Canvas setup registers them as empty strings. These names
+ * do not exist in three itself, so defining them cannot change any other
+ * effect's shaders; the patch is applied once, on first use of this driver.
+ */
+const LEGACY_CHUNKS = ['uv2_pars_vertex', 'uv2_vertex', 'uv2_pars_fragment', 'encodings_fragment'];
+function registerLegacyShaderChunks() {
+  const chunks = THREE.ShaderChunk as unknown as Record<string, string>;
+  for (const chunk of LEGACY_CHUNKS) chunks[chunk] ??= '';
 }
 
-const variants = { plane: presets.halo.props, sphere: presets.pensive.props, waterPlane: presets.mint.props };
+const PRESETS = { plane: presets.halo.props, sphere: presets.pensive.props, waterPlane: presets.mint.props };
+const isPresetName = (value: string): value is keyof typeof PRESETS => Object.hasOwn(PRESETS, value);
 
-export const createDriver: DriverFactory = async (host, _effect, _theme, shape = 'plane') => {
+export const createDriver: DriverFactory = async (host, { variant }) => {
+  registerLegacyShaderChunks();
   const canvas = document.createElement('canvas');
   host.append(canvas);
   const root = createRoot(canvas);
-  const preset = variants[shape];
+  const preset = PRESETS[isPresetName(variant) ? variant : 'plane'];
   try {
     await root.configure({
       frameloop: 'never', linear: true, flat: true, dpr: 1,

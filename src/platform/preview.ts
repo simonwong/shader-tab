@@ -1,5 +1,4 @@
-import { drawVariant, variantShuffleKey } from '../features/preferences/variant-shuffle';
-import { drawShaderShape, SHADER_SHUFFLE_KEY } from '../features/preferences/shader-shuffle';
+import { drawStoredVariant } from '../features/preferences/variant-shuffle';
 import { flattenBookmarks, type BookmarkNode } from '../features/bookmarks/model';
 import { FAVORITES_KEY, changeFavorites, readFavoriteIds } from '../features/favorites/model';
 import { PREFERENCE_PREFIX, readPreferences } from '../features/preferences/model';
@@ -57,15 +56,10 @@ export const previewPlatform: Platform = {
     changed.dispatchEvent(new Event('change'));
   }),
   nextEffectVariant: (effect) => navigator.locks.request(`glass-tab:preview-variant:${effect}`, async () => {
-    const key = variantShuffleKey(effect);
-    const { variant, state } = drawVariant(effect, getItems()[key]);
-    localStorage.setItem(PREFIX + key, JSON.stringify(state));
+    const { variant, set, remove } = drawStoredVariant(effect, getItems());
+    for (const [key, state] of Object.entries(set)) localStorage.setItem(PREFIX + key, JSON.stringify(state));
+    for (const key of remove) localStorage.removeItem(PREFIX + key);
     return variant;
-  }),
-  nextShaderGradientType: () => navigator.locks.request('glass-tab:preview-shader-shuffle', async () => {
-    const { shape, state } = drawShaderShape(getItems()[SHADER_SHUFFLE_KEY]);
-    localStorage.setItem(PREFIX + SHADER_SHUFFLE_KEY, JSON.stringify(state));
-    return shape;
   }),
   getPreferences: async () => readPreferences(getItems()),
   updatePreferences: async (patch) => {

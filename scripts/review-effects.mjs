@@ -22,7 +22,7 @@ try {
   evaluate(`(() => {
     const variants = { 'grain-gradient': 'blob', dithering: 'swirl:4x4', 'pixel-blast': 'square', 'data-pixel-arc': 'data-pixel', 'crt-terminal': 'terminal' };
     for (const [id, variant] of Object.entries(variants)) localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:' + id, JSON.stringify({ remaining: [variant] }));
-    localStorage.setItem('glass-tab-preview:shader-gradient:shuffle:v1', JSON.stringify({ remaining: ['sphere'] }));
+    localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:shader-gradient', JSON.stringify({ remaining: ['sphere'] }));
   })()`);
   preference({ appearance: 'night', shuffle: false, activeEffect: ids[0] });
   run('reload'); settled(ids[0]);

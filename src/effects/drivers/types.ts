@@ -1,5 +1,7 @@
-import type { EffectId, ShaderGradientType, Theme } from '../presets';
+import type { EffectId, Theme } from '../presets';
+
 export interface Pointer { x: number; y: number }
+
 export interface EffectDriver {
   canvas: HTMLCanvasElement;
   engine: string;
@@ -9,7 +11,12 @@ export interface EffectDriver {
   click?: (pointer: Pointer) => void;
   dispose: () => void;
 }
-export type DriverFactory = (host: HTMLElement, effect: EffectId, theme: Theme, shaderGradientType?: ShaderGradientType, variant?: string) => EffectDriver | Promise<EffectDriver>;
-export function pixelDensity(width: number, height: number): number {
-  return Math.min(devicePixelRatio || 1, 2, 2560 / Math.max(width, height), Math.sqrt(3_996_000 / (width * height)));
+
+export interface DriverContext {
+  effect: EffectId;
+  theme: Theme;
+  /** Variant id from the registry in `effects/variants.ts`. */
+  variant: string;
 }
+
+export type DriverFactory = (host: HTMLElement, context: DriverContext) => EffectDriver | Promise<EffectDriver>;

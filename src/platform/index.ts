@@ -7,7 +7,7 @@ export async function createPlatform(): Promise<Platform> {
   const unavailable = async (): Promise<never> => { throw new MessageError('extensionRequired'); };
   return {
     mode: 'unavailable', getTree: unavailable, getFavorites: unavailable, updateFavorites: unavailable,
-    nextEffectVariant: unavailable, nextShaderGradientType: unavailable, getPreferences: unavailable, updatePreferences: unavailable,
+    nextEffectVariant: unavailable, getPreferences: unavailable, updatePreferences: unavailable,
     watchBookmarks: () => () => {}, watchFavorites: () => () => {}, watchPreferences: () => () => {},
   };
 }

@@ -1,14 +1,12 @@
-import { getEffect, isEffect, effectBackground, shaderGradientBackground, type EffectId, type Theme } from '../src/effects/presets';
+import { getEffect, isEffect, type EffectId, type Theme } from '../src/effects/presets';
+import { resolveVariant } from '../src/effects/variants';
 import { createFrameLoop } from '../src/effects/frame-loop';
 import { breathingTime } from '../src/effects/motion';
-import type { EffectDriver, DriverFactory } from '../src/effects/drivers/types';
+import type { EffectDriver } from '../src/effects/drivers/types';
 const host = document.querySelector<HTMLElement>('#shader')!;
 const stage = document.querySelector<HTMLElement>('#preview-stage')!;
 const language = document.documentElement.lang === 'en' ? 'en' : 'zh-CN';
 const copy = language === 'en' ? { day: 'Light', night: 'Dark', live: 'Live shader preview', still: 'Still preview', pause: 'Pause animation', play: 'Play animation' } : { day: '日间', night: '夜间', live: '真实 shader 实时预览', still: '静态预览', pause: '暂停动画', play: '播放动画' };
-const loaders: Record<EffectId, () => Promise<{ createDriver: DriverFactory }>> = {
- 'grain-gradient': () => import('../src/effects/drivers/paper'), dithering: () => import('../src/effects/drivers/paper'), 'pixel-blast': () => import('../src/effects/drivers/pixel-blast'), 'data-pixel-arc': () => import('../src/effects/drivers/arc'), 'crt-terminal': () => import('../src/effects/drivers/crt'), 'shader-gradient': () => import('../src/effects/drivers/shader-gradient'),
-};
 const variants: Record<EffectId,string> = { 'grain-gradient': 'corners', dithering: 'swirl:4x4', 'pixel-blast': 'square', 'data-pixel-arc': 'predictive', 'crt-terminal': 'terminal', 'shader-gradient': 'sphere' };
 let effect: EffectId = 'grain-gradient', theme: Theme = 'day';
 let driver: EffectDriver | undefined, generation = 0, lastTime = 0, seconds = 0, visible = true, paused = false, destroyed = false;
@@ -43,16 +41,17 @@ async function selectEffect(next: EffectId) {
  const request = ++generation;
  effect = next; stopDriver(); setStatus(false);
  const preset = getEffect(effect);
+ const variant = resolveVariant(effect, variants[effect]);
  stage.dataset.effect = effect; stage.dataset.dark = String(theme === 'night' || effect === 'crt-terminal'); stage.setAttribute('aria-label', preset.name);
- host.style.background = effect === 'shader-gradient' ? shaderGradientBackground('sphere') : effectBackground(effect, theme);
+ host.style.background = variant.background(theme);
  document.querySelectorAll<HTMLButtonElement>('[data-effect].effect-picker button, .effect-picker button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.effect === effect)));
  const source = document.querySelector<HTMLAnchorElement>('#effect-source')!;
- source.href = effect === 'data-pixel-arc' ? 'https://threeui.com/backgrounds/predictive-arc/predictive' : preset.source; source.textContent = preset.sourceName;
+ source.href = variant.source; source.textContent = preset.sourceName;
  try {
-  const { createDriver } = await loaders[effect]();
+  const createDriver = await variant.load();
   if (request !== generation || destroyed) return;
   const layer = document.createElement('div'); layer.style.cssText = 'position:absolute;inset:0'; host.append(layer);
-  const nextDriver = await createDriver(layer, effect, theme, 'sphere', variants[effect]);
+  const nextDriver = await createDriver(layer, { effect, theme, variant: variant.id });
   if (request !== generation || destroyed) { nextDriver.dispose(); layer.remove(); return; }
   driver = nextDriver; seconds = 0; resize(); driver.render(0, 0, pointer);
   driver.canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); if (request === generation) { stopDriver(); setStatus(false); } }, { once: true });

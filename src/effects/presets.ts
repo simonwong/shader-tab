@@ -38,11 +38,5 @@ export function effectBackground(id: EffectId, theme: Theme): string {
   return `radial-gradient(ellipse at 75% 30%, ${preset[theme][0]}55, transparent 65%), radial-gradient(ellipse at 20% 80%, ${preset[theme][1]}33, transparent 60%), ${preset.base[theme]}`;
 }
 
-export const SHADER_GRADIENT_TYPES = ['plane', 'sphere', 'waterPlane'] as const;
-export type ShaderGradientType = typeof SHADER_GRADIENT_TYPES[number];
-
-export function shaderGradientBackground(shape: ShaderGradientType | undefined): string {
-  if (shape === 'sphere') return 'radial-gradient(ellipse at 50% 50%, #af38ff, #809bd6 60%, #dbba95 85%)';
-  if (shape === 'waterPlane') return 'linear-gradient(125deg, #6bf5ff, #94ffd1 55%, #ffffff)';
-  return 'linear-gradient(125deg, #ff5005, #dbba95 65%, #d0bce1)';
-}
+/** Solid surface behind the ThreeUI Arc collection renderers (canvas clear colour and CSS fallback). */
+export const ARC_SURFACE: Record<Theme, string> = { day: '#eef1f6', night: '#0a0a0a' };

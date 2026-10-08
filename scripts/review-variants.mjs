@@ -2,14 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-const variants = {
- 'grain-gradient': ['wave','dots','truchet','corners','ripple','blob','sphere'],
- dithering: ['simplex','warp','dots','wave','ripple','swirl','sphere'].flatMap(shape=>['random','2x2','4x4','8x8'].map(type=>`${shape}:${type}`)).filter(variant=>variant!=='ripple:4x4'),
- 'pixel-blast': ['square','circle','triangle','diamond'],
- 'data-pixel-arc': ['data-pixel','predictive','signal-particles','override-grid','ribbon-field','void-field','amber-halftone'],
- 'crt-terminal': ['terminal'],
- 'shader-gradient': ['plane','sphere','waterPlane'],
-};
+import { loadVariants } from './lib/variants.mjs';
+const { variantIds: variants, shuffleKey } = await loadVariants();
 const session=`glass-variants-${process.pid}`, profile=await mkdtemp('/private/tmp/glass-variants-'), output=resolve('artifacts/variants-review');
 const run=(...args)=>{const r=JSON.parse(execFileSync('agent-browser',['--session',session,'--json',...args],{encoding:'utf8',timeout:60000}));if(!r.success)throw new Error(JSON.stringify(r.error));return r.data;};
 const evaluate=code=>run('eval',code).result;
@@ -25,7 +19,7 @@ try {
  for(const [effect,choices] of Object.entries(variants).filter(([effect])=>process.argv.length<=2||process.argv.slice(2).includes(effect))) {
   await preference({shuffle:false,activeEffect:effect,appearance:'night'});
   wait(`document.querySelector('main')?.dataset.effect===${JSON.stringify(effect)} && document.querySelector('.ambient-background')?.dataset.renderer==='live'`);
-  const key=effect==='shader-gradient'?'shader-gradient:shuffle:v1':`effect-variant:shuffle:v1:${effect}`;
+  const key=shuffleKey(effect);
   evaluate(`chrome.storage.local.set({[${JSON.stringify(key)}]:{remaining:${JSON.stringify(choices)}}})`);
   for(const variant of choices){
    run('reload');settled(effect,variant);

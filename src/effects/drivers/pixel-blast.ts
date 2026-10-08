@@ -3,7 +3,7 @@ import { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import { createTouchTexture, createLiquidEffect, VERTEX_SRC, FRAGMENT_SRC, MAX_CLICKS } from '../vendor/pixel-blast';
 import { getEffect } from '../presets';
 import type { DriverFactory } from './types';
-export const createDriver: DriverFactory = (host, effect, theme, _shape, variant) => {
+export const createDriver: DriverFactory = (host, { effect, theme, variant }) => {
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'low-power' });
   const canvas = renderer.domElement;
   host.append(canvas);
