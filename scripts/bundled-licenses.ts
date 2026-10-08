@@ -4,7 +4,6 @@ import { createHash } from 'node:crypto';
 import type { Plugin } from 'vite';
 
 const fallbacks: Record<string, string> = {
-  'react-remove-scroll-bar': 'public/licenses/react-remove-scroll-bar.txt',
   '@react-three/fiber': 'public/licenses/react-three-fiber.txt',
   '@shadergradient/react': 'public/licenses/shader-gradient.txt',
 };

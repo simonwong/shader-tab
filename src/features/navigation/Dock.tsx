@@ -1,13 +1,18 @@
-import type { Dispatch, PointerEvent, Ref, SetStateAction } from 'react';
-import * as Menu from '@radix-ui/react-dropdown-menu';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type KeyboardEvent, type MouseEvent, type PointerEvent, type RefObject, type SetStateAction } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { GridViewIcon, Settings01Icon, StarIcon } from '@hugeicons/core-free-icons';
 import { useI18n } from '../../i18n/react';
 import { GlassPanel } from '../../components/GlassPanel';
 import { SiteMark } from '../../components/SiteMark';
 import type { Bookmark, MenuEntry } from '../bookmarks/model';
-import { BookmarkMenu } from './BookmarkMenu';
+import { bookmarkClick, type OpenUrl } from './open-bookmark';
 import type { DockPanel } from './use-dock-panels';
+
+type BookmarkMenuComponent = typeof import('./BookmarkMenu').BookmarkMenu;
+
+// The menu (and Base UI's menu code) stays out of the entry chunk; it loads on first hover/focus or when idle.
+let menuModule: Promise<BookmarkMenuComponent> | undefined;
+const loadBookmarkMenu = () => menuModule ??= import('./BookmarkMenu').then(module => module.BookmarkMenu);
 
 interface HoverZone {
   /** Whether the zone is shown (controls are awake and no modal is open). */
@@ -25,75 +30,156 @@ interface DockProps extends HoverZone {
   onPanelChange: Dispatch<SetStateAction<DockPanel | null>>;
   favorites: Bookmark[];
   menu: MenuEntry[];
-  favoritesButton: Ref<HTMLButtonElement>;
+  favoritesButton: RefObject<HTMLButtonElement | null>;
+  onOpenSettings: () => void;
+  onOpenUrl: OpenUrl;
 }
 
 /** Bottom dock with the favorites tray and the full bookmark menu. */
 export function Dock(props: DockProps) {
   const { showFavorites, showBookmarks, suspended, panel, onPanelChange, onEnter, onLeave } = props;
   const { t } = useI18n();
+  const allButton = useRef<HTMLButtonElement>(null);
+  const tray = useRef<HTMLDivElement>(null);
+  const focusTray = useRef(false);
+  const [BookmarkMenu, setBookmarkMenu] = useState<BookmarkMenuComponent>();
+  const menuOpen = showBookmarks && panel === 'all' && !suspended;
+  const trayOpen = showFavorites && panel === 'favorites' && !suspended;
+  const wantMenu = useCallback(() => {
+    void loadBookmarkMenu().then(component => setBookmarkMenu(() => component), (error: unknown) => {
+      menuModule = undefined;
+      console.warn('Could not load the bookmark menu.', error);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (BookmarkMenu || !showBookmarks) return;
+    const idle = requestIdleCallback(wantMenu, { timeout: 4000 });
+    return () => cancelIdleCallback(idle);
+  }, [BookmarkMenu, showBookmarks, wantMenu]);
+
+  // A tray opened from the keyboard moves focus to its first entry.
+  useEffect(() => {
+    if (!trayOpen || !focusTray.current) return;
+    focusTray.current = false;
+    tray.current?.querySelector<HTMLElement>('a, button')?.focus();
+  }, [trayOpen]);
+
   const openOnHover = (next: DockPanel) => (event: PointerEvent) => {
     if (event.pointerType !== 'mouse') return;
     onEnter();
     onPanelChange(next);
   };
-  return <Menu.Root
-    open={showBookmarks && panel === 'all' && !suspended}
-    onOpenChange={open => onPanelChange(current => open ? 'all' : current === 'all' ? null : current)}
-    modal={false}
+  const toggle = (next: DockPanel) => (event: MouseEvent) => {
+    // detail is 0 for keyboard activation. A mouse click on a panel that hover already opened keeps it open.
+    const keyboard = event.detail === 0;
+    if (next === 'favorites') focusTray.current = keyboard;
+    onPanelChange(current => current === next && keyboard ? null : next);
+  };
+  // Placeholder only: once the menu chunk loads, its own trigger handles keys.
+  const menuKey = (event: KeyboardEvent) => {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      onPanelChange('all');
+    }
+  };
+
+  if (!showFavorites && !showBookmarks) return null;
+  return <div
+    className="dock-zone bookmark-dock"
+    data-visible={props.visible}
+    onPointerEnter={() => { wantMenu(); onEnter(); }}
+    onPointerLeave={onLeave}
+    onFocus={wantMenu}
   >
-    {(showFavorites || showBookmarks) && <div className="dock-zone" data-visible={props.visible} onPointerEnter={onEnter} onPointerLeave={onLeave}>
-      <GlassPanel className="dock ui-surface" role="navigation" aria-label={t('bookmarkNavigation')}>
-        {showFavorites && <button
-          ref={props.favoritesButton}
-          className="dock-button"
-          aria-label={t('favorites')}
-          aria-expanded={panel === 'favorites'}
-          aria-controls="favorites-tray"
-          onPointerEnter={openOnHover('favorites')}
-          onClick={() => onPanelChange('favorites')}
-        >
-          <HugeiconsIcon aria-hidden="true" icon={StarIcon} size={17} strokeWidth={1.7} />
-        </button>}
-        {showBookmarks && <Menu.Trigger asChild>
-          <button
-            className="dock-button"
-            aria-label={t('allBookmarks')}
-            onPointerDown={event => { if (event.pointerType === 'mouse' && panel === 'all') event.preventDefault(); }}
-            onPointerEnter={openOnHover('all')}
-          >
-            <HugeiconsIcon aria-hidden="true" icon={GridViewIcon} size={17} strokeWidth={1.7} />
-          </button>
-        </Menu.Trigger>}
-      </GlassPanel>
-      {showFavorites && panel === 'favorites' && !suspended && <GlassPanel
-        id="favorites-tray"
-        className="favorites-tray ui-surface"
-        role="region"
+    <GlassPanel className="dock ui-surface" role="navigation" aria-label={t('bookmarkNavigation')}>
+      {showFavorites && <button
+        ref={props.favoritesButton}
+        className="dock-button"
         aria-label={t('favorites')}
+        aria-expanded={trayOpen}
+        aria-controls="favorites-tray"
+        onPointerEnter={openOnHover('favorites')}
+        onClick={toggle('favorites')}
       >
-        <div className="favorite-items">
-          {props.favorites.map(bookmark => <a key={bookmark.id} className="favorite-tile" href={bookmark.url} title={bookmark.title}>
-            <SiteMark bookmark={bookmark} />
-            <span className="truncate">{bookmark.title}</span>
-          </a>)}
-        </div>
-      </GlassPanel>}
-    </div>}
-    <BookmarkMenu entries={props.menu} onEnter={onEnter} onLeave={onLeave} />
-  </Menu.Root>;
+        <HugeiconsIcon aria-hidden="true" icon={StarIcon} size={17} strokeWidth={1.7} />
+      </button>}
+      {showBookmarks && (BookmarkMenu
+        ? <BookmarkMenu
+          open={menuOpen}
+          onOpenChange={open => onPanelChange(current => open ? 'all' : current === 'all' ? null : current)}
+          placeholder={allButton}
+          onTriggerPointerEnter={openOnHover('all')}
+          entries={props.menu}
+          onEnter={onEnter}
+          onLeave={onLeave}
+          onOpenUrl={props.onOpenUrl}
+        />
+        : <button
+          ref={allButton}
+          className="dock-button"
+          aria-label={t('allBookmarks')}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          onPointerEnter={openOnHover('all')}
+          onClick={toggle('all')}
+          onKeyDown={menuKey}
+        >
+          <HugeiconsIcon aria-hidden="true" icon={GridViewIcon} size={17} strokeWidth={1.7} />
+        </button>)}
+    </GlassPanel>
+    {trayOpen && <GlassPanel
+      ref={tray}
+      id="favorites-tray"
+      className="favorites-tray ui-surface"
+      role="region"
+      aria-label={t('favorites')}
+    >
+      {props.favorites.length ? <div className="favorite-items">
+        {props.favorites.map(bookmark => <a
+          key={bookmark.id}
+          className="favorite-tile"
+          href={bookmark.url}
+          title={bookmark.title}
+          onClick={bookmarkClick(bookmark.url, props.onOpenUrl)}
+        >
+          <SiteMark bookmark={bookmark} />
+          <span className="truncate">{bookmark.title}</span>
+        </a>)}
+      </div> : <div className="favorites-empty">
+        <p>{t('favoritesEmpty')}</p>
+        <button className="small-button" onClick={props.onOpenSettings}>{t('openSettings')}</button>
+      </div>}
+    </GlassPanel>}
+  </div>;
 }
 
 interface SettingsDockProps extends HoverZone {
-  button: Ref<HTMLButtonElement>;
+  button: RefObject<HTMLButtonElement | null>;
   onOpen: () => void;
 }
+
+const MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+
+/**
+ * Cmd/Ctrl + , opens settings while the page has focus. Chrome keeps the
+ * shortcut for itself when the address bar is focused, which is the case on a
+ * freshly opened tab until the page is clicked.
+ */
+export const SETTINGS_SHORTCUT = { label: MAC ? '⌘,' : 'Ctrl+,', aria: MAC ? 'Meta+Comma' : 'Control+Comma' };
 
 export function SettingsDock({ visible, onEnter, onLeave, button, onOpen }: SettingsDockProps) {
   const { t } = useI18n();
   return <div className="dock-zone settings-zone" data-visible={visible} onPointerEnter={onEnter} onPointerLeave={onLeave}>
     <GlassPanel className="dock ui-surface">
-      <button ref={button} className="dock-button" aria-label={t('settings')} onClick={onOpen}>
+      <button
+        ref={button}
+        className="dock-button"
+        aria-label={t('settings')}
+        aria-keyshortcuts={SETTINGS_SHORTCUT.aria}
+        title={`${t('settings')} (${SETTINGS_SHORTCUT.label})`}
+        onClick={onOpen}
+      >
         <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} size={15} strokeWidth={1.7} />
       </button>
     </GlassPanel>
