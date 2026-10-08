@@ -97,7 +97,7 @@ pnpm zip
 
 在 `chrome://extensions` 开启开发者模式，选择「加载已解压的扩展程序」，加载 `.output/chrome-mv3`。ZIP 生成在 `.output/`。
 
-基于 **WXT、React、TypeScript、Three.js、Radix UI 和 Hugeicons**。调试扩展、部署官网及验证命令见[开发指南](docs/development.md)。
+基于 **WXT、React、TypeScript、Three.js、Base UI 和 Hugeicons**。调试扩展、部署官网及验证命令见[开发指南](docs/development.md)。
 
 ## 项目文档
 

@@ -97,7 +97,7 @@ pnpm zip
 
 Load `.output/chrome-mv3` through **Load unpacked** at `chrome://extensions`. ZIP packages are generated in `.output/`.
 
-Built with **WXT, React, TypeScript, Three.js, Radix UI, and Hugeicons**. The [development guide](docs/development.md) covers extension debugging, website deployment, and verification commands.
+Built with **WXT, React, TypeScript, Three.js, Base UI, and Hugeicons**. The [development guide](docs/development.md) covers extension debugging, website deployment, and verification commands.
 
 ## Inside the project
 

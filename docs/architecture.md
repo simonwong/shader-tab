@@ -4,7 +4,7 @@
 
 - WXT / Vite / Manifest V3 负责新标签入口、热更新、打包和 manifest。
 - React / TypeScript 负责组件和交互状态。
-- Radix UI 提供菜单定位、键盘导航、弹层和模态焦点管理，视觉由本项目 CSS 实现。
+- Base UI 提供菜单定位、键盘导航、弹层和模态焦点管理，视觉由本项目 CSS 实现。
 - dnd-kit 支持指针与键盘收藏排序。
 - Paper Shaders、ThreeUI 与 Shader Gradient 官方渲染核心及自研 Pixel Field 着色器负责六种背景，CSS 自定义属性负责日夜玻璃材质。
 - Hugeicons 官方免费包统一操作图标；Space Grotesk 字体随扩展本地打包。
