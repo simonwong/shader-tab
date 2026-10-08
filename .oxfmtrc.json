@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "arrowParens": "avoid",
+  "ignorePatterns": [
+    "src/effects/vendor/**",
+    "public/locales/**",
+    "public/_locales/**",
+    "public/privacy.html",
+    "public/licenses.html",
+    "pnpm-lock.yaml",
+    ".output/**",
+    ".wxt/**",
+    "artifacts/**"
+  ]
+}
