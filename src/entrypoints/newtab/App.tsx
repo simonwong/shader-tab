@@ -186,7 +186,6 @@ export function App({ platform, boot }: Props) {
           effect={selection.effect}
           variant={selection.variant}
           theme={theme}
-          interactive={visible}
           pointerBlocked={settings}
         />
         : <div className="ambient-background boot-background" aria-hidden="true" />}

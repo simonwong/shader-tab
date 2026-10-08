@@ -8,8 +8,6 @@ interface Props {
   /** Variant id from the registry; undefined until the shuffle draw resolves. */
   variant: string | undefined;
   theme: Theme;
-  /** @deprecated Ignored: open panels no longer raise the frame rate (see rate-policy.ts). */
-  interactive?: boolean;
   /** The settings dialog is open: ignore the pointer and draw at a lower rate. */
   pointerBlocked: boolean;
 }
