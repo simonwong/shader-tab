@@ -14,6 +14,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { GridViewIcon, Settings01Icon, StarIcon } from '@hugeicons/core-free-icons';
 import { useI18n } from '../../i18n/react';
 import { GlassPanel } from '../../components/GlassPanel';
+import { LiquidGlassPanel } from '../../components/LiquidGlassPanel';
 import { SiteMark } from '../../components/SiteMark';
 import type { Bookmark, MenuEntry } from '../bookmarks/model';
 import { bookmarkClick, type OpenUrl } from './open-bookmark';
@@ -112,7 +113,7 @@ export function Dock(props: DockProps) {
       onPointerLeave={onLeave}
       onFocus={wantMenu}
     >
-      <GlassPanel
+      <LiquidGlassPanel
         className="dock ui-surface"
         role="navigation"
         aria-label={t('bookmarkNavigation')}
@@ -158,7 +159,7 @@ export function Dock(props: DockProps) {
               <HugeiconsIcon aria-hidden="true" icon={GridViewIcon} size={17} strokeWidth={1.7} />
             </button>
           ))}
-      </GlassPanel>
+      </LiquidGlassPanel>
       {trayOpen && (
         <GlassPanel
           ref={tray}
@@ -222,7 +223,7 @@ export function SettingsDock({ visible, onEnter, onLeave, button, onOpen }: Sett
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
     >
-      <GlassPanel className="dock ui-surface">
+      <LiquidGlassPanel className="dock ui-surface">
         <button
           ref={button}
           className="dock-button"
@@ -233,7 +234,7 @@ export function SettingsDock({ visible, onEnter, onLeave, button, onOpen }: Sett
         >
           <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} size={15} strokeWidth={1.7} />
         </button>
-      </GlassPanel>
+      </LiquidGlassPanel>
     </div>
   );
 }

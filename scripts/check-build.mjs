@@ -79,6 +79,7 @@ for (const license of [
   'react-three-fiber.txt',
   'camera-controls.txt',
   'glsl-noise.txt',
+  'liquid-glass.txt',
 ])
   await access(new URL(`licenses/${license}`, root));
 for (const renderer of ['paper-', 'pixel-blast-', 'arc-', 'crt-', 'shader-gradient-'])
