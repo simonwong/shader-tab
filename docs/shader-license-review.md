@@ -22,7 +22,7 @@ React Bits 的 PixelBlast 使用 MIT + Commons Clause 自定义许可，禁止�
 
 ## 当前安装包的状态
 
-- Lucide 已替换为 `@hugeicons/react` 1.1.10 和 `@hugeicons/core-free-icons` 4.3.4，使用 MIT 免费图标。没有 Pro 图标。
+- Lucide 已替换为 `@hugeicons/react` 1.1.10 和 `@hugeicons/core-free-icons` 4.3.5，使用 MIT 免费图标。没有 Pro 图标。
 - 构建从实际渲染的打包模块识别运行时依赖，生成 `licenses/dependencies.txt` 完整版权和许可文本，以及含版本与文本 SHA-256 的 `dependencies.json`。缺少许可文本时构建失败。
 - Shader Gradient 的发布包另含预打包代码，补充声明覆盖 query-string、strict-uri-encode、decode-uri-component、split-on-first、filter-obj、three-stdlib；Fiber 内嵌的 React reconciler 也保留 Meta 许可。源码未声明的内嵌版本不冒充已确认版本，补充文件标明许可文本来源版本。
 - 主要 shader、camera-controls、GLSL noise、字体的完整许可及 Paper NOTICE 随包提供。许可页从设置底部进入；来源链接用于署名导航，不替代完整许可文本。
