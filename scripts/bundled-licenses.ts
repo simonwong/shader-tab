@@ -30,7 +30,8 @@ async function owner(file: string): Promise<{ directory: string; info: PackageIn
 export function bundledLicenses(): Plugin {
   return {
     name: 'shader-tab-bundled-licenses',
-    apply: 'build',
+    // WXT's dev server pre-renders pages with a build that leaves dependencies to Vite.
+    apply: (_config, { command, mode }) => command === 'build' && mode !== 'development',
     async generateBundle(_options, bundle) {
       const modules = new Set(
         Object.values(bundle).flatMap(chunk =>
