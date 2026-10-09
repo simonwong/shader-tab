@@ -223,6 +223,38 @@ small {
   );
 }
 
+/*
+ * Liquid glass: a lighter blur, then an SVG map bends the backdrop inward at
+ * the rim. The map's specular stroke and side shade replace the gloss and
+ * inner highlights. Reduced transparency keeps the solid fallback below.
+ */
+@media not (prefers-reduced-transparency: reduce) {
+  .liquid-glass[data-liquid='ready'] {
+    background: color-mix(in srgb, var(--fill-control) 60%, transparent);
+    border-color: transparent;
+    box-shadow: var(--liquid-shadow);
+    -webkit-backdrop-filter: blur(var(--blur-liquid)) saturate(1.4) var(--liquid-filter);
+    backdrop-filter: blur(var(--blur-liquid)) saturate(1.4) var(--liquid-filter);
+  }
+
+  /* Dithers keep their thicker backing (see above), or light-tone icons lose contrast. */
+  .new-tab[data-effect='dithering'] .liquid-glass[data-liquid='ready'] {
+    background: var(--fill-control);
+  }
+
+  .liquid-glass[data-liquid='ready']::before {
+    background:
+      var(--liquid-light) 0 0 / 100% 100%,
+      var(--liquid-shade) 0 0 / 100% 100%;
+    opacity: var(--liquid-light-opacity);
+  }
+}
+
+.liquid-glass-defs {
+  position: absolute;
+  pointer-events: none;
+}
+
 /* ---------- Dock zones ---------- */
 
 .dock-zone {

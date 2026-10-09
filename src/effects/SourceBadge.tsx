@@ -1,7 +1,7 @@
 import { HugeiconsIcon } from '@hugeicons/react';
 import { RefreshIcon } from '@hugeicons/core-free-icons';
 import { useI18n } from '../i18n/react';
-import { GlassPanel } from '../components/GlassPanel';
+import { LiquidGlassPanel } from '../components/LiquidGlassPanel';
 import { getEffect, type EffectId } from './presets';
 import { getVariant, resolveVariant } from './variants';
 
@@ -27,7 +27,7 @@ export function SourceBadge({ effect, variant, visible, onEnter, onLeave, onShuf
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
     >
-      <GlassPanel className="source-glass ui-surface">
+      <LiquidGlassPanel className="source-glass ui-surface">
         {onShuffle && (
           <button
             className="source-shuffle"
@@ -48,7 +48,7 @@ export function SourceBadge({ effect, variant, visible, onEnter, onLeave, onShuf
           {preset.sourceName}
           {label ? ` · ${label}` : ''}
         </a>
-      </GlassPanel>
+      </LiquidGlassPanel>
     </div>
   );
 }

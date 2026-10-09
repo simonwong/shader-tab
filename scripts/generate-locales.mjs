@@ -28,6 +28,7 @@ const licenseItems = [
   ['React Three Fiber', 'react-three-fiber.txt', 'MIT'],
   ['camera-controls', 'camera-controls.txt', 'MIT'],
   ['GLSL noise / Ashima Arts / Stefan Gustavson', 'glsl-noise.txt', 'MIT'],
+  ['Liquid Glass / Glass HQ', 'liquid-glass.txt', 'MIT'],
   ['Space Grotesk', 'space-grotesk.txt', 'SIL Open Font License 1.1'],
 ];
 
