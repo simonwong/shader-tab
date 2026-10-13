@@ -14,7 +14,7 @@
     "locales": "node scripts/generate-locales.mjs",
     "site:build": "pnpm build && node website/build.mjs",
     "site:preview": "vite preview --outDir .output/site --host 127.0.0.1 --port 4321",
-    "site:deploy": "pnpm site:build && npx --yes wrangler@4.135.0 deploy --config website/wrangler.jsonc",
+    "site:deploy": "pnpm site:build && pnpm -C website exec cf deploy",
     "lint": "oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",

@@ -9,6 +9,7 @@ artifacts/
 !.env.example
 .dev.vars*
 .wrangler/
+.cloudflare/
 .sites-runtime/
 website/index.html
 website/en/index.html

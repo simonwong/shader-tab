@@ -39,7 +39,7 @@ pnpm dev
 | `pnpm locales`                      | 生成 manifest 语言目录与多语言政策页                |
 | `pnpm site:build`                   | 构建扩展许可文件及官网                              |
 | `pnpm site:preview`                 | 本机预览已构建的官网                                |
-| `pnpm site:deploy`                  | 使用 Wrangler 发布官网                              |
+| `pnpm site:deploy`                  | 使用 cf 发布官网                                    |
 
 生产目录为 `.output/chrome-mv3`，ZIP 为 `.output/shader-tab-<version>-chrome.zip`。开发截图、设计素材和官网不进入扩展包。
 
@@ -72,9 +72,11 @@ pnpm site:build
 pnpm site:preview
 ```
 
-输出目录 `.output/site`，本地预览端口 4321。Cloudflare Workers 静态托管配置见 [website/wrangler.jsonc](../website/wrangler.jsonc)，正式域名为 `shadertab.moonunder.app`。旧域名 `shadertab.simonwong.cn` 仍绑定在同一个 Worker 上，由 [website/worker.js](../website/worker.js) 按原路径和查询参数 301 到新域名。目录首页采用 `auto-trailing-slash` 路由。
+输出目录 `.output/site`，本地预览端口 4321。Cloudflare Workers 静态托管配置见 [website/cloudflare.config.ts](../website/cloudflare.config.ts)，正式域名为 `shadertab.moonunder.app`。旧域名 `shadertab.simonwong.cn` 仍绑定在同一个 Worker 上，由 [website/worker.js](../website/worker.js) 按原路径和查询参数 301 到新域名。目录首页采用 `auto-trailing-slash` 路由。
 
-部署需有适当权限的 Cloudflare 凭据。不要提交 OAuth 凭据或 API token。
+部署使用 Cloudflare 的 `cf` CLI（目前为 beta）。`website/` 是单独的 pnpm workspace 包，`cf` 和 `wrangler` 只装在这里：根目录依赖 vite，cf 在根目录会把整个仓库当作 Vite 项目去构建。这个 Worker 不用 Cloudflare Vite 插件，cf 构建时交给 Wrangler 打包，静态文件目录在 [website/wrangler.config.ts](../website/wrangler.config.ts) 中配置。
+
+部署前先用 `pnpm -C website exec cf auth login` 登录，cf 的登录状态与 Wrangler 分开保存。CI 中改用 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`。不要提交 OAuth 凭据或 API token。
 
 ```sh
 pnpm site:deploy
