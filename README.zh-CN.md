@@ -113,7 +113,7 @@ pnpm zip
 
 背景使用 [Paper Shaders](https://github.com/paper-design/shaders)、[ThreeUI](https://github.com/MengTo/threeui) 和 [Shader Gradient](https://github.com/ruucm/shadergradient)；图标使用 [Hugeicons](https://github.com/hugeicons/hugeicons)，字体使用 Space Grotesk。
 
-问题与建议请[提交 Issue](https://github.com/simonwong/shader-tab/issues)。私人支持联系 [support@simonwong.cn](mailto:support@simonwong.cn)。
+问题与建议请[提交 Issue](https://github.com/simonwong/shader-tab/issues)。私人支持联系 [support@moonunder.app](mailto:support@moonunder.app)。
 
 ## 许可
 

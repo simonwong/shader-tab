@@ -69,7 +69,7 @@ function privacyBody(copy) {
     section(copy.updatesHeading, p(copy.updates)) +
     section(
       copy.contactHeading,
-      `<p>${escape(copy.contact)} <a href="mailto:support@simonwong.cn">support@simonwong.cn</a></p><p><a href="https://developer.chrome.com/docs/webstore/program-policies/user-data">${escape(copy.compliance)}</a></p>`,
+      `<p>${escape(copy.contact)} <a href="mailto:support@moonunder.app">support@moonunder.app</a></p><p><a href="https://developer.chrome.com/docs/webstore/program-policies/user-data">${escape(copy.compliance)}</a></p>`,
     )
   );
 }

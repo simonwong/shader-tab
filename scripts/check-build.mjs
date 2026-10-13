@@ -177,7 +177,7 @@ for (const page of locales.flatMap(locale =>
   }
   assert.equal((html.match(/hreflang=/g) ?? []).length, 8);
   assert.ok(!html.includes('<script'));
-  if (page.endsWith('privacy.html')) assert.ok(html.includes('support@simonwong.cn'));
+  if (page.endsWith('privacy.html')) assert.ok(html.includes('support@moonunder.app'));
 }
 const crt = await readFile(
   new URL(`chunks/${chunks.find(file => file.startsWith('crt-'))}`, root),

@@ -1,6 +1,6 @@
 # Shader Tab 商店提交资料
 
-版本：0.5.0。支持邮箱：support@simonwong.cn。
+版本：0.5.0。支持邮箱：support@moonunder.app。
 
 ## 单一用途
 

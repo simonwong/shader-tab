@@ -60,7 +60,7 @@ try {
   run('set', 'viewport', '320', '900');
   evaluate('scrollTo(0,0)');
   wait("document.querySelector('h1')?.textContent==='隐私政策'");
-  assert.ok(evaluate('document.body.textContent').includes('support@simonwong.cn'));
+  assert.ok(evaluate('document.body.textContent').includes('support@moonunder.app'));
   assert.equal(evaluate('document.documentElement.scrollWidth>innerWidth'), false);
   run('screenshot', resolve(output, 'privacy-320.png'));
   run('open', base + 'licenses.html');

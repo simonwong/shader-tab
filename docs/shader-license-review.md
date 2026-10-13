@@ -32,7 +32,7 @@ React Bits 的 PixelBlast 使用 MIT + Commons Clause 自定义许可，禁止�
 ## Chrome 商店
 
 - JavaScript、shader、字体及图标本地打包，没有远程执行代码。
-- 本地隐私政策披露书签、favicon 缓存、收藏与偏好的处理、存储、删除及支持邮件用途。联系邮箱为 `support@simonwong.cn`。权限保持 bookmarks、storage、favicon。
+- 本地隐私政策披露书签、favicon 缓存、收藏与偏好的处理、存储、删除及支持邮件用途。联系邮箱为 `support@moonunder.app`。权限保持 bookmarks、storage、favicon。
 - `docs/store-submission.md` 提供单一用途、权限说明和实际数据处理说明。商店隐私政策字段使用公开托管的 https://shadertab.moonunder.app/privacy.html；扩展内链接不能充当该网址。
 - 0.4.1 已通过审核并在 Chrome 网上应用店发布。后续版本改动权限、数据处理或第三方代码时，需同步更新后台披露和本记录。
 

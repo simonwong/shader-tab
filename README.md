@@ -115,7 +115,7 @@ Technical reference documents are currently in Chinese.
 
 Shader Tab uses work from [Paper Shaders](https://github.com/paper-design/shaders), [ThreeUI](https://github.com/MengTo/threeui), and [Shader Gradient](https://github.com/ruucm/shadergradient), alongside [Hugeicons](https://github.com/hugeicons/hugeicons) and Space Grotesk.
 
-Found a bug or have an idea? [Open an issue](https://github.com/simonwong/shader-tab/issues). For private support, contact [support@simonwong.cn](mailto:support@simonwong.cn).
+Found a bug or have an idea? [Open an issue](https://github.com/simonwong/shader-tab/issues). For private support, contact [support@moonunder.app](mailto:support@moonunder.app).
 
 ## License
 
