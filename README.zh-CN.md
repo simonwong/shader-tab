@@ -4,7 +4,7 @@
   <p><strong>打开新标签，留一点空白。</strong></p>
   <p>缓慢流动的背景，轻盈的玻璃控件，伸手就到的常用网站。</p>
   <p>
-    <a href="https://shadertab.simonwong.cn/">官网与实时预览</a> ·
+    <a href="https://shadertab.moonunder.app/">官网与实时预览</a> ·
     <a href="README.md">English</a> ·
     <a href="docs/development.md">开发指南</a> ·
     <a href="https://github.com/simonwong/shader-tab/issues">问题反馈</a>
@@ -47,7 +47,7 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 | CRT             | 荧光与装饰屏幕                | ThreeUI           |
 | Shader Gradient | Plane、Sphere、Water 三种形态 | Shader Gradient   |
 
-以上为实际扩展截图。前往[官网体验动态背景](https://shadertab.simonwong.cn/#effects)，或查看[完整变体清单](docs/effect-variants.md)。
+以上为实际扩展截图。前往[官网体验动态背景](https://shadertab.moonunder.app/#effects)，或查看[完整变体清单](docs/effect-variants.md)。
 
 ## 安装与使用
 
@@ -75,7 +75,7 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 
 **卸载会清除扩展自身的收藏和设置，但不会删除 Chrome 书签。** 更新已解压的开发版本时，保留同一路径、覆盖文件后刷新扩展，不要先卸载。
 
-[隐私政策](https://shadertab.simonwong.cn/privacy) · [第三方许可](https://shadertab.simonwong.cn/licenses)
+[隐私政策](https://shadertab.moonunder.app/privacy) · [第三方许可](https://shadertab.moonunder.app/licenses)
 
 ## 本地开发
 

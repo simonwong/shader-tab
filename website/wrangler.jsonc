@@ -1,13 +1,21 @@
 {
   "name": "shader-tab-site",
+  "main": "worker.js",
   "compatibility_date": "2026-09-21",
   "workers_dev": true,
   "preview_urls": false,
   "assets": {
     "directory": "../.output/site",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page",
+    // The worker must see every request so it can redirect the legacy host.
+    "run_worker_first": true,
   },
-  "routes": [{ "pattern": "shadertab.simonwong.cn", "custom_domain": true }],
+  "routes": [
+    { "pattern": "shadertab.moonunder.app", "custom_domain": true },
+    // Legacy domain, kept only to 301 to shadertab.moonunder.app.
+    { "pattern": "shadertab.simonwong.cn", "custom_domain": true },
+  ],
   "observability": { "enabled": false },
 }

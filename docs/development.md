@@ -72,7 +72,7 @@ pnpm site:build
 pnpm site:preview
 ```
 
-输出目录 `.output/site`，本地预览端口 4321。Cloudflare Workers 静态托管配置见 [website/wrangler.jsonc](../website/wrangler.jsonc)，正式域名为 `shadertab.simonwong.cn`。目录首页采用 `auto-trailing-slash` 路由。
+输出目录 `.output/site`，本地预览端口 4321。Cloudflare Workers 静态托管配置见 [website/wrangler.jsonc](../website/wrangler.jsonc)，正式域名为 `shadertab.moonunder.app`。旧域名 `shadertab.simonwong.cn` 仍绑定在同一个 Worker 上，由 [website/worker.js](../website/worker.js) 按原路径和查询参数 301 到新域名。目录首页采用 `auto-trailing-slash` 路由。
 
 部署需有适当权限的 Cloudflare 凭据。不要提交 OAuth 凭据或 API token。
 

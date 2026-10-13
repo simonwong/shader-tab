@@ -4,7 +4,7 @@
   <p><strong>A little room to breathe, every new tab.</strong></p>
   <p>Slow-moving shaders. Quiet glass controls. Your favorite places within reach.</p>
   <p>
-    <a href="https://shadertab.simonwong.cn/en/">Website & live demo</a> ·
+    <a href="https://shadertab.moonunder.app/en/">Website & live demo</a> ·
     <a href="README.zh-CN.md">简体中文</a> ·
     <a href="docs/development.md">Development</a> ·
     <a href="https://github.com/simonwong/shader-tab/issues">Feedback</a>
@@ -47,7 +47,7 @@ Shader Tab replaces Chrome’s new tab page with animated backgrounds and local 
 | CRT             | Phosphor glow and decorative screens     | ThreeUI               |
 | Shader Gradient | Plane, Sphere, and Water forms           | Shader Gradient       |
 
-These are actual extension screenshots. Explore the motion on the [live demo](https://shadertab.simonwong.cn/en/#effects), or see the [full variant list](docs/effect-variants.md).
+These are actual extension screenshots. Explore the motion on the [live demo](https://shadertab.moonunder.app/en/#effects), or see the [full variant list](docs/effect-variants.md).
 
 ## Get Shader Tab
 
@@ -75,7 +75,7 @@ No host permissions, content scripts, or remote executable code. Scripts, shader
 
 **Uninstalling clears the extension’s favorites and settings, but not your Chrome bookmarks.** When updating an unpacked development installation, keep the same folder and reload it instead of uninstalling.
 
-[Privacy policy](https://shadertab.simonwong.cn/locales/en/privacy) · [Third-party notices](https://shadertab.simonwong.cn/locales/en/licenses)
+[Privacy policy](https://shadertab.moonunder.app/locales/en/privacy) · [Third-party notices](https://shadertab.moonunder.app/locales/en/licenses)
 
 ## Build locally
 
