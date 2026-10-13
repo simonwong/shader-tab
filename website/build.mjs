@@ -98,7 +98,9 @@ for (const [locale, [heading, text]] of Object.entries(websitePrivacy))
       );
     html = html.replace(
       '</head>',
-      `<link rel="canonical" href="${SITE_ORIGIN}/${relative(out, path).replaceAll('\\', '/')}"></head>`,
+      `<link rel="canonical" href="${SITE_ORIGIN}/${relative(out, path)
+        .replaceAll('\\', '/')
+        .replace(/\.html$/, '')}"></head>`,
     );
     await writeFile(path, html);
   }
@@ -118,11 +120,12 @@ await writeFile(
 const urls = [
   '/',
   '/en/',
-  '/privacy.html',
-  '/licenses.html',
+  // auto-trailing-slash serves /privacy.html with a 307 to /privacy, so list the final URLs.
+  '/privacy',
+  '/licenses',
   ...Object.keys(websitePrivacy)
     .filter(x => x !== 'zh-CN')
-    .flatMap(locale => [`/locales/${locale}/privacy.html`, `/locales/${locale}/licenses.html`]),
+    .flatMap(locale => [`/locales/${locale}/privacy`, `/locales/${locale}/licenses`]),
 ];
 await writeFile(
   resolve(out, 'sitemap.xml'),
