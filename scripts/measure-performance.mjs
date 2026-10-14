@@ -13,10 +13,35 @@ const fcp = entry =>
   entry.paints.find(paint => paint.name === 'first-contentful-paint')?.start ?? null;
 const profile = await tempDir('glass-tab-performance');
 const { run, evaluate, close } = browserSession('glass-performance');
-const sample = ms =>
-  evaluate(
-    `(async()=>{window.__glassProbe.reset();const start=performance.now();await new Promise(r=>setTimeout(r,${ms}));return {...window.__glassProbe.read(),seconds:(performance.now()-start)/1000,hidden:document.hidden}})()`,
-  );
+/*
+ * Headless Chrome sometimes delivers rAF only about once a second for several
+ * seconds (timers keep running normally), then recovers on its own. Wait until
+ * frames flow at 40+ per second before sampling, so a sample measures the page
+ * and not the browser. Returns the milliseconds spent waiting.
+ */
+const framesFlowing = () =>
+  evaluate(`(async()=>{
+    const start=performance.now();
+    while(performance.now()-start<20000){
+      let frames=0,counting=true;
+      const tick=()=>{frames++;if(counting)requestAnimationFrame(tick)};
+      requestAnimationFrame(tick);
+      await new Promise(r=>setTimeout(r,250));
+      counting=false;
+      if(frames>=10)return Math.max(0,Math.round(performance.now()-start-250));
+    }
+    throw new Error('rAF stayed throttled for 20 s');
+  })()`);
+const sample = ms => {
+  const waitedMs = framesFlowing();
+  if (waitedMs > 100) console.log(`  (waited ${waitedMs} ms for the browser to deliver frames)`);
+  return {
+    ...evaluate(
+      `(async()=>{window.__glassProbe.reset();const start=performance.now();await new Promise(r=>setTimeout(r,${ms}));return {...window.__glassProbe.read(),seconds:(performance.now()-start)/1000,hidden:document.hidden}})()`,
+    ),
+    waitedMs,
+  };
+};
 // A late timer (main thread busy opening a panel) lengthens the window, so bound draws by its real length.
 const withinRate = (result, fps) => result.draws > 0 && result.draws <= result.seconds * fps + 2;
 let extensionUrl;
