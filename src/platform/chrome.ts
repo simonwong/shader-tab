@@ -1,93 +1,25 @@
-import {
-  drawStoredVariant,
-  settleVariant,
-  variantShuffleKey,
-} from '../features/preferences/variant-shuffle';
-import { flattenBookmarks } from '../features/bookmarks/model';
-import {
-  FAVORITE_PREFIX,
-  FAVORITES_KEY,
-  changeFavorites,
-  legacyFavoriteKeys,
-  readFavorites,
-} from '../features/favorites/model';
-import {
-  PREFERENCE_PREFIX,
-  preferenceEntries,
-  readPreferences,
-  resolvePreferenceUpdate,
-} from '../features/preferences/model';
-import type { Listener, Platform } from './types';
+import { createStorage, type Store } from './storage';
+import type { Platform } from './types';
 
-function watchStorage(matches: (key: string) => boolean, listener: Listener) {
-  const handle = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-    if (area === 'local' && Object.keys(changes).some(matches)) listener();
-  };
-  chrome.storage.onChanged.addListener(handle);
-  return () => chrome.storage.onChanged.removeListener(handle);
-}
+const getTree = () => chrome.bookmarks.getTree();
 
-/**
- * Reads all of local storage. The favorites and preferences queries at startup
- * share one request; later refreshes read on their own, so a refresh triggered
- * by a write never joins a read that started before it.
- */
-let startupRead: Promise<Record<string, unknown>> | undefined;
-let startupReadDone = false;
-function readAll(): Promise<Record<string, unknown>> {
-  if (startupReadDone) return chrome.storage.local.get(null);
-  startupRead ??= chrome.storage.local.get(null).finally(() => {
-    startupReadDone = true;
-    startupRead = undefined;
-  });
-  return startupRead;
-}
+const store: Store = {
+  get: keys => chrome.storage.local.get(keys),
+  set: items => chrome.storage.local.set(items),
+  remove: keys => chrome.storage.local.remove(keys),
+  watch: (matches, listener) => {
+    const handle = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+      if (area === 'local' && Object.keys(changes).some(matches)) listener();
+    };
+    chrome.storage.onChanged.addListener(handle);
+    return () => chrome.storage.onChanged.removeListener(handle);
+  },
+};
 
 export const chromePlatform: Platform = {
   mode: 'extension',
-  getTree: () => chrome.bookmarks.getTree(),
-  getFavorites: async () => readFavorites(await readAll()),
-  updateFavorites: action =>
-    navigator.locks.request('glass-tab:favorites', async () => {
-      const [items, tree] = await Promise.all([
-        chrome.storage.local.get(null),
-        chrome.bookmarks.getTree(),
-      ]);
-      await chrome.storage.local.set({
-        [FAVORITES_KEY]: changeFavorites(readFavorites(items), action, flattenBookmarks(tree)),
-      });
-      const legacy = legacyFavoriteKeys(items);
-      if (legacy.length) await chrome.storage.local.remove(legacy);
-    }),
-  nextEffectVariant: async (effect, hidden) => {
-    const key = variantShuffleKey(effect);
-    const { variant } = drawStoredVariant(
-      effect,
-      await chrome.storage.local.get([key]),
-      Math.random,
-      hidden,
-    );
-    const saved = navigator.locks.request(`glass-tab:variant:${effect}`, async () => {
-      const { set } = settleVariant(
-        effect,
-        await chrome.storage.local.get([key]),
-        variant,
-        Math.random,
-        hidden,
-      );
-      await chrome.storage.local.set(set);
-    });
-    return { variant, saved };
-  },
-  getPreferences: async () => readPreferences(await readAll()),
-  updatePreferences: update =>
-    navigator.locks.request('glass-tab:preferences', async () => {
-      const patch = resolvePreferenceUpdate(
-        readPreferences(await chrome.storage.local.get(null)),
-        update,
-      );
-      if (Object.keys(patch).length) await chrome.storage.local.set(preferenceEntries(patch));
-    }),
+  getTree,
+  ...createStorage({ store, getTree, lockPrefix: 'glass-tab:' }),
   openUrl: async (url, background) => {
     if (background) {
       await chrome.tabs.create({ url, active: false });
@@ -127,7 +59,4 @@ export const chromePlatform: Platform = {
       chrome.bookmarks.onImportEnded.removeListener(ended);
     };
   },
-  watchFavorites: listener =>
-    watchStorage(key => key === FAVORITES_KEY || key.startsWith(FAVORITE_PREFIX), listener),
-  watchPreferences: listener => watchStorage(key => key.startsWith(PREFERENCE_PREFIX), listener),
 };

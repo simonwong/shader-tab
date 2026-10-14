@@ -3,6 +3,7 @@ import { isBookmarkSort, type BookmarkSort } from '../bookmarks/sorting';
 import { EFFECT_IDS, isEffect, migrateEffect, type EffectId } from '../../effects/presets';
 import { isMotion, type Motion } from '../../effects/motion';
 import { getVariant, variantIds } from '../../effects/variants';
+import { isFavoriteKey } from '../favorites/model';
 export const PREFERENCE_PREFIX = 'preference:v1:';
 export interface Preferences {
   language: Language;
@@ -72,14 +73,11 @@ export function readPreferences(data: Record<string, unknown>): Preferences {
       ? [...new Set(hidden.filter(key => parseVariantKey(key) !== undefined) as string[])]
       : [],
     pinnedVariant: parseVariantKey(pinned) ? (pinned as string) : null,
-    // Empty storage means a fresh install; anything stored means the extension was used before.
     // Fresh install: no saved preference or favorite yet. Shuffle-bag keys written on the first page don't count.
     onboarding:
       typeof onboarding === 'boolean'
         ? onboarding
-        : Object.keys(data).every(
-            key => !key.startsWith(PREFERENCE_PREFIX) && !key.startsWith('favorite'),
-          ),
+        : Object.keys(data).every(key => !key.startsWith(PREFERENCE_PREFIX) && !isFavoriteKey(key)),
   };
 }
 /** Storage entries for a resolved preference patch. */

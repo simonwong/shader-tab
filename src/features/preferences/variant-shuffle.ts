@@ -8,6 +8,20 @@ export interface ShuffleState {
   last: string;
 }
 
+/** The stored bag's variants that can still be drawn, without duplicates or retired ids. */
+function remainingIn(saved: unknown, choices: readonly string[]): string[] {
+  const remaining =
+    saved && typeof saved === 'object' ? (saved as { remaining?: unknown }).remaining : undefined;
+  if (!Array.isArray(remaining)) return [];
+  return [
+    ...new Set(
+      remaining.filter(
+        (value): value is string => typeof value === 'string' && choices.includes(value),
+      ),
+    ),
+  ];
+}
+
 /**
  * Takes the next variant from a shuffle bag. Hidden variants (`variantKey`s)
  * are dropped from the bag and left out of new rounds.
@@ -19,50 +33,25 @@ export function drawVariant(
   hidden: readonly string[] = [],
 ): { variant: string; state: ShuffleState } {
   const choices = drawableVariants(effect, hidden);
-  const previous =
-    saved && typeof saved === 'object' ? (saved as { remaining?: unknown; last?: unknown }) : {};
-  let remaining = Array.isArray(previous.remaining)
-    ? [
-        ...new Set(
-          previous.remaining.filter(
-            (value): value is string => typeof value === 'string' && choices.includes(value),
-          ),
-        ),
-      ]
-    : [];
+  let remaining = remainingIn(saved, choices);
   if (!remaining.length) {
+    const last =
+      saved && typeof saved === 'object' ? (saved as { last?: unknown }).last : undefined;
     remaining = [...choices];
     for (let index = remaining.length - 1; index > 0; index--) {
       const next = Math.min(index, Math.max(0, Math.floor(random() * (index + 1))));
       [remaining[index], remaining[next]] = [remaining[next]!, remaining[index]!];
     }
-    if (remaining[0] === previous.last && remaining.length > 1)
+    if (remaining[0] === last && remaining.length > 1)
       [remaining[0], remaining[1]] = [remaining[1]!, remaining[0]!];
   }
   const variant = remaining.shift()!;
   return { variant, state: { remaining, last: variant } };
 }
 
-export interface StoredDraw {
-  variant: string;
-  /** Entries to write back. */
-  set: Record<string, ShuffleState>;
-}
-
-/** Draws the next variant from the stored shuffle bag. */
-export function drawStoredVariant(
-  effect: EffectId,
-  items: Record<string, unknown>,
-  random = Math.random,
-  hidden: readonly string[] = [],
-): StoredDraw {
-  const key = variantShuffleKey(effect);
-  const { variant, state } = drawVariant(effect, items[key], random, hidden);
-  return { variant, set: { [key]: state } };
-}
-
 /**
- * Records that `variant` was shown, given the bag as it is stored now.
+ * Records that `variant` was shown, given the bag as it is stored now, and
+ * returns the bag to store.
  *
  * A page peeks at the bag head and paints right away; this commit runs later,
  * under a lock, against a fresh read. If the bag still holds `variant` it is
@@ -72,29 +61,15 @@ export function drawStoredVariant(
  */
 export function settleVariant(
   effect: EffectId,
-  items: Record<string, unknown>,
+  saved: unknown,
   variant: string,
   random = Math.random,
   hidden: readonly string[] = [],
-): Omit<StoredDraw, 'variant'> {
-  const key = variantShuffleKey(effect);
-  const saved = items[key];
-  const choices = drawableVariants(effect, hidden);
-  const previous = saved && typeof saved === 'object' ? (saved as { remaining?: unknown }) : {};
-  let remaining = Array.isArray(previous.remaining)
-    ? [
-        ...new Set(
-          previous.remaining.filter(
-            (value): value is string => typeof value === 'string' && choices.includes(value),
-          ),
-        ),
-      ]
-    : [];
+): ShuffleState {
+  let remaining = remainingIn(saved, drawableVariants(effect, hidden));
   if (!remaining.length) {
     const round = drawVariant(effect, undefined, random, hidden);
     remaining = [round.variant, ...round.state.remaining];
   }
-  return {
-    set: { [key]: { remaining: remaining.filter(value => value !== variant), last: variant } },
-  };
+  return { remaining: remaining.filter(value => value !== variant), last: variant };
 }

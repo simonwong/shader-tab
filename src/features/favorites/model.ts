@@ -51,6 +51,10 @@ export function readFavorites(items: Record<string, unknown>): FavoriteRef[] {
     .slice(0, MAX_FAVORITES);
 }
 
+/** Whether `key` stores favorites, in the current format or the legacy one. */
+export const isFavoriteKey = (key: string) =>
+  key === FAVORITES_KEY || key.startsWith(FAVORITE_PREFIX);
+
 /** Keys from the boolean-per-favorite format; removed on the first ordered write. */
 export function legacyFavoriteKeys(items: Record<string, unknown>): string[] {
   return Object.keys(items).filter(key => key.startsWith(FAVORITE_PREFIX));

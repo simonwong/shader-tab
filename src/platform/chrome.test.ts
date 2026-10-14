@@ -1,15 +1,13 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { FAVORITES_KEY } from '../features/favorites/model';
-import { PREFERENCE_PREFIX } from '../features/preferences/model';
-import { variantShuffleKey } from '../features/preferences/variant-shuffle';
 import type { BookmarkNode } from '../features/bookmarks/model';
 
-function fakeEvent() {
-  const listeners = new Set<() => void>();
+function fakeEvent<Args extends unknown[] = []>() {
+  const listeners = new Set<(...args: Args) => void>();
   return {
-    addListener: (listener: () => void) => listeners.add(listener),
-    removeListener: (listener: () => void) => listeners.delete(listener),
-    fire: () => listeners.forEach(listener => listener()),
+    addListener: (listener: (...args: Args) => void) => listeners.add(listener),
+    removeListener: (listener: (...args: Args) => void) => listeners.delete(listener),
+    fire: (...args: Args) => listeners.forEach(listener => listener(...args)),
   };
 }
 
@@ -40,6 +38,7 @@ const bookmarks = {
   onImportBegan: fakeEvent(),
   onImportEnded: fakeEvent(),
 };
+const onChanged = fakeEvent<[Record<string, unknown>, string]>();
 const tabs = {
   getCurrent: vi.fn<() => Promise<{ id: number }>>(async () => ({ id: 7 })),
   update: vi.fn<(...args: unknown[]) => Promise<object>>(async () => ({})),
@@ -65,7 +64,7 @@ beforeEach(() => {
     },
   ];
   vi.clearAllMocks();
-  vi.stubGlobal('chrome', { storage: { local: storage, onChanged: fakeEvent() }, bookmarks, tabs });
+  vi.stubGlobal('chrome', { storage: { local: storage, onChanged }, bookmarks, tabs });
   // Exclusive per-name locks, like the Web Locks API.
   const queues = new Map<string, Promise<unknown>>();
   vi.stubGlobal('navigator', {
@@ -85,46 +84,20 @@ afterEach(() => vi.unstubAllGlobals());
 
 const platform = async () => (await import('./chrome')).chromePlatform;
 
-it('returns the bag head after one read and records it in the background', async () => {
-  store[variantShuffleKey('pixel-blast')] = { remaining: ['circle', 'diamond'], last: 'square' };
-  const draw = await (await platform()).nextEffectVariant('pixel-blast', []);
-  expect(draw.variant).toBe('circle');
-  await draw.saved;
-  expect(store[variantShuffleKey('pixel-blast')]).toEqual({
-    remaining: ['diamond'],
-    last: 'circle',
-  });
-});
-
-it('shares one full storage read between favorites and preferences at startup', async () => {
+it('reads and writes chrome.storage.local and watches only its local area', async () => {
   const chrome = await platform();
-  await Promise.all([chrome.getFavorites(), chrome.getPreferences()]);
-  expect(storage.get).toHaveBeenCalledTimes(1);
-});
-
-it('writes favorites with URLs and removes legacy keys on the first ordered write', async () => {
-  store = { 'favorite:v1:a': true, 'favorite:v1:gone': true };
-  await (await platform()).updateFavorites({ type: 'add', id: 'b' });
-  expect(store).toEqual({
-    [FAVORITES_KEY]: [
-      { id: 'a', url: 'https://a.example/' },
-      { id: 'b', url: 'https://b.example/' },
-    ],
-  });
-});
-
-it('applies functional preference updates to the latest stored value', async () => {
-  store[PREFERENCE_PREFIX + 'effects'] = ['dithering'];
-  const chrome = await platform();
-  await Promise.all([
-    chrome.updatePreferences(current => ({ effects: [...current.effects, 'pixel-blast'] })),
-    chrome.updatePreferences(current => ({ effects: [...current.effects, 'data-pixel-arc'] })),
-  ]);
-  expect(store[PREFERENCE_PREFIX + 'effects']).toEqual([
-    'dithering',
-    'pixel-blast',
-    'data-pixel-arc',
-  ]);
+  const listener = vi.fn<() => void>();
+  const stop = chrome.watchFavorites(listener);
+  await chrome.updateFavorites({ type: 'add', id: 'a' });
+  expect(store).toEqual({ [FAVORITES_KEY]: [{ id: 'a', url: 'https://a.example/' }] });
+  const changed = { [FAVORITES_KEY]: { newValue: [] } };
+  onChanged.fire(changed, 'sync');
+  expect(listener).not.toHaveBeenCalled();
+  onChanged.fire(changed, 'local');
+  expect(listener).toHaveBeenCalledTimes(1);
+  stop();
+  onChanged.fire(changed, 'local');
+  expect(listener).toHaveBeenCalledTimes(1);
 });
 
 it('refreshes once after a bookmark import instead of once per created bookmark', async () => {
