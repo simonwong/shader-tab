@@ -1,5 +1,5 @@
 import { THEME_BRIGHTNESS } from '../presets';
-import { mountFullscreenShader } from './webgl';
+import { mountShader } from './webgl';
 import type { DriverFactory } from './types';
 
 interface FieldShaders {
@@ -15,7 +15,7 @@ interface FieldConfig {
 function createFieldDriver({ shaders: loadShaders, uniforms }: FieldConfig): DriverFactory {
   return async (host, { theme }) => {
     const shaders = await loadShaders();
-    return mountFullscreenShader(host, {
+    return mountShader(host, {
       engine: 'threeui-webgl',
       vertex: shaders.vertex,
       fragment: shaders.fragment,

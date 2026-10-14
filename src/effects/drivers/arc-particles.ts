@@ -3,7 +3,7 @@
 // and resolution budget, and run as fragment shaders instead of per-dot Canvas 2D
 // draws. Grid layout, timing, colours and alpha follow the original loops.
 import { ARC_SURFACE, THEME_BRIGHTNESS, type Theme } from '../presets';
-import { cssSurfaceUniforms, glslColor, mountFullscreenShader } from './webgl';
+import { cssSurfaceUniforms, glslColor, mountShader } from './webgl';
 import type { DriverFactory } from './types';
 
 /* Shared by both shaders: top-down CSS-pixel coordinates of the fragment. */
@@ -78,7 +78,7 @@ function createParticleDriver(
   timeScale: number,
 ): DriverFactory {
   return (host, { theme }) =>
-    mountFullscreenShader(host, {
+    mountShader(host, {
       engine: 'threeui-webgl',
       fragment: fragment(theme),
       setup(gl, uniform) {

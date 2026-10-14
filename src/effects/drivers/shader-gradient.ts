@@ -15,8 +15,7 @@
  * banding that low-contrast gradients otherwise show.
  */
 import { THEME_BRIGHTNESS, type Theme } from '../presets';
-import { releaseCanvas } from './surface';
-import { deleteProgram, linkProgram, loseContext, type LinkedProgram } from './webgl';
+import { hexColor, mountShader } from './webgl';
 import type { DriverFactory } from './types';
 
 const VERTEX = `
@@ -361,91 +360,59 @@ function projectionMatrix(aspect: number, zoom: number): Mat4 {
   ];
 }
 
-function rgb(hex: string): [number, number, number] {
-  const value = Number.parseInt(hex.slice(1), 16);
-  return [(value >> 16) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
-}
-
 export const createDriver: DriverFactory = (host, { theme, variant }) => {
   const look = LOOKS[variant] ?? LOOKS.dusk!;
-  const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl', {
-    alpha: false,
-    antialias: false,
+  return mountShader(host, {
+    engine: 'shader-gradient-webgl',
     depth: true,
-    stencil: false,
-    powerPreference: 'low-power',
+    vertex: VERTEX,
+    fragment: FRAGMENT,
+    attribute: null,
+    setup(gl, uniform, resources) {
+      const { positions, indices } = planeGeometry(look.type === 'plane' ? 1 : SEGMENTS, SEGMENTS);
+      gl.bindBuffer(gl.ARRAY_BUFFER, resources.buffer());
+      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+      const position = resources.attribute('position');
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resources.buffer());
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+      gl.enable(gl.DEPTH_TEST);
+
+      const [color1, color2, color3] = look.colors[theme];
+      gl.uniform3fv(uniform('uColor1'), hexColor(color1));
+      gl.uniform3fv(uniform('uColor2'), hexColor(color2));
+      gl.uniform3fv(uniform('uColor3'), hexColor(color3));
+      // Ambient light brightness·π over a Lambert BRDF (1/π) on 1 − metalness (0.2) of the base colour.
+      gl.uniform1f(uniform('uLight'), 0.8 * look.brightness[theme] * THEME_BRIGHTNESS[theme]);
+      gl.uniform1f(uniform('uNoiseDensity'), look.density);
+      gl.uniform1f(uniform('uNoiseStrength'), look.strength);
+      const background = hexColor(color2).map(
+        value => value * 0.8 * look.brightness[theme] * THEME_BRIGHTNESS[theme],
+      );
+      gl.clearColor(background[0]!, background[1]!, background[2]!, 1);
+      const matrix = uniform('uMatrix'),
+        time = uniform('uTime');
+      const view = multiply(
+        viewMatrix(look.azimuth, look.polar, look.distance),
+        modelMatrix(look.position, look.rotation),
+      );
+
+      return {
+        resize({ width, height }) {
+          const aspect = width / height;
+          // ShaderGradient ignores cameraZoom for planes (zoom stays 1); only wide screens zoom in.
+          const zoom = Math.max(1, Math.hypot(aspect, 1) / look.cover);
+          gl.uniformMatrix4fv(matrix, false, multiply(projectionMatrix(aspect, zoom), view));
+        },
+        frame(seconds) {
+          gl.uniform1f(time, look.time + seconds * look.speed);
+        },
+        draw() {
+          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+          gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+        },
+      };
+    },
   });
-  if (!gl) throw new Error('WebGL is unavailable');
-
-  let linked: LinkedProgram | undefined;
-  let vertices: WebGLBuffer | null = null;
-  let elements: WebGLBuffer | null = null;
-  const dispose = () => {
-    gl.deleteBuffer(vertices);
-    gl.deleteBuffer(elements);
-    deleteProgram(gl, linked);
-    loseContext(gl);
-    releaseCanvas(canvas);
-  };
-  try {
-    linked = linkProgram(gl, VERTEX, FRAGMENT);
-    const { program } = linked;
-    gl.useProgram(program);
-    const { positions, indices } = planeGeometry(look.type === 'plane' ? 1 : SEGMENTS, SEGMENTS);
-    vertices = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-    const position = gl.getAttribLocation(program, 'position');
-    gl.enableVertexAttribArray(position);
-    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
-    elements = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elements);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-    gl.enable(gl.DEPTH_TEST);
-
-    const uniform = (name: string) => gl.getUniformLocation(program, name);
-    const [color1, color2, color3] = look.colors[theme];
-    gl.uniform3fv(uniform('uColor1'), rgb(color1));
-    gl.uniform3fv(uniform('uColor2'), rgb(color2));
-    gl.uniform3fv(uniform('uColor3'), rgb(color3));
-    // Ambient light brightness·π over a Lambert BRDF (1/π) on 1 − metalness (0.2) of the base colour.
-    gl.uniform1f(uniform('uLight'), 0.8 * look.brightness[theme] * THEME_BRIGHTNESS[theme]);
-    gl.uniform1f(uniform('uNoiseDensity'), look.density);
-    gl.uniform1f(uniform('uNoiseStrength'), look.strength);
-    const background = rgb(color2).map(
-      value => value * 0.8 * look.brightness[theme] * THEME_BRIGHTNESS[theme],
-    );
-    gl.clearColor(background[0]!, background[1]!, background[2]!, 1);
-    const matrix = uniform('uMatrix'),
-      time = uniform('uTime');
-    const view = multiply(
-      viewMatrix(look.azimuth, look.polar, look.distance),
-      modelMatrix(look.position, look.rotation),
-    );
-
-    host.append(canvas);
-    return {
-      canvas,
-      engine: 'shader-gradient-webgl',
-      resize(width, height, density) {
-        canvas.width = Math.max(1, Math.round(width * density));
-        canvas.height = Math.max(1, Math.round(height * density));
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        const aspect = width / height;
-        // ShaderGradient ignores cameraZoom for planes (zoom stays 1); only wide screens zoom in.
-        const zoom = Math.max(1, Math.hypot(aspect, 1) / look.cover);
-        gl.uniformMatrix4fv(matrix, false, multiply(projectionMatrix(aspect, zoom), view));
-      },
-      render(seconds) {
-        gl.uniform1f(time, look.time + seconds * look.speed);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-      },
-      dispose,
-    };
-  } catch (error) {
-    dispose();
-    throw error;
-  }
 };
