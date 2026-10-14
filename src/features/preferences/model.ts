@@ -120,11 +120,14 @@ export function drawableVariants(effect: EffectId, hidden: readonly string[]): s
   return visible.length ? visible : variantIds(effect);
 }
 
+/** Effects a page may show: the shuffle pool, or the one selected effect. */
+export const effectPool = (preferences: Preferences): readonly EffectId[] =>
+  preferences.shuffle ? preferences.effects : [preferences.activeEffect];
+
 /** Whether hiding `key` still leaves a visible variant somewhere in the pool. */
 export function canHideVariant(preferences: Preferences, key: string): boolean {
-  const pool = preferences.shuffle ? preferences.effects : [preferences.activeEffect];
   const hidden = [...preferences.hiddenVariants, key];
-  return pool.some(effect => visibleVariants(effect, hidden).length > 0);
+  return effectPool(preferences).some(effect => visibleVariants(effect, hidden).length > 0);
 }
 
 /**
@@ -136,7 +139,7 @@ export function canHideVariant(preferences: Preferences, key: string): boolean {
  * hidden variants are ignored.
  */
 export function effectWeights(preferences: Preferences): { effect: EffectId; weight: number }[] {
-  const pool = preferences.shuffle ? preferences.effects : [preferences.activeEffect];
+  const pool = effectPool(preferences);
   const weights = pool.map(effect => ({
     effect,
     weight: Math.sqrt(visibleVariants(effect, preferences.hiddenVariants).length),
@@ -146,16 +149,34 @@ export function effectWeights(preferences: Preferences): { effect: EffectId; wei
     : pool.map(effect => ({ effect, weight: 1 }));
 }
 
-/** The effect for a page, from a random number in [0, 1). */
-export function chooseEffect(preferences: Preferences, random: number): EffectId {
-  const weights = effectWeights(preferences);
+function pickWeighted(
+  weights: readonly { effect: EffectId; weight: number }[],
+  random: number,
+): EffectId | undefined {
   const total = weights.reduce((sum, entry) => sum + entry.weight, 0);
   let at = Math.min(Math.max(random, 0), 1) * total;
   for (const entry of weights) {
     if (entry.weight > 0 && at < entry.weight) return entry.effect;
     at -= entry.weight;
   }
-  return weights.findLast(entry => entry.weight > 0)?.effect ?? 'grain-gradient';
+  return weights.findLast(entry => entry.weight > 0)?.effect;
+}
+
+/** The effect for a page, from a random number in [0, 1). */
+export function chooseEffect(preferences: Preferences, random: number): EffectId {
+  return pickWeighted(effectWeights(preferences), random) ?? 'grain-gradient';
+}
+
+/** Another effect from the pool than `current`, weighted like `chooseEffect`; none if it is alone. */
+export function chooseOtherEffect(
+  preferences: Preferences,
+  current: EffectId,
+  random: number,
+): EffectId | undefined {
+  return pickWeighted(
+    effectWeights(preferences).filter(entry => entry.effect !== current),
+    random,
+  );
 }
 
 /** Toggles `id` in the shuffle pool; the last remaining effect stays selected. */
