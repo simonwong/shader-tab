@@ -26,10 +26,8 @@ import {
   type FavoriteRef,
 } from '../../features/favorites/model';
 import {
-  canHideVariant,
   DEFAULT_PREFERENCES,
   resolvePreferenceUpdate,
-  variantKey,
   type PreferenceUpdate,
   type Preferences,
 } from '../../features/preferences/model';
@@ -105,12 +103,14 @@ export function App({ platform, boot }: Props) {
   const favoritesButton = useRef<HTMLButtonElement>(null);
   const settingsReturnFocus = useRef<HTMLElement | null>(null);
 
-  const { effect, selection, reshuffle, canReshuffle } = useEffectSelection({
+  const pageBackground = useEffectSelection({
     platform,
     preferences,
     ready: preferencesReady,
+    onPreferenceChange: update => onPreferenceChange(update),
     onDrawError: () => setSaveError(new MessageError('randomFailed')),
   });
+  const { selection } = pageBackground;
   const onboarding = preferencesReady && preferences.onboarding && !settings;
   const dock = useDockPanels(preferences);
   const visible = useIdleControls(
@@ -234,18 +234,6 @@ export function App({ platform, boot }: Props) {
     [platform],
   );
 
-  const shownKey = selection ? variantKey(selection.effect, selection.variant) : null;
-  // Hides the background on screen and moves on, leaving it out of the next pick already.
-  const hideVariant = (key: string) => {
-    const hiddenVariants = [...preferences.hiddenVariants, key];
-    onPreferenceChange(current => ({
-      hiddenVariants: current.hiddenVariants.includes(key)
-        ? current.hiddenVariants
-        : [...current.hiddenVariants, key],
-    }));
-    reshuffle(hiddenVariants);
-  };
-
   const closeSettings = () => setSettings(false);
   const returnFocus = () =>
     settingsReturnFocus.current?.isConnected ? settingsReturnFocus.current : settingsButton.current;
@@ -258,7 +246,7 @@ export function App({ platform, boot }: Props) {
         className="new-tab"
         aria-label={t('newTab')}
         data-mode={platform.mode}
-        data-effect={selection?.effect ?? effect}
+        data-effect={selection?.effect ?? pageBackground.effect}
         data-tone={tone}
       >
         {selection ? (
@@ -301,14 +289,10 @@ export function App({ platform, boot }: Props) {
             visible={controlsVisible}
             onEnter={dock.enter}
             onLeave={dock.leave}
-            onShuffle={canReshuffle ? () => reshuffle() : undefined}
-            pinned={shownKey === preferences.pinnedVariant}
-            onPinChange={pinned => onPreferenceChange({ pinnedVariant: pinned ? shownKey : null })}
-            onHide={
-              shownKey && !preferences.pinnedVariant && canHideVariant(preferences, shownKey)
-                ? () => hideVariant(shownKey)
-                : undefined
-            }
+            onShuffle={pageBackground.canReshuffle ? pageBackground.reshuffle : undefined}
+            pinned={pageBackground.pinned}
+            onPinChange={pageBackground.pin}
+            onHide={pageBackground.canHide ? pageBackground.hide : undefined}
           />
         )}
         {onboarding && dock.panel === null && (
