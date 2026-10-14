@@ -7,7 +7,7 @@ export default defineConfig({
   imports: false,
   vite: () => ({
     plugins: [bundledLicenses()],
-    resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber'] },
+    resolve: { dedupe: ['react', 'react-dom'] },
   }),
   manifestVersion: 3,
   manifest: {

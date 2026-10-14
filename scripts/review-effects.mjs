@@ -4,14 +4,14 @@ import assert from 'node:assert/strict';
 import { browserSession, fromRoot } from './lib/browser.mjs';
 // Needs `pnpm dev` serving the preview on port 4317.
 const output = fromRoot('artifacts/shader-review');
-const url = 'http://127.0.0.1:4317/src/entrypoints/newtab/index.html';
+const url = 'http://localhost:4317/src/entrypoints/newtab/index.html';
 const ids = [
   'grain-gradient',
+  'shader-gradient',
   'dithering',
+  'fluted-glass',
   'pixel-blast',
   'data-pixel-arc',
-  'crt-terminal',
-  'shader-gradient',
 ];
 const { run, evaluate, sleep: wait, close } = browserSession('glass-framework-review');
 const preference = values =>
@@ -29,9 +29,8 @@ try {
   run('open', '--init-script', fromRoot('scripts/shader-probe.js'), url);
   run('set', 'viewport', '1440', '900', '2');
   evaluate(`(() => {
-    const variants = { 'grain-gradient': 'blob', dithering: 'swirl:4x4', 'pixel-blast': 'square', 'data-pixel-arc': 'data-pixel', 'crt-terminal': 'terminal' };
+    const variants = { 'grain-gradient': 'blob', 'shader-gradient': 'dusk', dithering: 'swirl:8x8', 'fluted-glass': 'default', 'pixel-blast': 'square', 'data-pixel-arc': 'data-pixel' };
     for (const [id, variant] of Object.entries(variants)) localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:' + id, JSON.stringify({ remaining: [variant] }));
-    localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:shader-gradient', JSON.stringify({ remaining: ['sphere'] }));
   })()`);
   preference({ appearance: 'night', shuffle: false, activeEffect: ids[0] });
   run('reload');
@@ -52,16 +51,31 @@ try {
     wait(1800);
     const right = evaluate('JSON.parse(JSON.stringify(window.__shaderProbe))');
     run('screenshot', resolve(output, `${id}-pointer.png`));
-    if (id === 'grain-gradient' || id === 'dithering') {
+    if (id === 'grain-gradient') {
+      assert.ok(right.uniforms.u_time > before.uniforms.u_time);
+      // Shifting a grain gradient slides its grain, so it ignores the pointer.
+      assert.ok(
+        left.uniforms.u_offsetX === 0 && right.uniforms.u_offsetX === 0,
+        'Grain Gradient must not follow the pointer',
+      );
+    } else if (id === 'dithering') {
       assert.ok(right.uniforms.u_time > before.uniforms.u_time);
       assert.ok(
-        left.uniforms.u_offsetX < -0.012 && right.uniforms.u_offsetX > 0.012,
-        'Paper must follow both pointer directions',
+        left.uniforms.u_offsetX < -0.006 && right.uniforms.u_offsetX > 0.006,
+        'Dithering must follow both pointer directions',
       );
       assert.ok(
-        Math.abs(left.uniforms.u_offsetX) <= 0.0211 && Math.abs(right.uniforms.u_offsetX) <= 0.0211,
-        'Paper pointer must stay gentle',
+        Math.abs(left.uniforms.u_offsetX) <= 0.0106 && Math.abs(right.uniforms.u_offsetX) <= 0.0106,
+        'Dithering pointer must stay gentle',
       );
+    } else if (id === 'shader-gradient') {
+      assert.ok(right.uniforms.uTime > before.uniforms.uTime);
+      assert.ok(right.draws - before.draws > 0);
+    } else if (id === 'fluted-glass') {
+      // The glass filter has no clock; the rib grid slides on the breathing clock instead.
+      assert.ok(right.draws - before.draws > 0);
+      assert.notEqual(right.uniforms.u_shift, before.uniforms.u_shift);
+      assert.equal(right.uploads, before.uploads, 'Fluted Glass uploads its photo only once');
     } else if (id === 'pixel-blast') {
       assert.ok(right.uniforms.uTime > before.uniforms.uTime);
       assert.ok(
@@ -69,19 +83,10 @@ try {
         'Pixel Field must start a ripple on click',
       );
       assert.ok(right.draws - before.draws > 0);
-    } else if (id === 'crt-terminal') {
+    } else {
       assert.ok(right.uniforms.uTime > before.uniforms.uTime);
-      assert.ok(
-        left.uniforms.uPointer[0] < -0.2 && right.uniforms.uPointer[0] > 0.2,
-        'CRT must follow both pointer directions',
-      );
-      assert.ok(
-        Math.abs(left.uniforms.uPointer[0]) <= 0.351 &&
-          Math.abs(right.uniforms.uPointer[0]) <= 0.351,
-        'CRT pointer must stay gentle',
-      );
-    } else if (id === 'shader-gradient') assert.ok(right.uniforms.uTime > before.uniforms.uTime);
-    else assert.ok(right.arcFrames > before.arcFrames);
+      assert.ok(right.draws - before.draws > 0);
+    }
     const state = evaluate(
       `(()=>{const h=document.querySelector('.ambient-background'),c=h.querySelector('canvas');return {engine:h.dataset.engine,buffer:[c.width,c.height],canvases:h.querySelectorAll('canvas').length};})()`,
     );
@@ -98,26 +103,26 @@ try {
   evaluate(
     `(async()=>{for(const id of ${JSON.stringify([...ids, ...ids])}){localStorage.setItem('glass-tab-preview:preference:v1:activeEffect',JSON.stringify(id));dispatchEvent(new StorageEvent('storage',{key:'glass-tab-preview:preference:v1:activeEffect'}));await new Promise(r=>setTimeout(r,65));}})()`,
   );
-  settled('shader-gradient');
+  settled(ids.at(-1));
   wait(600);
   assert.equal(evaluate('document.querySelectorAll(".ambient-background canvas").length'), 1);
   run('press', 'Control+,');
   run('wait', '--fn', 'document.querySelector("[role=dialog]") !== null');
-  assert.equal(evaluate('document.querySelectorAll(".effect-card").length'), 6);
+  assert.equal(evaluate('document.querySelectorAll(".effect-card").length'), ids.length);
   assert.equal(
     evaluate(
       `(()=>{const grid=document.querySelector('.effect-grid').getBoundingClientRect();return [...document.querySelectorAll('.effect-card')].every(card=>card.getBoundingClientRect().bottom <= grid.bottom);})()`,
     ),
     true,
-    'All six cards must be visible without inner scrolling',
+    'All cards must be visible without inner scrolling',
   );
   run('screenshot', resolve(output, 'settings.png'));
-  run('find', 'role', 'button', 'click', '--name', 'CRT', '--exact');
+  run('find', 'role', 'radio', 'click', '--name', 'Pixel Field,');
   run('press', 'Escape');
   run('mouse', 'move', '720', '450');
-  settled('crt-terminal');
+  settled('pixel-blast');
   run('reload');
-  settled('crt-terminal');
+  settled('pixel-blast');
   run('set', 'media', 'light', 'reduced-motion');
   run(
     'wait',
@@ -182,8 +187,8 @@ try {
         effects,
         rapidSwitch: true,
         fallbacks,
-        cards: 6,
-        persisted: 'crt-terminal',
+        cards: ids.length,
+        persisted: 'pixel-blast',
         narrowOverflow: false,
         contextLossFallback: true,
         errors,

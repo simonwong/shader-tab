@@ -16,8 +16,9 @@ try {
     'chrome://newtab',
   );
   run('set', 'viewport', '1440', '900');
+  // Bookmarks created in the same millisecond tie on dateAdded; space them out for the date sorts.
   const fixture = evaluate(
-    `(async()=>{const a=await chrome.bookmarks.create({parentId:'1',title:'Z 2',url:'https://z.example'});const folder=await chrome.bookmarks.create({parentId:'1',title:'目录'});const b=await chrome.bookmarks.create({parentId:'1',title:'A',url:'https://a.example'});const c=await chrome.bookmarks.create({parentId:'1',title:'Z 10',url:'https://c.example'});await chrome.bookmarks.create({parentId:folder.id,title:'B',url:'https://b.example'});await chrome.bookmarks.create({parentId:folder.id,title:'A child',url:'https://a.example/child'});await chrome.storage.local.set({'favorites:v2':[c.id,a.id,b.id],'preference:v1:shuffle':false,'preference:v1:activeEffect':'grain-gradient'});return {a:a.id,b:b.id,c:c.id};})()`,
+    `(async()=>{const tick=()=>new Promise(r=>setTimeout(r,20));const a=await chrome.bookmarks.create({parentId:'1',title:'Z 2',url:'https://z.example'});await tick();const folder=await chrome.bookmarks.create({parentId:'1',title:'目录'});await tick();const b=await chrome.bookmarks.create({parentId:'1',title:'A',url:'https://a.example'});await tick();const c=await chrome.bookmarks.create({parentId:'1',title:'Z 10',url:'https://c.example'});await chrome.bookmarks.create({parentId:folder.id,title:'B',url:'https://b.example'});await chrome.bookmarks.create({parentId:folder.id,title:'A child',url:'https://a.example/child'});await chrome.storage.local.set({'favorites:v2':[c.id,a.id,b.id],'preference:v1:shuffle':false,'preference:v1:activeEffect':'grain-gradient'});return {a:a.id,b:b.id,c:c.id};})()`,
   );
   const before = evaluate('chrome.bookmarks.getTree()');
   const modes = [
@@ -34,6 +35,8 @@ try {
     wait('document.querySelector("#bookmark-sort") !== null');
     run('select', '#bookmark-sort', mode);
     wait(`document.querySelector('#bookmark-sort').value==='${mode}'`);
+    // Reloading before the preference is saved would show the previous order.
+    wait(`!document.querySelector('#bookmark-sort').disabled`);
     run('press', 'Escape');
     run('reload');
     wait('document.querySelector("button[aria-label=全部书签]") !== null');
@@ -53,7 +56,7 @@ try {
   });
   run('mouse', 'move', '200', '500');
   const source = evaluate(
-    "(()=>{const a=document.querySelector('.effect-source');return {text:a.textContent,children:a.children.length,height:a.getBoundingClientRect().height,font:getComputedStyle(a).fontSize,href:a.href};})()",
+    "(()=>{const a=document.querySelector('.effect-source');return {text:a.textContent,children:a.querySelectorAll(':scope > :not(.source-variant)').length,height:a.getBoundingClientRect().height,font:getComputedStyle(a).fontSize,href:a.href};})()",
   );
   assert.equal(source.children, 0);
   assert.ok(!source.text.includes('↗'));

@@ -15,8 +15,10 @@ const profile = await tempDir('glass-tab-performance');
 const { run, evaluate, close } = browserSession('glass-performance');
 const sample = ms =>
   evaluate(
-    `(async()=>{window.__glassProbe.reset();await new Promise(r=>setTimeout(r,${ms}));return {...window.__glassProbe.read(),hidden:document.hidden}})()`,
+    `(async()=>{window.__glassProbe.reset();const start=performance.now();await new Promise(r=>setTimeout(r,${ms}));return {...window.__glassProbe.read(),seconds:(performance.now()-start)/1000,hidden:document.hidden}})()`,
   );
+// A late timer (main thread busy opening a panel) lengthens the window, so bound draws by its real length.
+const withinRate = (result, fps) => result.draws > 0 && result.draws <= result.seconds * fps + 2;
 let extensionUrl;
 try {
   run(
@@ -36,13 +38,25 @@ try {
     const folder=await chrome.bookmarks.create({parentId:'1',title:'Glass Tab Performance Fixture'});
     const ids=[];
     for(let i=0;i<6;i++) ids.push((await chrome.bookmarks.create({parentId:folder.id,title:'Example '+i,url:'https://example.com/'+i})).id);
-    await chrome.storage.local.set({'favorites:v2':ids,'preference:v1:appearance':'day','preference:v1:shuffle':false,'preference:v1:activeEffect':'crt-terminal'});
+    await chrome.storage.local.set({'favorites:v2':ids,'preference:v1:appearance':'day','preference:v1:shuffle':false,'preference:v1:activeEffect':'dithering'});
     return folder.id;
   })()`);
   run('press', 'Control+,');
   run('wait', '--fn', 'document.querySelector("[role=dialog]") !== null');
+  // Switches are disabled while a preference save is in flight, so wait between clicks.
+  const switchesIdle = '[...document.querySelectorAll("[role=switch]")].every(s => !s.disabled)';
   run('find', 'role', 'switch', 'click', '--name', '显示常用书签', '--exact');
+  run(
+    'wait',
+    '--fn',
+    `document.querySelector('[aria-label=显示常用书签]').ariaChecked === 'false' && ${switchesIdle}`,
+  );
   run('find', 'role', 'switch', 'click', '--name', '显示系统书签', '--exact');
+  run(
+    'wait',
+    '--fn',
+    `document.querySelector('[aria-label=显示系统书签]').ariaChecked === 'false' && ${switchesIdle}`,
+  );
   run('press', 'Escape');
   run('wait', '--fn', 'document.querySelector("[aria-label=书签导航]") === null');
   const navigationPreferences = evaluate(
@@ -92,11 +106,11 @@ try {
   for (const theme of ['day', 'night'])
     for (const id of [
       'grain-gradient',
+      'shader-gradient',
       'dithering',
+      'fluted-glass',
       'pixel-blast',
       'data-pixel-arc',
-      'crt-terminal',
-      'shader-gradient',
     ]) {
       evaluate(
         `chrome.storage.local.set({'preference:v1:appearance':${JSON.stringify(theme)},'preference:v1:activeEffect':${JSON.stringify(id)}})`,
@@ -112,14 +126,14 @@ try {
         'document.querySelector(".ambient-background").dataset.transitioning === "false"',
       );
       const result = sample(2000);
-      assert.ok(result.draws > 0 && result.draws <= (id === 'shader-gradient' ? 84 : 42));
+      assert.ok(result.draws > 0 && result.draws <= 42);
       effects.push({ id, theme, ...result });
       console.log(
         `${id}/${theme}: ${result.draws} draw passes, ${result.raf} rAF / 2s, buffer ${result.buffer}`,
       );
     }
   evaluate(
-    "chrome.storage.local.set({'preference:v1:appearance':'day','preference:v1:activeEffect':'crt-terminal'})",
+    "chrome.storage.local.set({'preference:v1:appearance':'day','preference:v1:activeEffect':'dithering'})",
   );
   run('wait', '--fn', 'document.documentElement.dataset.theme === "day"');
   run(
@@ -130,7 +144,8 @@ try {
   const idle = sample(10_000);
   // The frame loop is pure rAF (one callback per vsync), so only draw passes are bounded.
   assert.equal(idle.hidden, false);
-  assert.ok(idle.draws > 0 && idle.draws <= 205);
+  console.log(`idle: ${idle.draws} draws / 10s`);
+  assert.ok(withinRate(idle, 20), JSON.stringify(idle.seconds));
   assert.ok(Math.max(...idle.buffer) <= 2560);
   assert.ok(idle.buffer[0] * idle.buffer[1] <= 4_000_000);
   run('mouse', 'move', '720', '820');
@@ -138,7 +153,10 @@ try {
   run('wait', '--fn', 'document.querySelector(".bookmark-menu") !== null');
   const glass = sample(5000);
   // Open dock panels keep the base 20 fps (the glass blur re-filters every drawn frame).
-  assert.ok(glass.draws > 0 && glass.draws <= 105);
+  console.log(
+    `dock panel open: ${glass.draws} draws, ${glass.raf} rAF / ${glass.seconds.toFixed(2)}s`,
+  );
+  assert.ok(withinRate(glass, 20), JSON.stringify(glass.seconds));
   assert.equal(evaluate('document.querySelectorAll("canvas").length'), 1);
   run('mouse', 'move', '720', '300');
   run('press', 'Control+,');
@@ -146,8 +164,10 @@ try {
   run('wait', '1000');
   const settings = sample(5000);
   // The settings dialog covers the background with a blurred panel: 10 fps.
-  assert.ok(settings.draws > 0 && settings.draws <= 55);
-  console.log(`settings dialog: ${settings.draws} draws / 5s`);
+  console.log(
+    `settings dialog: ${settings.draws} draws, ${settings.raf} rAF / ${settings.seconds.toFixed(2)}s`,
+  );
+  assert.ok(withinRate(settings, 10), JSON.stringify(settings.seconds));
   run('press', 'Escape');
   run('wait', '--fn', 'document.querySelector("[role=dialog]") === null');
   evaluate(
@@ -189,7 +209,7 @@ try {
         offline: true,
         navigationPreferences,
         visibilityPersisted: true,
-        effect: 'crt-terminal/day',
+        effect: 'dithering/day',
         startup,
         effects,
         idle,

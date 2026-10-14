@@ -1,7 +1,12 @@
 import { expect, it } from 'vitest';
 import {
+  canHideVariant,
   chooseEffect,
   DEFAULT_PREFERENCES,
+  drawableVariants,
+  effectWeights,
+  parseVariantKey,
+  variantKey,
   PREFERENCE_PREFIX,
   preferenceEntries,
   readPreferences,
@@ -9,6 +14,7 @@ import {
   toggleEffect,
 } from './model';
 import { EFFECTS, EFFECT_IDS, type EffectId } from '../../effects/presets';
+import { variantIds } from '../../effects/variants';
 const data = (values: Record<string, unknown>) =>
   Object.fromEntries(
     Object.entries(values).map(([key, value]) => [PREFERENCE_PREFIX + key, value]),
@@ -47,6 +53,9 @@ it('deduplicates known effects and preserves valid appearance settings', () => {
     bookmarkSort: 'chrome',
     showFavorites: true,
     showBookmarks: true,
+    motion: 'soft',
+    hiddenVariants: [],
+    pinnedVariant: null,
     onboarding: false,
   });
 });
@@ -130,7 +139,7 @@ it('adds browser language to old preferences without resetting favorites or sett
     ...data({
       appearance: 'night',
       shuffle: false,
-      activeEffect: 'crt-terminal',
+      activeEffect: 'dithering',
       bookmarkSort: 'recent',
       showFavorites: false,
       idleDelay: 5000,
@@ -143,7 +152,7 @@ it('adds browser language to old preferences without resetting favorites or sett
     language: 'auto',
     appearance: 'night',
     shuffle: false,
-    activeEffect: 'crt-terminal',
+    activeEffect: 'dithering',
     bookmarkSort: 'recent',
     showFavorites: false,
     idleDelay: 5000,
@@ -168,7 +177,7 @@ it('shows the first-run hint only for a fresh install until it is dismissed', ()
 });
 
 it('resolves functional updates against the latest stored value and drops no-ops', () => {
-  const stored = { ...DEFAULT_PREFERENCES, effects: ['dithering', 'crt-terminal'] as EffectId[] };
+  const stored = { ...DEFAULT_PREFERENCES, effects: ['dithering', 'data-pixel-arc'] as EffectId[] };
   // Two quick toggles built from the same stale props would lose one; functions see the latest value.
   const first = resolvePreferenceUpdate(stored, current => ({
     effects: toggleEffect(current.effects, 'pixel-blast'),
@@ -179,7 +188,7 @@ it('resolves functional updates against the latest stored value and drops no-ops
   }));
   expect({ ...afterFirst, ...second }.effects).toEqual([
     'dithering',
-    'crt-terminal',
+    'data-pixel-arc',
     'pixel-blast',
     'grain-gradient',
   ]);
@@ -193,5 +202,85 @@ it('resolves functional updates against the latest stored value and drops no-ops
 
 it('keeps the last shuffled effect selected', () => {
   expect(toggleEffect(['dithering'], 'dithering')).toEqual(['dithering']);
-  expect(toggleEffect(['dithering', 'crt-terminal'], 'dithering')).toEqual(['crt-terminal']);
+  expect(toggleEffect(['dithering', 'data-pixel-arc'], 'dithering')).toEqual(['data-pixel-arc']);
+});
+
+it('moves retired CRT selections to the closest remaining family', () => {
+  const preferences = readPreferences(
+    data({
+      effects: ['crt-terminal', 'shader-gradient', 'grain-gradient'],
+      activeEffect: 'crt-terminal',
+    }),
+  );
+  expect(preferences.effects).toEqual(['data-pixel-arc', 'shader-gradient', 'grain-gradient']);
+  expect(preferences.activeEffect).toBe('data-pixel-arc');
+});
+
+it('reads motion, hidden and pinned variants, dropping unknown keys', () => {
+  const [first, second] = variantIds('dithering');
+  expect(
+    readPreferences(
+      data({
+        motion: 'lively',
+        hiddenVariants: [
+          variantKey('dithering', first!),
+          variantKey('dithering', first!),
+          'dithering/retired',
+          'unknown/x',
+          42,
+        ],
+        pinnedVariant: variantKey('dithering', second!),
+      }),
+    ),
+  ).toMatchObject({
+    motion: 'lively',
+    hiddenVariants: [variantKey('dithering', first!)],
+    pinnedVariant: variantKey('dithering', second!),
+  });
+  expect(
+    readPreferences(data({ motion: 'fast', hiddenVariants: 'x', pinnedVariant: 'dithering' })),
+  ).toMatchObject({ motion: 'soft', hiddenVariants: [], pinnedVariant: null });
+  expect(parseVariantKey(variantKey('dithering', second!))).toEqual({
+    effect: 'dithering',
+    variant: second,
+  });
+  expect(parseVariantKey('/dithering')).toBeUndefined();
+});
+
+it('leaves hidden variants out of draws until every one is hidden', () => {
+  const ids = variantIds('fluted-glass');
+  const hidden = ids.slice(1).map(id => variantKey('fluted-glass', id));
+  expect(drawableVariants('fluted-glass', hidden)).toEqual([ids[0]]);
+  expect(
+    drawableVariants('fluted-glass', [...hidden, variantKey('fluted-glass', ids[0]!)]),
+  ).toEqual(ids);
+});
+
+it('weights effects by the square root of their visible variants', () => {
+  const weights = effectWeights(DEFAULT_PREFERENCES);
+  for (const { effect, weight } of weights)
+    expect(weight).toBeCloseTo(Math.sqrt(variantIds(effect).length));
+  const allFluted = variantIds('fluted-glass').map(id => variantKey('fluted-glass', id));
+  const preferences = { ...DEFAULT_PREFERENCES, hiddenVariants: allFluted };
+  expect(effectWeights(preferences).find(entry => entry.effect === 'fluted-glass')?.weight).toBe(0);
+  for (let random = 0; random < 1; random += 0.01)
+    expect(chooseEffect(preferences, random)).not.toBe('fluted-glass');
+  // A pool of only hidden variants ignores the hidden list.
+  const fixed = { ...preferences, shuffle: false, activeEffect: 'fluted-glass' as const };
+  expect(effectWeights(fixed)).toEqual([{ effect: 'fluted-glass', weight: 1 }]);
+  expect(chooseEffect(fixed, 0.5)).toBe('fluted-glass');
+});
+
+it('refuses to hide the last visible variant of the pool', () => {
+  const ids = variantIds('fluted-glass');
+  const fixed = {
+    ...DEFAULT_PREFERENCES,
+    shuffle: false,
+    activeEffect: 'fluted-glass' as const,
+    hiddenVariants: ids.slice(1).map(id => variantKey('fluted-glass', id)),
+  };
+  expect(canHideVariant(fixed, variantKey('fluted-glass', ids[0]!))).toBe(false);
+  expect(canHideVariant({ ...fixed, shuffle: true }, variantKey('fluted-glass', ids[0]!))).toBe(
+    true,
+  );
 });

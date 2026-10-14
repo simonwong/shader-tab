@@ -5,20 +5,29 @@ import { browserSession, fromRoot } from './lib/browser.mjs';
 // Usage: node scripts/capture-effects.mjs [effect id ...]  (needs `pnpm dev` on port 4317)
 const ids = [
   'grain-gradient',
+  'shader-gradient',
   'dithering',
+  'fluted-glass',
   'pixel-blast',
   'data-pixel-arc',
-  'crt-terminal',
-  'shader-gradient',
 ];
 const names = [
   'Grain Gradient',
+  'Shader Gradient',
   'Dithering',
+  'Fluted Glass',
   'Pixel Field',
   'Data Pixel Arc',
-  'CRT Terminal',
-  'Shader Gradient',
 ];
+/** Variant pinned for each capture, so screenshots and thumbnails stay comparable. */
+const pinned = {
+  'grain-gradient': 'blob',
+  'shader-gradient': 'dusk',
+  dithering: 'swirl:8x8',
+  'fluted-glass': 'default',
+  'pixel-blast': 'square',
+  'data-pixel-arc': 'data-pixel',
+};
 const requested = process.argv.slice(2);
 const captureIds = requested.length ? ids.filter(id => requested.includes(id)) : ids;
 const output = fromRoot('artifacts/effects');
@@ -29,17 +38,9 @@ try {
     'open',
     '--init-script',
     fromRoot('scripts/shader-probe.js'),
-    'http://127.0.0.1:4317/src/entrypoints/newtab/index.html',
+    'http://localhost:4317/src/entrypoints/newtab/index.html',
   );
   browser('set', 'viewport', '1440', '900');
-  browser(
-    'eval',
-    `localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:crt-terminal', JSON.stringify({ remaining: ['terminal'] }))`,
-  );
-  browser(
-    'eval',
-    `localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:shader-gradient', JSON.stringify({ remaining: ['plane'] }))`,
-  );
   browser('reload');
   browser(
     'wait',
@@ -60,7 +61,7 @@ try {
         browser(
           'eval',
           `(async () => {
-      window.__shaderProbe.crtTextReady = false;
+      localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:${id}', JSON.stringify({ remaining: ['${pinned[id]}'] }));
       for (const [key, value] of Object.entries({ appearance: '${theme}', activeEffect: '${id}', shuffle: false })) localStorage.setItem('glass-tab-preview:preference:v1:' + key, JSON.stringify(value));
       dispatchEvent(new StorageEvent('storage', { key: 'glass-tab-preview:preference:v1:activeEffect' }));
       await new Promise(resolve => setTimeout(resolve, 5000));
@@ -73,7 +74,6 @@ try {
           '--fn',
           "document.querySelector('.ambient-background').dataset.transitioning === 'false'",
         );
-        if (id === 'crt-terminal') browser('wait', '--fn', 'window.__shaderProbe.crtTextReady');
         browser(
           'screenshot',
           resolve(output, `${id}-${theme}${shape === 'tall' ? '-tall' : ''}.png`),

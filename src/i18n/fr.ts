@@ -87,6 +87,17 @@ export const fr: Messages = {
   languageHint:
     'Appliquée immédiatement et enregistrée localement. Les noms des favoris restent inchangés.',
   shuffleBackground: 'Changer d’arrière-plan',
+  motion: 'Mouvement',
+  motionHint: 'L’ampleur du mouvement de l’arrière-plan',
+  motionStill: 'Calme',
+  motionSoft: 'Doux',
+  motionLively: 'Vif',
+  pinVariant: 'Épingler cet arrière-plan',
+  unpinVariant: 'Désépingler',
+  pinnedVariant: 'Arrière-plan épinglé',
+  hideVariant: 'Ne plus afficher cette variante',
+  hiddenVariants: 'Variantes masquées : {count}',
+  restoreHidden: 'Tout rétablir',
   selectedCount: '{count}/{total} sélectionnés',
   openSettings: 'Ouvrir les paramètres',
   firstRunHint:
@@ -96,12 +107,11 @@ export const fr: Messages = {
     'Pour retrouver le nouvel onglet par défaut de Chrome, désactivez Shader Tab dans chrome://extensions.',
   openFailed:
     'Chrome n’a pas pu ouvrir ce lien. Les liens vers des fichiers nécessitent « Autoriser l’accès aux URL de fichiers » dans les détails de l’extension.',
-  'effect.grain-gradient': 'Un grain fin et des couleurs fluides réagissent doucement au pointeur',
+  'effect.grain-gradient': 'Un grain fin et des couleurs qui dérivent lentement',
   'effect.dithering': 'Des tourbillons monochromes aux textures de pixels en mouvement',
+  'effect.shader-gradient': 'Des plis de couleur doux en 3D qui ondulent lentement',
+  'effect.fluted-glass': 'Un verre cannelé qui réfracte des couleurs dérivant lentement',
   'effect.pixel-blast':
     'Déplacez le pointeur pour agiter les pixels ; cliquez sur le fond pour créer des ondes',
   'effect.data-pixel-arc': 'Styles originaux avec pixels de données, particules, rubans et trames',
-  'effect.crt-terminal': 'Texte de terminal lumineux avec de discrètes lignes de balayage',
-  'effect.shader-gradient':
-    'Les formes originales Halo, Pensive et Mint : plan, sphère et eau, choisies au hasard à chaque nouvel onglet',
 };

@@ -85,6 +85,17 @@ export const en = {
   browserLanguage: 'Follow browser',
   languageHint: 'Applies immediately and is saved locally. Bookmark names stay as you wrote them.',
   shuffleBackground: 'Shuffle background',
+  motion: 'Motion',
+  motionHint: 'How lively the background moves',
+  motionStill: 'Still',
+  motionSoft: 'Soft',
+  motionLively: 'Lively',
+  pinVariant: 'Pin this background',
+  unpinVariant: 'Unpin',
+  pinnedVariant: 'Pinned background',
+  hideVariant: 'Don’t show this variant again',
+  hiddenVariants: 'Hidden variants: {count}',
+  restoreHidden: 'Restore all',
   selectedCount: '{count}/{total} selected',
   openSettings: 'Open settings',
   firstRunHint:
@@ -94,13 +105,12 @@ export const en = {
     'To get Chrome’s default new tab back, turn off Shader Tab at chrome://extensions.',
   openFailed:
     'Chrome could not open this link. File links need “Allow access to file URLs” on the extension’s details page.',
-  'effect.grain-gradient': 'Fine grain and flowing color that respond gently to your pointer',
+  'effect.grain-gradient': 'Fine grain and slowly drifting color',
   'effect.dithering': 'Monochrome swirls with continuously flowing pixel textures',
+  'effect.shader-gradient': 'Soft three-dimensional color folds rising and falling slowly',
+  'effect.fluted-glass': 'Ribbed glass refracting slowly drifting color',
   'effect.pixel-blast': 'Move your pointer to stir the pixels; click the background for ripples',
   'effect.data-pixel-arc': 'Original styles with data pixels, particles, ribbons and halftones',
-  'effect.crt-terminal': 'Glowing terminal text with subtle scanlines',
-  'effect.shader-gradient':
-    'Original Halo plane, Pensive sphere and Mint water; a random shape on each new tab',
 } as const;
 export type MessageKey = keyof typeof en;
 export type Messages = { [Key in MessageKey]: string };

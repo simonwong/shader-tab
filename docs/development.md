@@ -19,8 +19,8 @@ pnpm dev
 
 ### 依赖版本
 
-- 影响渲染结果或首屏的依赖在 package.json 中写确切版本：`react`、`react-dom`、`three`、`@react-three/fiber`、`@shadergradient/react`、`@paper-design/shaders`、`@base-ui/react`。升级时单独提交，并重跑 `pnpm review:variants` 和 `pnpm perf:measure`。
-- Hugeicons 两个包写确切版本，图标形状不随更新变化；`@types/three` 与 `three` 同版本。开发工具 `oxlint`、`oxfmt` 也写确切版本，避免规则或格式随小版本变化。
+- 影响渲染结果或首屏的依赖在 package.json 中写确切版本：`react`、`react-dom`、`@paper-design/shaders`、`@base-ui/react`。升级时单独提交，并重跑 `pnpm review:variants` 和 `pnpm perf:measure`。
+- Hugeicons 两个包写确切版本，图标形状不随更新变化。开发工具 `oxlint`、`oxfmt` 也写确切版本，避免规则或格式随小版本变化。
 - 其余依赖使用 `^` 范围。实际安装版本以 `pnpm-lock.yaml` 为准，CI 用 `pnpm install --frozen-lockfile`。
 - 新增或升级依赖时选择发布至少两周的版本。
 
@@ -43,7 +43,7 @@ pnpm dev
 
 生产目录为 `.output/chrome-mv3`，ZIP 为 `.output/shader-tab-<version>-chrome.zip`。开发截图、设计素材和官网不进入扩展包。
 
-构建校验检查 manifest、权限、生产环境隔离、首屏 JS 预算、动态加载的设置与渲染器，以及实际打包依赖的许可声明。测试范围和运行环境限制见[验证记录](verification.md)与[性能记录](performance.md)。
+构建校验检查 manifest、权限、生产环境隔离、首屏 JS 预算、动态加载的设置与渲染器、随包图片（12 张设置缩略图合计小于 100 KB，另加一张小于 80 KB 的 Fluted Glass 照片），以及实际打包依赖的许可声明；three.js 及 ShaderGradient 的 React 包不得出现在依赖清单中。测试范围和运行环境限制见[验证记录](verification.md)与[性能记录](performance.md)。
 
 ## 更新本地安装
 
@@ -101,13 +101,14 @@ agent-browser install
 | --------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
 | `pnpm capture:effects [id…]`            | 开发服务 | 六类背景日夜、横竖屏截图                                                                      |
 | `pnpm review:effects`                   | 开发服务 | 动画、指针交互、快速切换、静态回退、上下文丢失                                                |
+| `pnpm review:motion [id…]`              | 开发服务 | 每个变体静止、指针、点击时一秒内的画面变化，超出动效上限时退出码为 1；`--theme night` 测夜间  |
 | `pnpm review:variants [id…]`            | 自动构建 | 每个变体的日夜渲染、单类随机、窄屏设置                                                        |
 | `pnpm review:locales`                   | 自动构建 | 八语切换、持久化、布局与离线政策页                                                            |
 | `pnpm perf:measure [name]`              | 自动构建 | 冷启动、各背景绘制次数、空闲帧率、后台 GPU 释放；结果写入 `artifacts/performance/<name>.json` |
 | `node scripts/review-favicons.mjs`      | 构建产物 | 离线图标缓存、缺图与 Retina 渲染                                                              |
 | `node scripts/diagnose-favicon-api.mjs` | 无       | `_favicon` 接口在有无 `favicon` 权限时的行为                                                  |
 
-其余 `review-*.mjs`（导航、设置、书签排序、玻璃模糊、品牌图标、发布页、Shader Gradient、升级）用法相同，直接用 `node` 运行。
+其余 `review-*.mjs`（导航、设置、书签排序、玻璃模糊、品牌图标、发布页、升级）用法相同，直接用 `node` 运行。
 
 ## 目录
 

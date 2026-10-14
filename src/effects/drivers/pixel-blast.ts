@@ -3,11 +3,12 @@
  *
  * The screen is divided into a grid of small cells. A slow, domain-warped
  * gradient-noise field gives every cell a density; an 8x8 ordered-dither
- * (Bayer) threshold decides whether the cell is lit, so dense regions read as
- * solid colour and thin regions break into scattered pixels. Pointer movement
- * and clicks start expanding rings that brighten cells and nudge their shapes
- * outward. Everything is drawn by one fragment shader over a fullscreen
- * triangle: one draw call per frame, no offscreen buffers.
+ * (Bayer) threshold sets the level at which each cell appears, so dense regions
+ * read as solid colour and thin regions break into scattered pixels. Cells grow
+ * and shrink as the field drifts past their threshold rather than switching on
+ * and off. The pointer carries a soft, slow lens that swells nearby cells, and
+ * a click sends out one faint ring. Everything is drawn by one fragment shader
+ * over a fullscreen triangle: one draw call per frame, no offscreen buffers.
  */
 import { getEffect, THEME_BRIGHTNESS } from '../presets';
 import { releaseCanvas } from './surface';
@@ -24,13 +25,19 @@ import type { DriverFactory, Pointer } from './types';
 const SHAPES: Record<string, number> = { square: 0, circle: 1, triangle: 2, diamond: 3 };
 /** Cell pitch in CSS pixels; rounded to an even number of device pixels. */
 const CELL_CSS = 8;
-const RIPPLES = 10;
+/** Click rings in flight at once. */
+const RIPPLES = 4;
 /** Seconds a ripple stays visible; must match RIPPLE_LIFE in the shader. */
-const RIPPLE_LIFE = 2.6;
-const TRAIL_INTERVAL = 0.3;
-const TRAIL_DISTANCE = 0.07;
-const TRAIL_STRENGTH = 0.32;
-const CLICK_STRENGTH = 1;
+const RIPPLE_LIFE = 2.4;
+const CLICK_STRENGTH = 0.3;
+/** Peak density the pointer lens adds under the pointer. */
+const HOVER_STRENGTH = 0.12;
+/** Time constants (seconds) of the lens fading in, fading out and following the pointer. */
+const HOVER_IN = 0.6;
+const HOVER_OUT = 2;
+const HOVER_FOLLOW = 0.35;
+/** Seconds after the last pointer move before the lens starts to fade. */
+const HOVER_HOLD = 1.2;
 
 const VERTEX = `
 attribute vec2 position;
@@ -53,7 +60,6 @@ uniform float uCell;
 uniform float uShape;
 uniform vec3 uInk;
 uniform vec3 uPaper;
-uniform vec3 uGlow;
 uniform float uInkStrength;
 uniform float uBrightness;
 uniform vec3 uHover;          // xy: pointer in 0..1 (y up), z: strength
@@ -125,7 +131,7 @@ void main() {
   vec2 local = fract(frag / uCell) - .5;
   vec2 center = (cellId + .5) * uCell / uResolution.y;
 
-  float t = uTime * 1.6;
+  float t = uTime * .6;
   vec2 p = center * 2.1;
   vec2 warp = vec2(
     noise(p * .55 + vec2(t * .21, -t * .13)),
@@ -136,45 +142,33 @@ void main() {
   float pool = 1.0 - smoothstep(.15, 1.15, length(center - focus));
   float density = smoothstep(-.12, .42, field + pool * .26 - .09);
 
-  vec2 push = vec2(0.0);
   float energy = 0.0;
   for (int index = 0; index < RIPPLES; index++) {
     vec4 ripple = uRipples[index];
     if (ripple.w <= 0.0 || ripple.z > RIPPLE_LIFE) continue;
-    vec2 offset = center - vec2(ripple.x * aspect, ripple.y);
-    float dist = length(offset);
+    float dist = length(center - vec2(ripple.x * aspect, ripple.y));
     float life = ripple.z / RIPPLE_LIFE;
-    float band = (dist - ripple.z * .42) / (.026 + ripple.z * .02);
-    float trough = band + 1.9;
-    float fade = (1.0 - life) * (1.0 - life) * ripple.w;
-    float wave = (exp(-band * band) - .38 * exp(-trough * trough)) * fade;
-    energy += wave;
-    push += offset / max(dist, 1e-3) * wave;
+    float band = (dist - ripple.z * .3) / (.05 + ripple.z * .03);
+    energy += exp(-band * band) * (1.0 - life) * (1.0 - life) * ripple.w;
   }
   vec2 hoverOffset = center - vec2(uHover.x * aspect, uHover.y);
-  float hover = exp(-dot(hoverOffset, hoverOffset) * 34.0) * uHover.z;
-  energy += hover * .32;
-  push += hoverOffset * hover * 1.4;
+  energy += exp(-dot(hoverOffset, hoverOffset) * 10.0) * uHover.z;
 
-  float level = density + energy * .7;
+  float level = density + energy;
   float threshold = bayer8(cellId) * .96 + .02;
-  float lit = smoothstep(threshold, threshold + .06, level);
+  // Cells swell from nothing as the level passes their threshold, so a drifting
+  // field reads as pixels breathing in and out instead of blinking.
+  float grow = smoothstep(threshold - .1, threshold + .12, level);
   float tone = mix(.62, 1.0, smoothstep(0.0, .35, level - threshold));
-  float spark = clamp(energy, 0.0, 1.0);
 
-  vec2 shift = push * .16;
-  float shiftLength = length(shift);
-  if (shiftLength > .12) shift *= .12 / shiftLength;
-  float size = (floor(.34 * uCell + .5) + floor(min(energy, 1.0) * .06 * uCell)) / uCell;
-  float edge = shapeDistance(local - shift, size) * uCell;
-  float cover = clamp(.5 - edge, 0.0, 1.0) * lit;
+  float size = floor(.34 * uCell + .5) / uCell * grow;
+  float edge = shapeDistance(local, size) * uCell;
+  float cover = clamp(.5 - edge, 0.0, 1.0) * smoothstep(0.0, .35, grow);
 
   vec3 paper = uPaper;
   paper = mix(paper, uInk, .33 * glow(uv, vec2(.75, .7), vec2(1.06, .99), .65));
   paper = mix(paper, uInk, .2 * glow(uv, vec2(.2, .2), vec2(1.13, 1.13), .6));
-  vec3 ink = mix(uInk, uGlow, spark);
-  float alpha = min(1.0, tone * uInkStrength + spark * .3);
-  vec3 color = mix(paper, ink, cover * alpha);
+  vec3 color = mix(paper, uInk, cover * tone * uInkStrength);
   // Half-step noise keeps the soft background gradients free of 8-bit banding.
   float grain = fract(sin(dot(frag, vec2(12.9898, 78.233))) * 43758.5453) - .5;
   gl_FragColor = vec4(color * uBrightness + grain / 255.0, 1.0);
@@ -225,24 +219,16 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
 
     const preset = getEffect('pixel-blast');
     gl.uniform3fv(uniform('uPaper'), rgb(preset.base[theme]));
-    /* Ripples push lit cells towards a lighter tint at night and a deeper one by day. */
-    const ink = rgb(preset[theme][0]);
-    gl.uniform3fv(uniform('uInk'), ink);
-    gl.uniform3fv(
-      uniform('uGlow'),
-      ink.map(channel => (theme === 'day' ? channel * 0.7 : channel + (1 - channel) * 0.45)),
-    );
+    gl.uniform3fv(uniform('uInk'), rgb(preset[theme][0]));
     gl.uniform1f(uniform('uInkStrength'), theme === 'day' ? 0.82 : 0.78);
     gl.uniform1f(uniform('uBrightness'), THEME_BRIGHTNESS[theme]);
     gl.uniform1f(uniform('uShape'), SHAPES[variant] ?? 0);
 
-    /* Ripple ring buffer, uploaded as-is; ages advance with real frame time. */
+    /* Click ring buffer, uploaded as-is; ages advance with real frame time. */
     const rippleData = new Float32Array(RIPPLES * 4);
     let nextRipple = 0;
     let ripplesLive = false;
     let clock = 0;
-    let lastTrail = -Infinity;
-    const trailFrom = { x: 0, y: 0 };
     const cursor = { x: 0.5, y: 0.5 };
     const tap = { x: 0.5, y: 0.5 };
     const smoothed = { x: 0.5, y: 0.5 };
@@ -278,14 +264,6 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
           smoothed.y = cursor.y;
         }
         lastMove = clock;
-        const aspect = canvas.width / canvas.height;
-        const travelled = Math.hypot((cursor.x - trailFrom.x) * aspect, cursor.y - trailFrom.y);
-        if (travelled > TRAIL_DISTANCE && clock - lastTrail > TRAIL_INTERVAL) {
-          emit(cursor.x, cursor.y, TRAIL_STRENGTH);
-          trailFrom.x = cursor.x;
-          trailFrom.y = cursor.y;
-          lastTrail = clock;
-        }
       },
       click(pointer) {
         toUv(pointer, tap);
@@ -293,12 +271,13 @@ export const createDriver: DriverFactory = (host, { theme, variant }) => {
       },
       render(seconds, delta) {
         clock += delta;
-        const follow = 1 - Math.exp(-delta * 8);
+        const follow = 1 - Math.exp(-delta / HOVER_FOLLOW);
         smoothed.x += (cursor.x - smoothed.x) * follow;
         smoothed.y += (cursor.y - smoothed.y) * follow;
-        const targetHover = clock - lastMove < 1.2 ? 1 : 0;
+        const targetHover = clock - lastMove < HOVER_HOLD ? HOVER_STRENGTH : 0;
         hoverStrength +=
-          (targetHover - hoverStrength) * (1 - Math.exp(-delta * (targetHover ? 4 : 1.5)));
+          (targetHover - hoverStrength) *
+          (1 - Math.exp(-delta / (targetHover ? HOVER_IN : HOVER_OUT)));
         gl.uniform3f(hover, smoothed.x, smoothed.y, hoverStrength);
         if (ripplesLive) {
           ripplesLive = false;

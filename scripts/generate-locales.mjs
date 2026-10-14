@@ -22,11 +22,8 @@ const languageLabel = {
 const permissionNames = ['bookmarks', 'storage', 'favicon'];
 const licenseItems = [
   ['Paper Shaders', 'paper-shaders.txt', 'Apache-2.0'],
-  ['Shader Gradient', 'shader-gradient.txt', 'MIT'],
   ['ThreeUI', 'threeui.txt', 'MIT'],
-  ['Three.js', 'three.txt', 'MIT'],
-  ['React Three Fiber', 'react-three-fiber.txt', 'MIT'],
-  ['camera-controls', 'camera-controls.txt', 'MIT'],
+  ['Shader Gradient', 'shader-gradient.txt', 'MIT'],
   ['GLSL noise / Ashima Arts / Stefan Gustavson', 'glsl-noise.txt', 'MIT'],
   ['Liquid Glass / Glass HQ', 'liquid-glass.txt', 'MIT'],
   ['Space Grotesk', 'space-grotesk.txt', 'SIL Open Font License 1.1'],
@@ -75,8 +72,6 @@ function privacyBody(copy) {
 }
 
 function licensesBody(copy, root) {
-  const colon = copy.colon ?? ':';
-  const gap = copy.colon ? '' : ' ';
   const items = licenseItems.map(
     ([name, file, label]) =>
       `<li>${name} — <a href="${root}licenses/${file}">${escape(label)}</a>${name === 'Paper Shaders' ? ` · <a href="${root}licenses/paper-shaders-NOTICE.txt">NOTICE</a>` : ''}</li>`,
@@ -84,7 +79,7 @@ function licensesBody(copy, root) {
   return (
     section(
       copy.dependencies,
-      `<p><a href="${root}licenses/dependencies.txt">${escape(copy.notices)}</a> · <a href="${root}licenses/dependencies.json">${escape(copy.versions)}</a></p>${p(copy.inventory)}<p><a href="${root}licenses/embedded-dependencies.txt">${escape(copy.embedded)}</a>${colon}${gap}${escape(copy.embeddedNote)}</p>`,
+      `<p><a href="${root}licenses/dependencies.txt">${escape(copy.notices)}</a> · <a href="${root}licenses/dependencies.json">${escape(copy.versions)}</a></p>${p(copy.inventory)}`,
     ) + section(copy.backgrounds, `<ul>${items.join('')}</ul>${p(copy.adaptations)}`)
   );
 }

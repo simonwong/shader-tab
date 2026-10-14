@@ -26,11 +26,11 @@ const copy =
       };
 const variants: Record<EffectId, string> = {
   'grain-gradient': 'corners',
-  dithering: 'swirl:4x4',
+  'shader-gradient': 'dusk',
+  dithering: 'swirl:8x8',
+  'fluted-glass': 'default',
   'pixel-blast': 'square',
   'data-pixel-arc': 'predictive',
-  'crt-terminal': 'terminal',
-  'shader-gradient': 'sphere',
 };
 let effect: EffectId = 'grain-gradient',
   theme: Theme = 'day';

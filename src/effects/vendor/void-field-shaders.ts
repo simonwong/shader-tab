@@ -1,6 +1,7 @@
 // ThreeUI, copyright Meng To. MIT; see public/licenses/threeui.txt.
 // Modified by Shader Tab: the output is clamped and multiplied by uDim (theme
-// brightness).
+// brightness), the random per-frame row flicker is removed, the pulse runs at
+// 0.4x speed and the pointer shifts the grid by 0.02 instead of 0.05.
 export const vertex = `
 attribute vec2 position;
 void main() {
@@ -21,14 +22,10 @@ vec2 barrel(vec2 uv, float amt) {
     return uv + cc * r * amt;
 }
 
-float rand(vec2 co) {
-    return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453);
-}
-
 void main() {
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
 
-    vec2 mouseOffset = (uMouse - 0.5) * 0.05;
+    vec2 mouseOffset = (uMouse - 0.5) * 0.02;
     uv += mouseOffset;
 
     uv = barrel(uv, 0.2);
@@ -45,7 +42,7 @@ void main() {
     vec2 cc = id / gridCount - 0.5;
     float dist = length(cc);
 
-    float pulse = sin(iTime * 1.5 - dist * 10.0) * 0.5 + 0.5;
+    float pulse = sin(iTime * 0.6 - dist * 10.0) * 0.5 + 0.5;
 
     float dotSize = 0.35 * pulse;
     float d = length(gridUv - 0.5);
@@ -53,9 +50,7 @@ void main() {
 
     float scanline = sin(uv.y * 800.0) * 0.03;
 
-    float flicker = rand(vec2(iTime, id.y)) > 0.98 ? 0.4 : 1.0;
-
-    vec3 col = vec3(circle * pulse * flicker);
+    vec3 col = vec3(circle * pulse);
     col -= scanline;
     col *= vec3(0.7, 0.3, 1.0); // Purple tint
 

@@ -84,6 +84,17 @@ export const ko: Messages = {
   browserLanguage: '브라우저 설정 따르기',
   languageHint: '즉시 적용하고 로컬에 저장합니다. 북마크 이름은 변경하지 않습니다.',
   shuffleBackground: '배경 바꾸기',
+  motion: '움직임',
+  motionHint: '배경이 움직이는 정도',
+  motionStill: '고요',
+  motionSoft: '부드럽게',
+  motionLively: '활발',
+  pinVariant: '이 배경 고정',
+  unpinVariant: '고정 해제',
+  pinnedVariant: '고정된 배경',
+  hideVariant: '이 변형 다시 표시 안 함',
+  hiddenVariants: '숨긴 변형 {count}개',
+  restoreHidden: '모두 복원',
   selectedCount: '{count}/{total}개 선택됨',
   openSettings: '설정 열기',
   firstRunHint:
@@ -92,11 +103,10 @@ export const ko: Messages = {
   restoreDefault: 'Chrome 기본 새 탭으로 돌아가려면 chrome://extensions에서 Shader Tab을 끄세요.',
   openFailed:
     '이 링크를 열 수 없습니다. 로컬 파일을 열려면 확장 프로그램 세부정보에서 “파일 URL에 대한 액세스 허용”을 켜세요.',
-  'effect.grain-gradient': '미세한 입자와 흐르는 색이 포인터에 부드럽게 반응합니다',
+  'effect.grain-gradient': '미세한 입자와 천천히 흐르는 색',
   'effect.dithering': '흐르는 픽셀 질감과 흑백 소용돌이',
+  'effect.shader-gradient': '천천히 오르내리는 부드러운 입체 색의 물결',
+  'effect.fluted-glass': '천천히 흐르는 색을 굴절시키는 골유리',
   'effect.pixel-blast': '포인터로 픽셀을 움직이고 배경을 클릭해 물결을 만드세요',
   'effect.data-pixel-arc': '데이터 픽셀, 입자, 리본, 하프톤 스타일',
-  'effect.crt-terminal': '빛나는 터미널 텍스트와 은은한 주사선',
-  'effect.shader-gradient':
-    '원본 Halo 평면, Pensive 구, Mint 수면. 새 탭마다 형태를 무작위로 선택합니다',
 };

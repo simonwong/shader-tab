@@ -1,6 +1,6 @@
 import type { Theme } from './presets';
 import type { VariantDef } from './variants';
-import { breathingTime } from './motion';
+import { breathingTime, MOTION_SPEED, type Motion } from './motion';
 import { createFrameLoop } from './frame-loop';
 import { createRateMonitor } from './rate-policy';
 import { pixelDensity } from './drivers/surface';
@@ -21,6 +21,8 @@ export interface AmbientController {
   resume: () => void;
   /** While blocked (the settings dialog is open) the background ignores the pointer and draws slower. */
   setPointerBlocked: (blocked: boolean) => void;
+  /** Motion level: clock speed, base frame rate, and (unless still) pointer reactions. */
+  setMotion: (motion: Motion) => void;
 }
 
 const clamp = (value: number) => Math.max(-1, Math.min(1, value));
@@ -40,6 +42,7 @@ export function mountAmbient(
   let disposed = false,
     paused = document.hidden,
     pointerBlocked = false;
+  let motion: Motion = 'soft';
   let lastFrame = 0,
     seconds = 0,
     resizeTimer = 0;
@@ -81,8 +84,10 @@ export function mountAmbient(
   const leavePointer = (event: PointerEvent) => {
     if (!event.relatedTarget) resetPointer();
   };
+  // Still motion ignores the pointer entirely, like the open settings dialog.
   const overControls = (event: PointerEvent) =>
     pointerBlocked ||
+    motion === 'still' ||
     (event.target instanceof Element && event.target.closest('.ui-surface') !== null);
   const normalize = (event: PointerEvent): Pointer => {
     const { width, height } = size();
@@ -112,7 +117,7 @@ export function mountAmbient(
     if (disposed || paused || document.hidden || !driver) return;
     const delta = lastFrame ? Math.min((now - lastFrame) / 1000, 0.25) : 0;
     lastFrame = now;
-    seconds += delta;
+    seconds += delta * MOTION_SPEED[motion];
     const follow = 1 - Math.exp(-delta * 1.2);
     pointer.x += (target.x * 0.35 - pointer.x) * follow;
     pointer.y += (target.y * 0.35 - pointer.y) * follow;
@@ -207,6 +212,11 @@ export function mountAmbient(
       pointerBlocked = blocked;
       monitor.setDialogOpen(blocked);
       if (blocked) resetPointer();
+    },
+    setMotion(next) {
+      motion = next;
+      monitor.setMotion(next);
+      if (next === 'still') resetPointer();
     },
   };
 }

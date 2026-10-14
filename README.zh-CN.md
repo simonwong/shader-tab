@@ -9,7 +9,7 @@
     <a href="docs/development.md">开发指南</a> ·
     <a href="https://github.com/simonwong/shader-tab/issues">问题反馈</a>
   </p>
-  <p><strong>6 类背景 · 49 种变体 · 8 种语言</strong></p>
+  <p><strong>6 类背景 · 28 种变体 · 8 种语言</strong></p>
 </div>
 
 ![Shader Tab：桃色与淡紫色颗粒渐变，底部显示玻璃书签控件](docs/images/grain-gradient.png)
@@ -22,30 +22,28 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 - **每次都有一点新意。** 自选参与随机的背景类别，各类变体每轮不重复；当前标签页保持原来的画面。
 - **书签就在手边。** 按 Chrome 文件夹浏览、搜索书签，收藏最多 10 个常用网站，拖动调整顺序。图标读取 Chrome 已有缓存。
 - **自己决定显示什么。** 收藏和系统书签入口可独立隐藏，支持书签排序与控件隐藏延迟设置。
-- **按需使用资源。** 渲染器按需加载，标签页隐藏后停绘，30 秒后释放 GPU 上下文；系统减少动态效果时使用静态背景。
+- **按需使用资源。** 渲染器按需加载，标签页隐藏后停绘，10 秒后释放 GPU 上下文；系统减少动态效果时使用静态背景。
 - **八种界面语言。** 简体中文、繁體中文、English、日本語、한국어、Français、Deutsch、Español，支持跟随浏览器或手动选择。
 
 ## 换一种心情
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/pixel-blast.png" alt="Pixel Field 淡紫色像素背景" /></td>
-    <td width="50%"><img src="docs/images/crt.png" alt="CRT 荧光终端装饰背景" /></td>
+    <td align="center"><img src="docs/images/pixel-blast.png" alt="Pixel Field 淡紫色像素背景" /></td>
   </tr>
   <tr>
     <td align="center">Pixel Field</td>
-    <td align="center">CRT Terminal</td>
   </tr>
 </table>
 
-| 背景            | 画面特点                      | 使用框架          |
-| --------------- | ----------------------------- | ----------------- |
-| Grain Gradient  | 柔和色彩与细腻颗粒            | Paper Shaders     |
-| Dithering       | 网点渐变与复古纹理            | Paper Shaders     |
-| Pixel Field     | 抖动像素网格与指针涟漪        | 原创 WebGL shader |
-| Predictive Arc  | 弧线、粒子、丝带与场景变体    | ThreeUI           |
-| CRT             | 荧光与装饰屏幕                | ThreeUI           |
-| Shader Gradient | Plane、Sphere、Water 三种形态 | Shader Gradient   |
+| 背景            | 画面特点                     | 使用框架          |
+| --------------- | ---------------------------- | ----------------- |
+| Grain Gradient  | 柔和色彩与细腻颗粒           | Paper Shaders     |
+| Shader Gradient | 缓慢起伏的低饱和色彩褶皱     | ShaderGradient    |
+| Dithering       | 网点渐变与复古纹理           | Paper Shaders     |
+| Fluted Glass    | 棱纹玻璃在花卉照片上缓慢滑动 | Paper Shaders     |
+| Pixel Field     | 缓慢胀缩的抖动像素网格       | 原创 WebGL shader |
+| Predictive Arc  | 弧线、粒子、丝带与场景变体   | ThreeUI           |
 
 以上为实际扩展截图。前往[官网体验动态背景](https://shadertab.moonunder.app/#effects)，或查看[完整变体清单](docs/effect-variants.md)。
 
@@ -97,7 +95,7 @@ pnpm zip
 
 在 `chrome://extensions` 开启开发者模式，选择「加载已解压的扩展程序」，加载 `.output/chrome-mv3`。ZIP 生成在 `.output/`。
 
-基于 **WXT、React、TypeScript、Three.js、Base UI 和 Hugeicons**。调试扩展、部署官网及验证命令见[开发指南](docs/development.md)。
+基于 **WXT、React、TypeScript、Base UI 和 Hugeicons**。调试扩展、部署官网及验证命令见[开发指南](docs/development.md)。
 
 ## 项目文档
 
@@ -106,12 +104,12 @@ pnpm zip
 | [开发指南](docs/development.md)     | 本地环境、构建产物、官网与验证 |
 | [架构](docs/architecture.md)        | 数据边界、存储与渲染生命周期   |
 | [背景实现](docs/shaders.md)         | Shader 接入与来源              |
-| [变体清单](docs/effect-variants.md) | 49 种组合与随机规则            |
+| [变体清单](docs/effect-variants.md) | 28 种变体与随机规则            |
 | [性能记录](docs/performance.md)     | 渲染预算与实测结果             |
 
 ## 致谢
 
-背景使用 [Paper Shaders](https://github.com/paper-design/shaders)、[ThreeUI](https://github.com/MengTo/threeui) 和 [Shader Gradient](https://github.com/ruucm/shadergradient)；图标使用 [Hugeicons](https://github.com/hugeicons/hugeicons)，字体使用 Space Grotesk。
+背景使用 [Paper Shaders](https://github.com/paper-design/shaders)、[ShaderGradient](https://shadergradient.co/) 和 [ThreeUI](https://github.com/MengTo/threeui)；图标使用 [Hugeicons](https://github.com/hugeicons/hugeicons)，字体使用 Space Grotesk。
 
 问题与建议请[提交 Issue](https://github.com/simonwong/shader-tab/issues)。私人支持联系 [support@moonunder.app](mailto:support@moonunder.app)。
 

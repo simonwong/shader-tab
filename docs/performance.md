@@ -3,11 +3,13 @@
 ## 运行预算
 
 - 六种框架效果按需加载，首屏先显示 CSS 配色（首屏缓存记住上次的背景色）。稳定状态只有一个可见画布，切换淡入期间最多两个。
-- 帧率由 `rate-policy.ts` 决定：默认 20 fps，指针绘制类背景移动时 30 fps，电池 15，失焦超过 15 秒或设置打开 10，2 分钟无输入 5，10 分钟无输入停在当前帧。绘制只发生在 rAF 回调内。隐藏立即停绘，10 秒后释放资源，返回重建。细节见[架构](architecture.md#帧率策略)。
-- 缓冲区最长边 2560、总像素不超过 400 万、DPR 上限 2；Grain Gradient 密度上限 1.25，使用电池时所有背景上限 1。Paper 显式接收所选像素密度，避免尺寸观察器与浏览器 DPR 不一致时落到低分辨率。
-- Paper 自动时钟关闭，用 setFrame 推进；指针 uniform 改变时另提交一次更新。Pixel Field 每帧一个 draw，无离屏纹理。Arc 全部变体为片元着色器（Amber Halftone 不再加载 Three.js）；CRT 文字纹理只在内容变化时上传，光标在着色器中绘制，打字结束后不再上传。
+- 帧率由 `rate-policy.ts` 决定：默认 20 fps（动效静档 10、活档 30），指针绘制类背景移动时 30 fps，电池 15，失焦超过 15 秒或设置打开 10，2 分钟无输入 5，10 分钟无输入停在当前帧。绘制只发生在 rAF 回调内。隐藏立即停绘，10 秒后释放资源，返回重建。细节见[架构](architecture.md#帧率策略)。
+- 缓冲区最长边 2560、总像素不超过 400 万、DPR 上限 2；Grain Gradient 密度上限 1.25，Shader Gradient 上限 1，使用电池时所有背景上限 1。Paper 显式接收所选像素密度，避免尺寸观察器与浏览器 DPR 不一致时落到低分辨率。
+- Paper 自动时钟关闭，用 setFrame 推进；指针 uniform 改变时另提交一次更新。Pixel Field 每帧一个 draw，无离屏纹理。Shader Gradient 每帧一个 draw（192 段细分平面，无后处理 pass）。Fluted Glass 的照片在加载时于 2D canvas 处理一次并上传为纹理，之后每帧只更新 `u_shift` 并做一个 draw。Arc 全部变体为片元着色器，背景不加载 three.js。
 - 切换时新场景在旧场景上淡入（首次 350 ms，切换 600 ms），淡入期间旧画面冻结、不再绘制，结束后释放。过期异步结果释放资源。
 - 玻璃仅覆盖导航、收藏条、设置与来源胶囊；材质纹理按尺寸缓存。设置和拖拽代码首次打开才加载，书签菜单空闲时预取。首屏 JS 预算 265 KB。
+- 动效上限由 `scripts/review-motion.mjs` 检查：每个变体每秒变化像素比例，静止不超过 2.5%，指针移动和点击各自额外不超过 1.5%。
+- `scripts/measure-performance.mjs` 的空闲、书签菜单、设置与后台采样使用日间 Dithering。下面的历史记录使用日间 CRT（已移除），新结果不能与之直接对比。
 
 ## 第二阶段基础设施对比（2026-10-08）
 
@@ -50,11 +52,13 @@
 
 后台两次采样绘制计数保持相同，后一次画布已释放；返回恢复渲染，设置可打开。脚本错误为零。原始记录：`artifacts/performance/latest.json`。
 
-上表为 2026-09-21 的记录，当时 Pixel Blast 仍为两个 GPU pass；2026-10-08 换成 Pixel Field 后为每帧 1 次 draw（见上节）。Shader Gradient 的两个 GPU pass 使 draw 数约为 rAF 的两倍，不能与单 pass 或 Canvas 2D 的 draw 直接比较。计数反映调度和部分主线程工作，不代表 GPU 时间、功耗或电池续航。尚未做低性能设备和长期功耗测试。
+上表为 2026-09-21 的记录，当时 Pixel Blast 仍为两个 GPU pass；2026-10-08 换成 Pixel Field 后为每帧 1 次 draw（见上节）。当时 Shader Gradient 基于 three.js，两个 GPU pass 使 draw 数约为 rAF 的两倍（2026-10-14 起为每帧 1 次 draw），不能与单 pass 或 Canvas 2D 的 draw 直接比较。计数反映调度和部分主线程工作，不代表 GPU 时间、功耗或电池续航。尚未做低性能设备和长期功耗测试。
 
 ## 体积与重现
 
-首屏约 306.85 KB 原始 JS；Paper 约 58 KB、Pixel Field 约 7 KB（2026-10-08）、Arc 约 2 KB、CRT 约 22 KB、Shader Gradient 与 Fiber 约 384 KB，Three.js 约 737 KB（2026-10-08 起只有 Shader Gradient 加载）。2026-10-08 换用 Base UI 并懒加载书签菜单后，首屏 JS 为 242.7 KB（gzip 78.1 KB）。ZIP 525.33 KB。新增体积来自官方组件和 Fiber，背景仍不加载备用图片。12 个缩略图引用中，Shader Gradient 日夜共用一张，构建输出 11 张。Shader Gradient 像素密度上限为所选预设的 1。
+2026-10-14 生产构建：扩展目录合计约 865 KB；首屏 JS 246.2 KB。按需分块中 Paper 约 57 KB，Fluted Glass 约 14 KB 外加 56 KB 照片，Shader Gradient 约 7.6 KB（原 three.js 实现连同 Fiber 约 1.1 MB），Pixel Field 约 6.5 KB，Arc 四个分块合计约 12.5 KB。12 张设置缩略图合计约 10 KB。
+
+以下为更早的记录。首屏约 306.85 KB 原始 JS；Paper 约 58 KB、Pixel Field 约 7 KB（2026-10-08）、Arc 约 2 KB、CRT 约 22 KB、Shader Gradient 与 Fiber 约 384 KB，Three.js 约 737 KB（2026-10-08 起只有 Shader Gradient 加载）。2026-10-08 换用 Base UI 并懒加载书签菜单后，首屏 JS 为 242.7 KB（gzip 78.1 KB）。ZIP 525.33 KB。新增体积来自官方组件和 Fiber，背景仍不加载备用图片。12 个缩略图引用中，Shader Gradient 日夜共用一张，构建输出 11 张。Shader Gradient 像素密度上限为所选预设的 1。
 
 ```sh
 pnpm check
@@ -64,4 +68,4 @@ node scripts/review-favicons.mjs
 
 需要本地 agent-browser 与 Chrome。两个脚本均只使用新建的临时 Chrome 配置和测试书签；结束关闭浏览器并删除本次临时目录，不清空用户扩展存储。
 
-背景模拟时钟以 12 秒周期在原速度的 24%–40% 之间连续变化，帧率预算保持不变。设置回归中 3.00 秒墙钟推进了 0.82 秒 Shader Gradient 时间。`artifacts/settings-review/checks.json` 保存实际采样及布局、树形书签和显示开关检查。生产扩展另验证两个显示开关的 Chrome 存储读回、刷新持久化及入口恢复。
+背景模拟时钟（`src/effects/motion.ts`）以 12 秒周期在原速度的 8%–16% 之间连续变化，平均 12%，帧率预算保持不变。早先时钟为 24%–40% 时，设置回归中 3.00 秒墙钟推进了 0.82 秒 Shader Gradient 时间。`artifacts/settings-review/checks.json` 保存实际采样及布局、树形书签和显示开关检查。生产扩展另验证两个显示开关的 Chrome 存储读回、刷新持久化及入口恢复。

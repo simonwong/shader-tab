@@ -5,6 +5,7 @@
  */
 import {
   ARC_SURFACE,
+  DITHERING_ORB,
   EFFECT_IDS,
   effectBackground,
   getEffect,
@@ -37,10 +38,8 @@ type VariantSpec = Partial<Omit<VariantDef, 'effect' | 'id' | 'load'>> & Pick<Va
 
 const followsTheme = (theme: Theme): Tone => (theme === 'day' ? 'light' : 'dark');
 const alwaysDark = (): Tone => 'dark';
-const alwaysLight = (): Tone => 'light';
 
 export function variantLabel(id: string): string {
-  if (id === 'waterPlane') return 'Water';
   return id
     .replace(':', ' · ')
     .replace(
@@ -77,18 +76,22 @@ const paper = () => import('./drivers/paper').then(module => module.createDriver
  * Render density caps (device pixels per CSS pixel). Grain gradients are soft
  * colour fields: at 1.25 the backing store has about half the pixels of the
  * global budget (~2 MP instead of ~4 MP at 1440x900@2x). Their grain is drawn
- * per render pixel, so 1.0 or lower visibly coarsens it. Dither, pixel, dot
- * grid (including the ribbon and void fields), particle and CRT variants keep
- * the global budget; Shader Gradient caps itself in its preset.
+ * per render pixel, so 1.0 or lower visibly coarsens it. Shader Gradient has
+ * no grain and renders at 1. Dither, pixel, dot
+ * grid (including the ribbon and void fields) and particle variants keep the
+ * global budget.
  */
 const GRAIN_DENSITY = 1.25;
 
-const DITHERING_SHAPES = ['simplex', 'warp', 'dots', 'wave', 'ripple', 'swirl', 'sphere'];
-const DITHERING_TYPES = ['random', '2x2', '4x4', '8x8'];
-const RETIRED_DITHERING = new Set(['ripple:4x4']);
-const DITHERING_IDS = DITHERING_SHAPES.flatMap(shape =>
-  DITHERING_TYPES.map(type => `${shape}:${type}`),
-).filter(id => !RETIRED_DITHERING.has(id));
+/*
+ * Dithering keeps the 8x8 Bayer matrix: it gives the finest, calmest pattern.
+ * Random noise shimmers as the field drifts and the 2x2 and 4x4 matrices read
+ * as coarse. The one exception is `sphere:4x4`, Paper's own Default preset
+ * ("Orb": smaller sphere, finer pixels, blue). The `shape:type` id format is
+ * kept for stored shuffle bags.
+ */
+const DITHERING_SHAPES = ['simplex', 'warp', 'wave', 'ripple', 'swirl', 'sphere'];
+const DITHERING_IDS = [...DITHERING_SHAPES.map(shape => `${shape}:8x8`), 'sphere:4x4'];
 
 const arcSource = (id: string) => `https://threeui.com/backgrounds/predictive-arc/${id}`;
 const arcSurface = (theme: Theme) => ARC_SURFACE[theme];
@@ -127,37 +130,31 @@ const ARC_VARIANTS: Record<string, VariantSpec> = {
   },
 };
 
-const shaderGradient = () =>
-  import('./drivers/shader-gradient').then(module => module.createDriver);
-const SHADER_GRADIENT_VARIANTS: Record<string, VariantSpec> = {
-  plane: {
-    background: () => 'linear-gradient(125deg, #ff5005, #dbba95 65%, #d0bce1)',
-    tone: alwaysDark,
-    load: shaderGradient,
-  },
-  sphere: {
-    background: () => 'radial-gradient(ellipse at 50% 50%, #af38ff, #809bd6 60%, #dbba95 85%)',
-    tone: alwaysDark,
-    load: shaderGradient,
-  },
-  waterPlane: {
-    background: () => 'linear-gradient(125deg, #6bf5ff, #94ffd1 55%, #ffffff)',
-    tone: alwaysLight,
-    load: shaderGradient,
-  },
-};
-
 export const EFFECT_VARIANTS: Record<EffectId, readonly VariantDef[]> = {
-  'grain-gradient': define(
-    'grain-gradient',
-    ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'],
-    { density: GRAIN_DENSITY, load: paper },
-  ),
+  'grain-gradient': define('grain-gradient', ['corners', 'ripple', 'blob', 'sphere'], {
+    density: GRAIN_DENSITY,
+    load: paper,
+  }),
+  // Calm looks designed from ShaderGradient's customiser; soft gradients, so density 1 is enough.
+  'shader-gradient': define('shader-gradient', ['dusk', 'ocean', 'sage'], {
+    density: 1,
+    load: () => import('./drivers/shader-gradient').then(module => module.createDriver),
+  }),
   // Ripple fills most of the frame with the front colour, so it reads dark in both themes.
   dithering: define('dithering', DITHERING_IDS, id => ({
+    label: id === 'sphere:4x4' ? 'Orb' : variantLabel(id.split(':')[0]!),
     load: paper,
     ...(id.startsWith('ripple:') ? { tone: alwaysDark } : {}),
+    ...(id === 'sphere:4x4'
+      ? {
+          background: (theme: Theme) =>
+            `radial-gradient(circle at 50% 50%, ${DITHERING_ORB.front[theme]}55, ${DITHERING_ORB.back[theme]} 35%)`,
+        }
+      : {}),
   })),
+  'fluted-glass': define('fluted-glass', ['default', 'abstract', 'waves'], {
+    load: () => import('./drivers/fluted-glass').then(module => module.createDriver),
+  }),
   // Pixel Field: an original shader; the `pixel-blast` id is kept for stored preferences.
   'pixel-blast': define('pixel-blast', ['square', 'circle', 'triangle', 'diamond'], {
     load: () => import('./drivers/pixel-blast').then(module => module.createDriver),
@@ -166,15 +163,6 @@ export const EFFECT_VARIANTS: Record<EffectId, readonly VariantDef[]> = {
     source: arcSource(id),
     ...ARC_VARIANTS[id]!,
   })),
-  'crt-terminal': define('crt-terminal', ['terminal'], {
-    tone: alwaysDark,
-    load: () => import('./drivers/crt').then(module => module.createDriver),
-  }),
-  'shader-gradient': define(
-    'shader-gradient',
-    Object.keys(SHADER_GRADIENT_VARIANTS),
-    id => SHADER_GRADIENT_VARIANTS[id]!,
-  ),
 };
 
 /** Variant ids of one effect, in registry order. */

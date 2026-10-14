@@ -250,6 +250,34 @@ small {
   }
 }
 
+/*
+ * The source pill rests as faint text with no glass and no variant name: it is
+ * credit, not a control most people need. Hover or focus brings the full pill.
+ * Touch screens cannot hover, so they keep the full pill.
+ */
+@media (hover: hover) {
+  .new-tab .source-zone:not(:hover, :focus-within) .source-glass {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .new-tab .source-zone:not(:hover, :focus-within) .source-glass::before,
+  .new-tab .source-zone:not(:hover, :focus-within) .source-glass::after {
+    opacity: 0;
+  }
+
+  .source-zone:not(:hover, :focus-within) .effect-source {
+    opacity: 0.55;
+  }
+
+  .source-zone:not(:hover, :focus-within) .source-variant {
+    display: none;
+  }
+}
+
 .liquid-glass-defs {
   position: absolute;
   pointer-events: none;
@@ -353,6 +381,7 @@ small {
   text-shadow: 0 0 3px var(--ink-halo);
   transition:
     color 300ms ease,
+    opacity 300ms ease,
     background-color 300ms ease,
     transform 200ms var(--ease-out);
 }
@@ -368,8 +397,13 @@ small {
   transform: scale(0.97);
 }
 
-/* Shuffle button, revealed when the pill is hovered or focused. */
-.source-shuffle {
+/* A flex item drops its leading space; keep the one before the middle dot. */
+.source-variant {
+  white-space: pre;
+}
+
+/* Hide, pin and shuffle buttons, revealed when the pill is hovered or focused. */
+.source-action {
   display: grid;
   place-items: center;
   width: 0;
@@ -385,28 +419,34 @@ small {
     background-color 300ms ease;
 }
 
-.source-shuffle svg {
+.source-action svg {
   filter: drop-shadow(0 0 2px var(--ink-halo));
 }
 
-.source-zone:hover .source-shuffle,
-.source-glass:focus-within .source-shuffle {
+.source-zone:hover .source-action,
+.source-glass:focus-within .source-action,
+.source-pin[aria-pressed='true'] {
   width: calc(26 * var(--u));
   opacity: 1;
 }
 
-.source-shuffle:hover,
-.source-shuffle:focus-visible {
+.source-action:hover,
+.source-action:focus-visible {
   color: var(--fg);
   background: var(--field);
 }
 
-.source-shuffle:active {
+.source-action:active {
   background: var(--on);
 }
 
+/* At rest a pinned background shows only its pin, as faint as the text beside it. */
+.source-zone:not(:hover, :focus-within) .source-pin[aria-pressed='true'] {
+  opacity: 0.55;
+}
+
 @media (hover: none) {
-  .source-shuffle {
+  .source-action {
     width: calc(26 * var(--u));
     opacity: 1;
   }

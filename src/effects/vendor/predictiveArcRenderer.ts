@@ -23,7 +23,7 @@ export const PREDICTIVE_ARC_DEFAULTS: PredictiveArcOptions = {
 
 /*
  * Uniforms: uCanvas (backing store, device px), uDensity (device px per CSS px),
- * uSize (CSS px), uTime (seconds * 0.9 * speed), uArch (archHeight),
+ * uSize (CSS px), uTime (seconds * 0.5 * speed), uArch (archHeight),
  * uThickness, uGain (options.brightness), uLight (0/1), uDim (theme brightness).
  * SPACING and DOT_SIZE are the option defaults (5 and 6 CSS px).
  */

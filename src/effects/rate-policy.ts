@@ -11,6 +11,8 @@
  * frame the background draws.
  */
 
+import type { Motion } from './motion';
+
 export const RATES = {
   base: 20,
   /** Pointer moving over a pointer-reactive background (e.g. a touch trail). */
@@ -24,6 +26,12 @@ export const RATES = {
   /** No input for IDLE_SLOW_MS. */
   idle: 5,
 } as const;
+
+/**
+ * Base rate per motion level. Still motion changes so little per second that
+ * 10 fps reads the same; lively motion moves further per frame and needs 30.
+ */
+export const MOTION_RATES: Record<Motion, number> = { still: 10, soft: RATES.base, lively: 30 };
 
 /** No input for this long drops to RATES.idle. */
 export const IDLE_SLOW_MS = 2 * 60_000;
@@ -49,6 +57,7 @@ export interface RateConditions {
   dialogOpen: boolean;
   /** The pointer moved over a pointer-reactive background within POINTER_BURST_MS. */
   pointerActive: boolean;
+  motion: Motion;
 }
 
 export interface RatePlan {
@@ -61,7 +70,8 @@ export interface RatePlan {
 export function planRate(conditions: RateConditions): RatePlan {
   const densityCap = conditions.onBattery ? BATTERY_DENSITY : undefined;
   if (conditions.idleMs >= IDLE_FREEZE_MS) return { fps: 0, densityCap };
-  let fps: number = conditions.pointerActive ? RATES.pointer : RATES.base;
+  const base = MOTION_RATES[conditions.motion];
+  let fps = conditions.pointerActive ? Math.max(base, RATES.pointer) : base;
   if (conditions.onBattery) fps = Math.min(fps, RATES.battery);
   if (conditions.unfocusedMs >= UNFOCUSED_GRACE_MS) fps = Math.min(fps, RATES.unfocused);
   if (conditions.dialogOpen) fps = Math.min(fps, RATES.dialog);
@@ -78,6 +88,7 @@ interface BatteryLike extends EventTarget {
 export interface RateMonitor {
   readonly plan: RatePlan;
   setDialogOpen: (open: boolean) => void;
+  setMotion: (motion: Motion) => void;
   /** Records pointer movement over a pointer-reactive background. */
   notePointer: () => void;
   dispose: () => void;
@@ -97,6 +108,7 @@ export function createRateMonitor(onChange: (plan: RatePlan) => void): RateMonit
   let pointerUntil = 0;
   let onBattery = false;
   let dialogOpen = false;
+  let motion: Motion = 'soft';
   let disposed = false;
   let timer = 0;
   let battery: BatteryLike | undefined;
@@ -107,6 +119,7 @@ export function createRateMonitor(onChange: (plan: RatePlan) => void): RateMonit
     onBattery,
     dialogOpen,
     pointerActive: at < pointerUntil,
+    motion,
   });
   let plan = planRate(conditions(now()));
 
@@ -181,6 +194,11 @@ export function createRateMonitor(onChange: (plan: RatePlan) => void): RateMonit
     setDialogOpen(open) {
       if (dialogOpen === open) return;
       dialogOpen = open;
+      update();
+    },
+    setMotion(next) {
+      if (motion === next) return;
+      motion = next;
       update();
     },
     notePointer() {

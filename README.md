@@ -9,7 +9,7 @@
     <a href="docs/development.md">Development</a> ·
     <a href="https://github.com/simonwong/shader-tab/issues">Feedback</a>
   </p>
-  <p><strong>6 background families · 49 variants · 8 languages</strong></p>
+  <p><strong>6 background families · 28 variants · 8 languages</strong></p>
 </div>
 
 ![Shader Tab showing a peach and lavender grain gradient with glass bookmark controls](docs/images/grain-gradient.png)
@@ -22,30 +22,28 @@ Shader Tab replaces Chrome’s new tab page with animated backgrounds and local 
 - **A different view each time.** Choose the background families in your random pool. Variants shuffle without repeats within each family’s cycle; the current tab keeps its view.
 - **Your bookmarks, close by.** Browse and search Chrome’s bookmark folders, pin up to 10 favorites, and drag to reorder them. Icons use Chrome’s existing favicon cache.
 - **Controls on your terms.** Show or hide favorites and bookmark navigation independently. Choose sorting and how quickly idle controls disappear.
-- **Considered rendering.** Drivers load on demand. Hidden tabs stop rendering and release their GPU context after 30 seconds. Reduced-motion settings use static backgrounds.
+- **Considered rendering.** Drivers load on demand. Hidden tabs stop rendering and release their GPU context after 10 seconds. Reduced-motion settings use static backgrounds.
 - **Eight languages.** English, 简体中文, 繁體中文, 日本語, 한국어, Français, Deutsch, and Español. Follow your browser’s language or choose one in Settings.
 
 ## Pick a mood
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/pixel-blast.png" alt="Pixel Field with soft lavender pixel patterns" /></td>
-    <td width="50%"><img src="docs/images/crt.png" alt="CRT background with glowing decorative terminal text" /></td>
+    <td align="center"><img src="docs/images/pixel-blast.png" alt="Pixel Field with soft lavender pixel patterns" /></td>
   </tr>
   <tr>
     <td align="center">Pixel Field</td>
-    <td align="center">CRT Terminal</td>
   </tr>
 </table>
 
-| Background      | Character                                | Built with            |
-| --------------- | ---------------------------------------- | --------------------- |
-| Grain Gradient  | Soft color fields and fine grain         | Paper Shaders         |
-| Dithering       | Patterned gradients and retro texture    | Paper Shaders         |
-| Pixel Field     | Dithered pixel grid with pointer ripples | Original WebGL shader |
-| Predictive Arc  | Arcs, particles, ribbons, and fields     | ThreeUI               |
-| CRT             | Phosphor glow and decorative screens     | ThreeUI               |
-| Shader Gradient | Plane, Sphere, and Water forms           | Shader Gradient       |
+| Background      | Character                                 | Built with            |
+| --------------- | ----------------------------------------- | --------------------- |
+| Grain Gradient  | Soft color fields and fine grain          | Paper Shaders         |
+| Shader Gradient | Slow folds of muted color                 | ShaderGradient        |
+| Dithering       | Patterned gradients and retro texture     | Paper Shaders         |
+| Fluted Glass    | Sliding ribbed glass over a flower photo  | Paper Shaders         |
+| Pixel Field     | Dithered pixel grid that swells and fades | Original WebGL shader |
+| Predictive Arc  | Arcs, particles, ribbons, and fields      | ThreeUI               |
 
 These are actual extension screenshots. Explore the motion on the [live demo](https://shadertab.moonunder.app/en/#effects), or see the [full variant list](docs/effect-variants.md).
 
@@ -97,7 +95,7 @@ pnpm zip
 
 Load `.output/chrome-mv3` through **Load unpacked** at `chrome://extensions`. ZIP packages are generated in `.output/`.
 
-Built with **WXT, React, TypeScript, Three.js, Base UI, and Hugeicons**. The [development guide](docs/development.md) covers extension debugging, website deployment, and verification commands.
+Built with **WXT, React, TypeScript, Base UI, and Hugeicons**. The [development guide](docs/development.md) covers extension debugging, website deployment, and verification commands.
 
 ## Inside the project
 
@@ -106,14 +104,14 @@ Built with **WXT, React, TypeScript, Three.js, Base UI, and Hugeicons**. The [de
 | [Development](docs/development.md)   | Local setup, build outputs, website, and QA       |
 | [Architecture](docs/architecture.md) | Data boundaries, storage, and rendering lifecycle |
 | [Backgrounds](docs/shaders.md)       | Shader integrations and sources                   |
-| [Variants](docs/effect-variants.md)  | All 49 combinations and shuffle behavior          |
+| [Variants](docs/effect-variants.md)  | All 28 variants and shuffle behavior              |
 | [Performance](docs/performance.md)   | Rendering budgets and measurement results         |
 
 Technical reference documents are currently in Chinese.
 
 ## Credits
 
-Shader Tab uses work from [Paper Shaders](https://github.com/paper-design/shaders), [ThreeUI](https://github.com/MengTo/threeui), and [Shader Gradient](https://github.com/ruucm/shadergradient), alongside [Hugeicons](https://github.com/hugeicons/hugeicons) and Space Grotesk.
+Shader Tab uses work from [Paper Shaders](https://github.com/paper-design/shaders), [ShaderGradient](https://shadergradient.co/) and [ThreeUI](https://github.com/MengTo/threeui), alongside [Hugeicons](https://github.com/hugeicons/hugeicons) and Space Grotesk.
 
 Found a bug or have an idea? [Open an issue](https://github.com/simonwong/shader-tab/issues). For private support, contact [support@moonunder.app](mailto:support@moonunder.app).
 

@@ -91,6 +91,7 @@ interface Props extends ItemsProps {
   /** The placeholder dock button this trigger replaces; focus moves over if it had it. */
   placeholder: RefObject<HTMLButtonElement | null>;
   onTriggerPointerEnter: (event: PointerEvent) => void;
+  onTriggerPointerLeave: () => void;
 }
 
 /**
@@ -105,6 +106,7 @@ export function BookmarkMenu({
   onOpenChange,
   placeholder,
   onTriggerPointerEnter,
+  onTriggerPointerLeave,
   ...items
 }: Props) {
   const { t } = useI18n();
@@ -139,6 +141,7 @@ export function BookmarkMenu({
         className="dock-button"
         aria-label={t('allBookmarks')}
         onPointerEnter={onTriggerPointerEnter}
+        onPointerLeave={onTriggerPointerLeave}
       >
         <HugeiconsIcon aria-hidden="true" icon={GridViewIcon} size={17} strokeWidth={1.7} />
       </Menu.Trigger>

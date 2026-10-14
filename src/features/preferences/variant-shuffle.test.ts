@@ -4,7 +4,6 @@ import { EFFECT_IDS } from '../../effects/presets';
 import {
   drawStoredVariant,
   drawVariant,
-  LEGACY_SHUFFLE_KEYS,
   settleVariant,
   variantShuffleKey,
 } from './variant-shuffle';
@@ -30,8 +29,8 @@ it.each(EFFECT_IDS)('%s draws all variants per round without repeating at the bo
 it('recovers invalid storage and keeps unrelated families out of a shuffle bag', () => {
   for (const saved of [
     null,
-    'wave',
-    { remaining: ['invalid', 'wave', 'wave', 2] },
+    'blob',
+    { remaining: ['invalid', 'blob', 'blob', 2] },
     { remaining: false },
   ]) {
     const draw = drawVariant('grain-gradient', saved);
@@ -40,25 +39,18 @@ it('recovers invalid storage and keeps unrelated families out of a shuffle bag',
   }
 });
 
-it('keeps every dithering shape and algorithm with the supported combinations', () => {
-  const combinations = variantIds('dithering');
-  expect(combinations).toHaveLength(27);
-  expect(new Set(combinations).size).toBe(27);
-  expect(new Set(combinations.map(value => value.split(':')[0])).size).toBe(7);
-  expect(new Set(combinations.map(value => value.split(':')[1])).size).toBe(4);
-});
-
-it('discards retired CRT entries from an existing shuffle bag', () => {
-  const draw = drawVariant('crt-terminal', {
-    remaining: ['blue-screen', 'nintendo', 'cinematic', 'retro-game'],
-    last: 'terminal',
-  });
-  expect(draw.variant).toBe('terminal');
-  expect(draw.state.remaining).toEqual([]);
+it('keeps one 8x8 dithering variant per shape, plus the 4x4 Orb', () => {
+  const ids = variantIds('dithering').filter(value => value !== 'sphere:4x4');
+  expect(ids.every(value => value.endsWith(':8x8'))).toBe(true);
+  expect(new Set(ids.map(value => value.split(':')[0])).size).toBe(6);
+  expect(variantIds('dithering')).toContain('sphere:4x4');
 });
 
 it.each([
   ['dithering', 'ripple:4x4', 'ripple:8x8'],
+  ['dithering', 'dots:8x8', 'swirl:8x8'],
+  ['grain-gradient', 'truchet', 'blob'],
+  ['shader-gradient', 'waterPlane', 'ocean'],
   ['data-pixel-arc', 'halftone-flow', 'ribbon-field'],
 ] as const)(
   'discards retired %s variants without losing the supported queue',
@@ -69,14 +61,7 @@ it.each([
   },
 );
 
-it('draws Shader Gradient shapes as ordinary variants', () => {
-  expect(variantIds('shader-gradient')).toEqual(['plane', 'sphere', 'waterPlane']);
-  for (const value of [null, 1, 'sphere', { remaining: ['invalid'] }, { remaining: null }]) {
-    expect(variantIds('shader-gradient')).toContain(drawVariant('shader-gradient', value).variant);
-  }
-});
-
-it('ignores legacy fixed shapes without changing the selected family', () => {
+it('drops legacy Shader Gradient shapes and keeps the family selected', () => {
   for (const shape of ['plane', 'sphere', 'waterPlane', 'random']) {
     const preferences = readPreferences({
       [PREFERENCE_PREFIX + 'shaderGradientShape']: shape,
@@ -86,47 +71,6 @@ it('ignores legacy fixed shapes without changing the selected family', () => {
     expect(preferences).not.toHaveProperty('shaderGradientShape');
     expect(preferences.activeEffect).toBe('shader-gradient');
     expect(preferences.shuffle).toBe(false);
-  }
-});
-
-const LEGACY = LEGACY_SHUFFLE_KEYS['shader-gradient']!;
-const KEY = variantShuffleKey('shader-gradient');
-
-it('continues a legacy Shader Gradient queue and removes the old key', () => {
-  const draw = drawStoredVariant('shader-gradient', {
-    [LEGACY]: { remaining: ['waterPlane', 'plane'], last: 'sphere' },
-  });
-  expect(LEGACY).toBe('shader-gradient:shuffle:v1');
-  expect(draw.variant).toBe('waterPlane');
-  expect(draw.set).toEqual({ [KEY]: { remaining: ['plane'], last: 'waterPlane' } });
-  expect(draw.remove).toEqual([LEGACY]);
-});
-
-it('starts a fresh round from a used-up legacy queue without repeating its last shape', () => {
-  const draw = drawStoredVariant(
-    'shader-gradient',
-    { [LEGACY]: { remaining: [], last: 'plane' } },
-    () => 0,
-  );
-  expect(draw.variant).not.toBe('plane');
-  expect(draw.set[KEY]!.remaining).toHaveLength(2);
-  expect(draw.remove).toEqual([LEGACY]);
-});
-
-it('prefers the current bag over a leftover legacy bag but still removes the legacy key', () => {
-  const draw = drawStoredVariant('shader-gradient', {
-    [KEY]: { remaining: ['sphere'], last: 'plane' },
-    [LEGACY]: { remaining: ['waterPlane'], last: 'plane' },
-  });
-  expect(draw.variant).toBe('sphere');
-  expect(draw.remove).toEqual([LEGACY]);
-});
-
-it('drops malformed legacy data safely', () => {
-  for (const legacy of [null, 'sphere', 3, { remaining: ['invalid', 7] }]) {
-    const draw = drawStoredVariant('shader-gradient', { [LEGACY]: legacy });
-    expect(variantIds('shader-gradient')).toContain(draw.variant);
-    expect(draw.remove).toEqual([LEGACY]);
   }
 });
 
@@ -158,22 +102,17 @@ it('settles against a bag another tab already advanced', () => {
   expect(fresh.last).toBe('square');
 });
 
-it('moves a legacy Shader Gradient bag when settling', () => {
-  const legacy = LEGACY_SHUFFLE_KEYS['shader-gradient']!;
-  const draw = settleVariant(
-    'shader-gradient',
-    { [legacy]: { remaining: ['waterPlane', 'plane'], last: 'sphere' } },
-    'waterPlane',
-  );
-  expect(draw.set).toEqual({
-    [variantShuffleKey('shader-gradient')]: { remaining: ['plane'], last: 'waterPlane' },
-  });
-  expect(draw.remove).toEqual([legacy]);
-});
-
-it('leaves storage alone for effects without a legacy bag', () => {
-  const draw = drawStoredVariant('pixel-blast', { [LEGACY]: { remaining: ['plane'] } });
-  expect(variantIds('pixel-blast')).toContain(draw.variant);
-  expect(Object.keys(draw.set)).toEqual([variantShuffleKey('pixel-blast')]);
-  expect(draw.remove).toEqual([]);
+it('leaves hidden variants out of the bag and of new rounds', () => {
+  const ids = variantIds('dithering');
+  const hidden = ids.slice(0, 2).map(id => `dithering/${id}`);
+  let saved: unknown = { remaining: [...ids] };
+  for (let i = 0; i < ids.length * 2; i++) {
+    const draw = drawVariant('dithering', saved, Math.random, hidden);
+    expect(ids.slice(0, 2)).not.toContain(draw.variant);
+    saved = draw.state;
+  }
+  const settled = settleVariant('dithering', {}, ids[2]!, Math.random, hidden);
+  const state = settled.set[variantShuffleKey('dithering')]!;
+  expect(state.remaining).toHaveLength(ids.length - 3);
+  expect(state.remaining.some(id => ids.slice(0, 2).includes(id))).toBe(false);
 });

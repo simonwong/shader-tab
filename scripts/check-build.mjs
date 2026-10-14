@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, access, readdir } from 'node:fs/promises';
+import { readFile, access, readdir, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 const root = new URL('../.output/chrome-mv3/', import.meta.url);
@@ -74,15 +74,12 @@ for (const license of [
   'paper-shaders.txt',
   'paper-shaders-NOTICE.txt',
   'threeui.txt',
-  'three.txt',
   'shader-gradient.txt',
-  'react-three-fiber.txt',
-  'camera-controls.txt',
   'glsl-noise.txt',
   'liquid-glass.txt',
 ])
   await access(new URL(`licenses/${license}`, root));
-for (const renderer of ['paper-', 'pixel-blast-', 'arc-', 'crt-', 'shader-gradient-'])
+for (const renderer of ['paper-', 'shader-gradient-', 'fluted-glass-', 'pixel-blast-', 'arc-'])
   assert.ok(
     chunks.some(file => file.startsWith(renderer)),
     `Missing lazy renderer: ${renderer}`,
@@ -103,14 +100,16 @@ assert.ok(
   controlRule && /(?:^|;)backdrop-filter:blur\(var\(--blur-control\)\)/.test(controlRule),
   'Production controls must retain the standard backdrop-filter declaration for Chrome',
 );
-const images = assets.filter(file => file.endsWith('.webp'));
-assert.ok(
-  images.length === 11 || images.length === 12,
-  'Identical Shader Gradient day/night thumbnails may share one asset',
-);
+// Fluted Glass refracts Paper's sample photo; it is the one full-size image that ships.
+const photos = assets.filter(file => /^paper-flowers-.+\.webp$/.test(file));
+assert.equal(photos.length, 1, 'Fluted Glass must ship its photo as a separate asset');
+const photoBytes = (await stat(new URL(`assets/${photos[0]}`, root))).size;
+assert.ok(photoBytes < 80_000, 'The Fluted Glass photo exceeds its 80 KB budget');
+const images = assets.filter(file => file.endsWith('.webp') && !photos.includes(file));
+assert.equal(images.length, 12, 'One day and one night thumbnail per background family');
 assert.ok(
   images.every(file => file.startsWith('thumb-')),
-  'Only small settings thumbnails may ship',
+  'Only small settings thumbnails and the Fluted Glass photo may ship',
 );
 const imageBytes = await Promise.all(
   images.map(async file => (await readFile(new URL(`assets/${file}`, root))).byteLength),
@@ -138,7 +137,6 @@ for (const name of [
   '@hugeicons/core-free-icons',
   '@base-ui/react',
   '@dnd-kit/core',
-  '@shadergradient/react',
 ]) {
   assert.ok(
     dependencies.some(item => item.name === name),
@@ -152,6 +150,12 @@ assert.ok(
 assert.ok(
   !dependencies.some(item => /^@radix-ui\/|^react-remove-scroll/.test(item.name)),
   'Retired Radix packages must not ship',
+);
+assert.ok(
+  !dependencies.some(item =>
+    /^(three|@react-three\/|@shadergradient\/|camera-controls)/.test(item.name),
+  ),
+  'Shader Gradient is a plain WebGL port; three.js and its packages must not ship',
 );
 for (const item of dependencies) {
   const section = notices
@@ -179,40 +183,4 @@ for (const page of locales.flatMap(locale =>
   assert.ok(!html.includes('<script'));
   if (page.endsWith('privacy.html')) assert.ok(html.includes('support@moonunder.app'));
 }
-const crt = await readFile(
-  new URL(`chunks/${chunks.find(file => file.startsWith('crt-'))}`, root),
-  'utf8',
-);
-assert.ok(
-  !/blue-screen|physical memory|STOP:|Windows has been shut/i.test(crt),
-  'System failure imitation must not ship',
-);
-assert.ok(crt.includes('NO COMMANDS ARE EXECUTED'));
-console.log(
-  `${dependencies.length} dependency notices, legal page links, Hugeicons and decorative CRT verified.`,
-);
-
-// Shader Gradient's bundle still names an HDR host (ruucm.github.io). It is only fetched for
-// environment lighting; the presets used here light with '3d', and CSP connect-src 'self'
-// would refuse the request anyway.
-assert.match(manifest.content_security_policy.extension_pages, /connect-src 'self'(;|$)/);
-const gradientDriver = await readFile(
-  new URL('../src/effects/drivers/shader-gradient.tsx', import.meta.url),
-  'utf8',
-);
-const usedPresets = [...gradientDriver.matchAll(/presets\.(\w+)\.props/g)].map(match => match[1]);
-assert.ok(usedPresets.length > 0, 'Shader Gradient presets not found in the driver');
-assert.ok(
-  !/lightType|envPreset/.test(gradientDriver),
-  'The Shader Gradient driver must not override preset lighting',
-);
-const { presets } = await import('@shadergradient/react');
-for (const name of usedPresets)
-  assert.equal(
-    presets[name]?.props.lightType,
-    '3d',
-    `Shader Gradient preset ${name} would load a remote HDR`,
-  );
-console.log(
-  `Remote HDR unreachable: CSP connect-src 'self', presets ${usedPresets.join(', ')} use 3D lighting.`,
-);
+console.log(`${dependencies.length} dependency notices, legal page links and Hugeicons verified.`);

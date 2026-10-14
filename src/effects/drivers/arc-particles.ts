@@ -97,4 +97,4 @@ function createParticleDriver(
 }
 
 export const createSignalParticlesDriver = createParticleDriver(signalFragment, 1.2);
-export const createOverrideGridDriver = createParticleDriver(gridFragment, 2.4);
+export const createOverrideGridDriver = createParticleDriver(gridFragment, 0.7);

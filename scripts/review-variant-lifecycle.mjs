@@ -43,7 +43,7 @@ try {
       '(async()=>{window.__glassProbe.reset();await new Promise(r=>setTimeout(r,2100));return window.__glassProbe.read()})()',
     );
     assert.ok(sample.draws > 0 && sample.draws <= 65);
-    assert.ok(sample.raf <= 70);
+    // At 20 fps the loop waits on every vsync (no timer sleep), so only draws are bounded.
     assert.ok(sample.buffer[0] * sample.buffer[1] <= 4002000);
     samples.push({ variant, ...sample });
     run('screenshot', resolve(output, `narrow-${variant}.png`));
@@ -65,7 +65,7 @@ try {
     lastVariant,
   );
   evaluate(
-    "(async()=>{for(const id of ['pixel-blast','data-pixel-arc','grain-gradient','crt-terminal','data-pixel-arc']){await chrome.storage.local.set({'preference:v1:activeEffect':id});await new Promise(r=>setTimeout(r,60))}})()",
+    "(async()=>{for(const id of ['pixel-blast','data-pixel-arc','grain-gradient','dithering','data-pixel-arc']){await chrome.storage.local.set({'preference:v1:activeEffect':id});await new Promise(r=>setTimeout(r,60))}})()",
   );
   wait(
     "document.querySelector('main')?.dataset.effect==='data-pixel-arc' && document.querySelector('.ambient-background')?.dataset.renderer==='live'",

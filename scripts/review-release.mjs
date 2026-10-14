@@ -68,7 +68,7 @@ try {
   wait("document.querySelector('h1')?.textContent==='第三方许可'");
   assert.equal(evaluate('document.documentElement.scrollWidth>innerWidth'), false);
   const links = evaluate("[...document.querySelectorAll('a')].map(a=>a.href)");
-  assert.ok(links.some(href => href.endsWith('embedded-dependencies.txt')));
+  assert.ok(!links.some(href => href.endsWith('embedded-dependencies.txt')));
   const statuses = evaluate(
     "Promise.all([...document.querySelectorAll('a')].map(async a=>({url:a.href,status:(await fetch(a.href)).status})))",
   );

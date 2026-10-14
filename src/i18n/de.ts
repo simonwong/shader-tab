@@ -86,6 +86,17 @@ export const de: Messages = {
   browserLanguage: 'Browsersprache',
   languageHint: 'Gilt sofort und wird lokal gespeichert. Lesezeichennamen bleiben unverändert.',
   shuffleBackground: 'Hintergrund wechseln',
+  motion: 'Bewegung',
+  motionHint: 'Wie lebhaft sich der Hintergrund bewegt',
+  motionStill: 'Ruhig',
+  motionSoft: 'Sanft',
+  motionLively: 'Lebhaft',
+  pinVariant: 'Diesen Hintergrund anheften',
+  unpinVariant: 'Lösen',
+  pinnedVariant: 'Angehefteter Hintergrund',
+  hideVariant: 'Diese Variante nicht mehr zeigen',
+  hiddenVariants: 'Ausgeblendete Varianten: {count}',
+  restoreHidden: 'Alle wiederherstellen',
   selectedCount: '{count}/{total} ausgewählt',
   openSettings: 'Einstellungen öffnen',
   firstRunHint:
@@ -95,11 +106,10 @@ export const de: Messages = {
     'Um Chromes Standard-Tab zurückzubekommen, deaktiviere Shader Tab unter chrome://extensions.',
   openFailed:
     'Chrome konnte diesen Link nicht öffnen. Für Dateilinks muss in den Erweiterungsdetails „Zugriff auf Datei-URLs zulassen“ aktiviert sein.',
-  'effect.grain-gradient': 'Feine Körnung und fließende Farben reagieren sanft auf den Zeiger',
+  'effect.grain-gradient': 'Feine Körnung und langsam fließende Farben',
   'effect.dithering': 'Monochrome Wirbel mit fließenden Pixeltexturen',
+  'effect.shader-gradient': 'Weiche Farbwellen in drei Dimensionen, die sich langsam heben',
+  'effect.fluted-glass': 'Riffelglas, das langsam treibende Farben bricht',
   'effect.pixel-blast': 'Pixel mit dem Zeiger bewegen; für Wellen auf den Hintergrund klicken',
   'effect.data-pixel-arc': 'Originalstile mit Datenpixeln, Partikeln, Bändern und Rastern',
-  'effect.crt-terminal': 'Leuchtender Terminaltext mit dezenten Scanlinien',
-  'effect.shader-gradient':
-    'Originalformen Halo-Ebene, Pensive-Kugel und Mint-Wasser; eine zufällige Form für jeden neuen Tab',
 };

@@ -14,7 +14,18 @@ it('registers every effect with unique, non-empty variant ids', () => {
 
 it('keeps the live variant set', () => {
   expect(variantIdsByEffect()).toMatchObject({
-    'grain-gradient': ['wave', 'dots', 'truchet', 'corners', 'ripple', 'blob', 'sphere'],
+    'grain-gradient': ['corners', 'ripple', 'blob', 'sphere'],
+    'shader-gradient': ['dusk', 'ocean', 'sage'],
+    dithering: [
+      'simplex:8x8',
+      'warp:8x8',
+      'wave:8x8',
+      'ripple:8x8',
+      'swirl:8x8',
+      'sphere:8x8',
+      'sphere:4x4',
+    ],
+    'fluted-glass': ['default', 'abstract', 'waves'],
     'pixel-blast': ['square', 'circle', 'triangle', 'diamond'],
     'data-pixel-arc': [
       'data-pixel',
@@ -25,10 +36,7 @@ it('keeps the live variant set', () => {
       'void-field',
       'amber-halftone',
     ],
-    'crt-terminal': ['terminal'],
-    'shader-gradient': ['plane', 'sphere', 'waterPlane'],
   });
-  expect(variantIdsByEffect().dithering).toHaveLength(27);
 });
 
 it('describes every variant completely for both themes', () => {
@@ -38,8 +46,10 @@ it('describes every variant completely for both themes', () => {
       expect(variant.source).toMatch(/^https:\/\//);
       expect(typeof variant.load).toBe('function');
       expect(variant.density ?? 1).toBeGreaterThan(0);
-      // Only soft variants lower their density; pixel, dot and dither patterns keep the full budget.
-      expect(variant.density === undefined).toBe(effect !== 'grain-gradient');
+      // Only soft gradients lower their density; pixel, dot and dither patterns keep the full budget.
+      expect(variant.density === undefined).toBe(
+        effect !== 'grain-gradient' && effect !== 'shader-gradient',
+      );
       for (const theme of ['day', 'night'] as const) {
         expect(variant.background(theme)).not.toBe('');
         expect(['light', 'dark']).toContain(variant.tone(theme));
@@ -48,27 +58,28 @@ it('describes every variant completely for both themes', () => {
 });
 
 it('marks backgrounds that stay dark in the day theme', () => {
-  expect(resolveVariant('crt-terminal', 'terminal').tone('day')).toBe('dark');
   expect(resolveVariant('data-pixel-arc', 'void-field').tone('day')).toBe('dark');
   expect(resolveVariant('data-pixel-arc', 'ribbon-field').tone('day')).toBe('light');
-  expect(resolveVariant('grain-gradient', 'wave').tone('night')).toBe('dark');
+  expect(resolveVariant('grain-gradient', 'blob').tone('night')).toBe('dark');
   expect(resolveVariant('dithering', 'ripple:8x8').tone('day')).toBe('dark');
-  expect(resolveVariant('dithering', 'swirl:4x4').tone('day')).toBe('light');
-  expect(resolveVariant('shader-gradient', 'waterPlane').tone('night')).toBe('light');
+  expect(resolveVariant('dithering', 'swirl:8x8').tone('day')).toBe('light');
 });
 
 it('links each Arc variant to its own reference page and labels it', () => {
   const variant = resolveVariant('data-pixel-arc', 'signal-particles');
   expect(variant.source).toBe('https://threeui.com/backgrounds/predictive-arc/signal-particles');
   expect(variant.label).toBe('Signal Particles');
-  expect(resolveVariant('dithering', 'swirl:4x4').label).toBe('Swirl · 4x4');
-  expect(resolveVariant('shader-gradient', 'waterPlane').label).toBe('Water');
+  expect(resolveVariant('dithering', 'swirl:8x8').label).toBe('Swirl');
+  expect(resolveVariant('dithering', 'sphere:4x4').label).toBe('Orb');
+  expect(resolveVariant('fluted-glass', 'abstract').source).toBe(
+    'https://shaders.paper.design/fluted-glass',
+  );
 });
 
 it('falls back to the first variant for unknown or missing ids', () => {
   expect(getVariant('data-pixel-arc', 'halftone-flow')).toBeUndefined();
   expect(resolveVariant('data-pixel-arc', 'halftone-flow').id).toBe('data-pixel');
-  expect(resolveVariant('shader-gradient', undefined).id).toBe('plane');
+  expect(resolveVariant('dithering', 'swirl:4x4').id).toBe('simplex:8x8');
   expect(resolveVariant('grain-gradient', undefined).background('day')).toBe(
     effectBackground('grain-gradient', 'day'),
   );

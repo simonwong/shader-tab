@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parent.parent
 source = root / 'artifacts/effects'
 output = root / 'src/assets/effect-thumbnails'
 output.mkdir(parents=True, exist_ok=True)
-ids = ['grain-gradient', 'dithering', 'pixel-blast', 'data-pixel-arc', 'crt-terminal', 'shader-gradient']
+ids = ['grain-gradient', 'shader-gradient', 'dithering', 'fluted-glass', 'pixel-blast', 'data-pixel-arc']
 sheet = Image.new('RGB', (2160, 510), '#181a1e')
 draw = ImageDraw.Draw(sheet)
 for row, theme in enumerate(['day', 'night']):

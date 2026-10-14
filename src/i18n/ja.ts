@@ -84,6 +84,17 @@ export const ja: Messages = {
   browserLanguage: 'ブラウザに合わせる',
   languageHint: 'すぐに適用され、ローカルに保存されます。ブックマーク名は変更しません。',
   shuffleBackground: '背景を切り替え',
+  motion: '動き',
+  motionHint: '背景の動きの大きさ',
+  motionStill: '静か',
+  motionSoft: 'やわらか',
+  motionLively: '活発',
+  pinVariant: 'この背景を固定',
+  unpinVariant: '固定を解除',
+  pinnedVariant: '固定中の背景',
+  hideVariant: 'このバリエーションを今後表示しない',
+  hiddenVariants: '非表示のバリエーション：{count}',
+  restoreHidden: 'すべて戻す',
   selectedCount: '{count}/{total} 件を選択中',
   openSettings: '設定を開く',
   firstRunHint:
@@ -93,11 +104,10 @@ export const ja: Messages = {
     'Chrome 標準の新しいタブに戻すには、chrome://extensions で Shader Tab をオフにしてください。',
   openFailed:
     'このリンクを開けませんでした。ローカルファイルを開くには、拡張機能の詳細ページで「ファイルの URL へのアクセスを許可する」をオンにしてください。',
-  'effect.grain-gradient': '微細な粒子と流れる色がポインターに穏やかに反応',
+  'effect.grain-gradient': '微細な粒子とゆっくり流れる色',
   'effect.dithering': '流れるピクセル模様とモノクロの渦',
+  'effect.shader-gradient': 'ゆっくりうねる、やわらかな立体の色の重なり',
+  'effect.fluted-glass': 'ゆっくり漂う色を映すリブガラス',
   'effect.pixel-blast': 'ポインターでピクセルを動かし、背景をクリックして波紋を表示',
   'effect.data-pixel-arc': 'データピクセル、粒子、リボン、ハーフトーンのスタイル',
-  'effect.crt-terminal': '発光するターミナル文字と控えめな走査線',
-  'effect.shader-gradient':
-    'オリジナルの Halo 平面、Pensive 球体、Mint 水面。新しいタブごとに形状を選択',
 };

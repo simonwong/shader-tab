@@ -20,6 +20,7 @@
     "format:check": "oxfmt --check",
     "capture:effects": "node scripts/capture-effects.mjs",
     "review:effects": "node scripts/review-effects.mjs",
+    "review:motion": "node scripts/review-motion.mjs",
     "review:variants": "pnpm build && node scripts/review-variants.mjs",
     "review:locales": "pnpm build && node scripts/review-locales.mjs",
     "perf:measure": "pnpm build && node scripts/measure-performance.mjs"
@@ -33,18 +34,14 @@
     "@hugeicons/core-free-icons": "4.3.5",
     "@hugeicons/react": "1.1.10",
     "@paper-design/shaders": "0.0.81",
-    "@react-three/fiber": "9.7.0",
-    "@shadergradient/react": "2.4.20",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "three": "0.186.0"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/chrome": "^0.3.0",
     "@types/node": "^22.20.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@types/three": "0.186.0",
     "@wxt-dev/module-react": "^1.2.2",
     "oxfmt": "0.70.0",
     "oxlint": "1.85.0",

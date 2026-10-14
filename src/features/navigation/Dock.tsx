@@ -27,6 +27,12 @@ let menuModule: Promise<BookmarkMenuComponent> | undefined;
 const loadBookmarkMenu = () =>
   (menuModule ??= import('./BookmarkMenu').then(module => module.BookmarkMenu));
 
+/**
+ * A dock button opens its panel after the pointer rests on it this long, so a
+ * pointer crossing the dock (e.g. on its way to the macOS Dock) opens nothing.
+ */
+const HOVER_OPEN_DELAY = 140;
+
 interface HoverZone {
   /** Whether the zone is shown (controls are awake and no modal is open). */
   visible: boolean;
@@ -56,6 +62,7 @@ export function Dock(props: DockProps) {
   const allButton = useRef<HTMLButtonElement>(null);
   const tray = useRef<HTMLDivElement>(null);
   const focusTray = useRef(false);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [BookmarkMenu, setBookmarkMenu] = useState<BookmarkMenuComponent>();
   const menuOpen = showBookmarks && panel === 'all' && !suspended;
   const trayOpen = showFavorites && panel === 'favorites' && !suspended;
@@ -82,14 +89,21 @@ export function Dock(props: DockProps) {
     tray.current?.querySelector<HTMLElement>('a, button')?.focus();
   }, [trayOpen]);
 
+  useEffect(() => () => clearTimeout(hoverTimer.current), []);
+
   const openOnHover = (next: DockPanel) => (event: PointerEvent) => {
     if (event.pointerType !== 'mouse') return;
     onEnter();
-    onPanelChange(next);
+    clearTimeout(hoverTimer.current);
+    // With a panel already open, moving to the other button switches at once.
+    if (panel !== null) onPanelChange(next);
+    else hoverTimer.current = setTimeout(() => onPanelChange(next), HOVER_OPEN_DELAY);
   };
+  const cancelHover = () => clearTimeout(hoverTimer.current);
   const toggle = (next: DockPanel) => (event: MouseEvent) => {
     // detail is 0 for keyboard activation. A mouse click on a panel that hover already opened keeps it open.
     const keyboard = event.detail === 0;
+    clearTimeout(hoverTimer.current);
     if (next === 'favorites') focusTray.current = keyboard;
     onPanelChange(current => (current === next && keyboard ? null : next));
   };
@@ -126,6 +140,7 @@ export function Dock(props: DockProps) {
             aria-expanded={trayOpen}
             aria-controls="favorites-tray"
             onPointerEnter={openOnHover('favorites')}
+            onPointerLeave={cancelHover}
             onClick={toggle('favorites')}
           >
             <HugeiconsIcon aria-hidden="true" icon={StarIcon} size={17} strokeWidth={1.7} />
@@ -140,6 +155,7 @@ export function Dock(props: DockProps) {
               }
               placeholder={allButton}
               onTriggerPointerEnter={openOnHover('all')}
+              onTriggerPointerLeave={cancelHover}
               entries={menu}
               onEnter={onEnter}
               onLeave={onLeave}
@@ -153,6 +169,7 @@ export function Dock(props: DockProps) {
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               onPointerEnter={openOnHover('all')}
+              onPointerLeave={cancelHover}
               onClick={toggle('all')}
               onKeyDown={menuKey}
             >

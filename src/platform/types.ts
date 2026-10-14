@@ -16,10 +16,11 @@ export interface Platform {
   getFavorites: () => Promise<FavoriteRef[]>;
   updateFavorites: (action: FavoriteAction) => Promise<void>;
   /**
-   * Picks the next variant for `effect` from its persisted shuffle bag. Resolves
-   * after a single read; recording the draw happens in the background.
+   * Picks the next variant for `effect` from its persisted shuffle bag, skipping
+   * `hidden` variant keys. Resolves after a single read; recording the draw
+   * happens in the background.
    */
-  nextEffectVariant: (effect: EffectId) => Promise<VariantDraw>;
+  nextEffectVariant: (effect: EffectId, hidden: readonly string[]) => Promise<VariantDraw>;
   getPreferences: () => Promise<Preferences>;
   /** Read-modify-write under a lock, so concurrent saves never drop each other's fields. */
   updatePreferences: (update: PreferenceUpdate) => Promise<void>;

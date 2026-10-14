@@ -20,7 +20,7 @@ await build({
   root: siteRoot,
   configFile: false,
   publicDir: false,
-  resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber'] },
+  resolve: { dedupe: ['react', 'react-dom'] },
   build: {
     outDir: out,
     emptyOutDir: true,

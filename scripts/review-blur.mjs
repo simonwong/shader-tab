@@ -13,7 +13,7 @@ try {
   );
   wait("document.querySelector('.ambient-background').dataset.renderer==='live'");
   ev(
-    "const style=document.createElement('style');style.textContent='.ambient-background {background:repeating-conic-gradient(#403e3c 0% 25%,#eee9df 0% 50%) 0 0 / 12px 12px !important} .effect-layer {display:none}';document.head.append(style);window.__wake=setInterval(()=>window.dispatchEvent(new PointerEvent('pointermove',{clientX:300,clientY:100,pointerType:'mouse'})),200)",
+    "const style=document.createElement('style');style.textContent='.ambient-background {background:repeating-conic-gradient(#403e3c 0% 25%,#eee9df 0% 50%) 0 0 / 12px 12px !important} .effect-layer {display:none}';document.head.append(style);window.__wake=setInterval(()=>window.dispatchEvent(new PointerEvent('pointermove',{clientX:300,clientY:innerHeight-60,pointerType:'mouse'})),200)",
   );
   wait("document.querySelector('.dock-zone').dataset.visible==='true'");
   const results = [];
@@ -21,7 +21,7 @@ try {
     ev(`chrome.storage.local.set({'preference:v1:appearance':'${theme}'})`);
     wait(`document.documentElement.dataset.theme==='${theme}'`);
     const state = ev(
-      "[...document.querySelectorAll('.dock.glass,.source-glass')].map(e=>({filter:getComputedStyle(e).backdropFilter,background:getComputedStyle(e).backgroundColor,svg:e.querySelectorAll('svg filter').length}))",
+      "[...document.querySelectorAll('.dock.glass,.source-glass')].map(e=>({source:e.classList.contains('source-glass'),filter:getComputedStyle(e).backdropFilter,background:getComputedStyle(e).backgroundColor}))",
     );
     console.log(
       theme,
@@ -30,9 +30,10 @@ try {
         "({reduce:matchMedia('(prefers-reduced-transparency: reduce)').matches,visible:document.querySelector('.dock-zone').dataset.visible})",
       ),
     );
+    // Dock glass keeps its blur (liquid glass adds an SVG map on top); the resting source pill has none.
     for (const item of state) {
-      assert.ok(item.filter.includes('blur(3px)'));
-      assert.equal(item.svg, 0);
+      if (item.source) assert.equal(item.filter, 'none');
+      else assert.ok(item.filter.includes('blur('), item.filter);
     }
     results.push({ theme, state });
     ev('new Promise(r=>setTimeout(r,750))');

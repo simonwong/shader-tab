@@ -3,10 +3,16 @@ import { Tick02Icon } from '@hugeicons/core-free-icons';
 import { useI18n } from '../../i18n/react';
 import { isLanguage, LOCALES, LANGUAGE_NAMES } from '../../i18n/core';
 import type { MessageKey } from '../../i18n/en';
-import { EFFECT_VARIANTS } from '../../effects/variants';
-import { EFFECTS, type EffectId } from '../../effects/presets';
+import { MOTIONS, type Motion } from '../../effects/motion';
+import { EFFECT_VARIANTS, getVariant } from '../../effects/variants';
+import { EFFECTS, getEffect, type EffectId } from '../../effects/presets';
 import { BOOKMARK_SORTS, isBookmarkSort, type BookmarkSort } from '../bookmarks/sorting';
-import { toggleEffect, type PreferenceUpdate, type Preferences } from '../preferences/model';
+import {
+  parseVariantKey,
+  toggleEffect,
+  type PreferenceUpdate,
+  type Preferences,
+} from '../preferences/model';
 import { effectThumbnail } from './effect-thumbnails';
 
 interface Props {
@@ -24,6 +30,19 @@ const SORT_LABELS: Record<BookmarkSort, MessageKey> = {
   oldest: 'sortOldest',
   recent: 'sortRecent',
 };
+
+const MOTION_LABELS: Record<Motion, MessageKey> = {
+  still: 'motionStill',
+  soft: 'motionSoft',
+  lively: 'motionLively',
+};
+
+/** "Family · Variant" for a stored variant key. */
+function pinnedLabel(key: string | null): string | undefined {
+  const pinned = parseVariantKey(key);
+  if (!pinned) return undefined;
+  return `${getEffect(pinned.effect).name} · ${getVariant(pinned.effect, pinned.variant)!.label}`;
+}
 
 function EffectGrid({ preferences, disabled, onChange }: Props) {
   const { t } = useI18n();
@@ -87,6 +106,7 @@ function EffectGrid({ preferences, disabled, onChange }: Props) {
 export function AppearanceSettings(props: Props) {
   const { preferences, disabled, onChange } = props;
   const { t } = useI18n();
+  const pinned = pinnedLabel(preferences.pinnedVariant);
   return (
     <section className="settings-column appearance-settings" aria-labelledby="background-heading">
       <section className="settings-section background-settings">
@@ -121,6 +141,53 @@ export function AppearanceSettings(props: Props) {
           </button>
         </div>
         <p className="setting-note">{t('shuffleNote')}</p>
+        <div className="setting-row">
+          <span className="setting-label">
+            <span>{t('motion')}</span>
+            <small>{t('motionHint')}</small>
+          </span>
+          <div className="segmented" role="group" aria-label={t('motion')}>
+            {MOTIONS.map(value => (
+              <button
+                key={value}
+                disabled={disabled}
+                aria-pressed={preferences.motion === value}
+                onClick={() => onChange({ motion: value })}
+              >
+                {t(MOTION_LABELS[value])}
+              </button>
+            ))}
+          </div>
+        </div>
+        {pinned && (
+          <div className="setting-row">
+            <span className="setting-label">
+              <span>{t('pinnedVariant')}</span>
+              <small>{pinned}</small>
+            </span>
+            <button
+              className="small-button"
+              disabled={disabled}
+              onClick={() => onChange({ pinnedVariant: null })}
+            >
+              {t('unpinVariant')}
+            </button>
+          </div>
+        )}
+        {preferences.hiddenVariants.length > 0 && (
+          <div className="setting-row">
+            <span className="setting-label">
+              {t('hiddenVariants', { count: preferences.hiddenVariants.length })}
+            </span>
+            <button
+              className="small-button"
+              disabled={disabled}
+              onClick={() => onChange({ hiddenVariants: [] })}
+            >
+              {t('restoreHidden')}
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="settings-section" aria-labelledby="navigation-heading">

@@ -1,6 +1,6 @@
 # 验证记录
 
-各节记录对应版本当时的结果，数字不随后续版本更新。当前变体清单以 `src/effects/variants.ts` 的 `EFFECT_VARIANTS` 为准，共 49 种：Grain Gradient 7、Dithering 27、Pixel Field 4、Arc 7、CRT 1、Shader Gradient 3，详见[变体清单](effect-variants.md)。
+各节记录对应版本当时的结果，数字不随后续版本更新。当前变体清单以 `src/effects/variants.ts` 的 `EFFECT_VARIANTS` 为准，共 28 种：Grain Gradient 4、Shader Gradient 3、Dithering 7、Fluted Glass 3、Pixel Field 4、Arc 7，详见[变体清单](effect-variants.md)。
 
 ## 0.3.12 法律页面品牌标题
 
@@ -56,7 +56,7 @@
 - 截图保存在 `artifacts/variants-review/`，包含 108 张日夜截图、8 张 Arc 窄屏截图及 1 张设置截图；117 张截图像素方差均排除近似单色帧。人工检查 Grain、Dithering、Arc、CRT 和窄屏设置代表帧。
 - `scripts/review-variant-lifecycle.mjs` 在 390 × 844、DPR 2 下离线验证当时的 8 种 Arc。每种 2.1 秒采样 38–39 次绘制；Amber 后台两次采样绘制数均为 40，30 秒后画布释放，返回仍是 Amber，快速切换后保持单画布。运行错误为零。
 - 洗牌回归覆盖所有类别的多轮唯一性、跨轮不相邻重复、损坏存储恢复及全部 28 种 Dithering 参数组合。
-- 以上为 0.3.4 的数量。之后移除 Dithering `ripple:4x4` 与 Arc `halftone-flow`，当前为 49 种变体、27 种 Dithering 组合、7 种 Arc。
+- 以上为 0.3.4 的数量。之后移除 Dithering `ripple:4x4` 与 Arc `halftone-flow`，变为 49 种变体、27 种 Dithering 组合、7 种 Arc；当前数量见本页开头。
 
 ## 0.3.3 来源链接、缓存图标与书签排序
 

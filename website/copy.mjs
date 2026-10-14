@@ -29,7 +29,7 @@ export const copy = {
     source: '背景来源',
     facts: [
       ['06', '种背景效果'],
-      ['49', '种变体组合'],
+      ['28', '种变体组合'],
       ['08', '种界面语言'],
     ],
     detailLabel: '少一点打扰',
@@ -132,7 +132,7 @@ export const copy = {
     source: 'Background source',
     facts: [
       ['06', 'background effects'],
-      ['49', 'variant combinations'],
+      ['28', 'variant combinations'],
       ['08', 'interface languages'],
     ],
     detailLabel: 'LESS IN THE WAY',

@@ -1,4 +1,3 @@
-import { variantIds } from '../effects/variants';
 import { drawStoredVariant, settleVariant } from '../features/preferences/variant-shuffle';
 import { flattenBookmarks, type BookmarkNode } from '../features/bookmarks/model';
 import { FAVORITES_KEY, changeFavorites, readFavorites } from '../features/favorites/model';
@@ -133,15 +132,12 @@ export const previewPlatform: Platform = {
       localStorage.setItem(PREFIX + FAVORITES_KEY, JSON.stringify(next));
       changed.dispatchEvent(new Event('change'));
     }),
-  nextEffectVariant: async effect => {
-    const ids = variantIds(effect);
-    if (ids.length === 1) return { variant: ids[0]!, saved: Promise.resolve() };
-    const { variant } = drawStoredVariant(effect, getItems());
+  nextEffectVariant: async (effect, hidden) => {
+    const { variant } = drawStoredVariant(effect, getItems(), Math.random, hidden);
     const saved = navigator.locks.request(`glass-tab:preview-variant:${effect}`, async () => {
-      const { set, remove } = settleVariant(effect, getItems(), variant);
+      const { set } = settleVariant(effect, getItems(), variant, Math.random, hidden);
       for (const [key, state] of Object.entries(set))
         localStorage.setItem(PREFIX + key, JSON.stringify(state));
-      for (const key of remove) localStorage.removeItem(PREFIX + key);
     });
     return { variant, saved };
   },

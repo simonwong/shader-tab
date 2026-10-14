@@ -1,11 +1,11 @@
 export type Theme = 'day' | 'night';
 export const EFFECT_IDS = [
   'grain-gradient',
+  'shader-gradient',
   'dithering',
+  'fluted-glass',
   'pixel-blast',
   'data-pixel-arc',
-  'crt-terminal',
-  'shader-gradient',
 ] as const;
 export type EffectId = (typeof EFFECT_IDS)[number];
 type Palette = readonly [string, string, string];
@@ -29,6 +29,16 @@ export const EFFECTS: EffectPreset[] = [
     night: ['#753fc0', '#ff6545', '#18172f'],
   },
   {
+    id: 'shader-gradient',
+    sourceName: 'ShaderGradient',
+    source: 'https://shadergradient.co/',
+    name: 'Shader Gradient',
+    // Dusk palette: lavender, peach, periwinkle by day; indigo at night.
+    base: { day: '#d6ccd2', night: '#1d1b2c' },
+    day: ['#bcaad2', '#a9b5d2', '#e8ddd6'],
+    night: ['#4a3f66', '#5d4f78', '#2c2b45'],
+  },
+  {
     id: 'dithering',
     sourceName: 'Paper Shaders',
     source: 'https://shaders.paper.design/dithering',
@@ -36,6 +46,16 @@ export const EFFECTS: EffectPreset[] = [
     base: { day: '#eee9df', night: '#121313' },
     day: ['#423e3c', '#423e3c', '#eee9df'],
     night: ['#cbcec2', '#cbcec2', '#121313'],
+  },
+  {
+    id: 'fluted-glass',
+    sourceName: 'Paper Shaders',
+    source: 'https://shaders.paper.design/fluted-glass',
+    name: 'Fluted Glass',
+    // Paper's sample photo: orange cosmos and green stems against a pale sky.
+    base: { day: '#e4ecf2', night: '#2e3340' },
+    day: ['#f0a020', '#4f6a3a', '#f4f7fa'],
+    night: ['#6a4a1c', '#2c3a24', '#3a3f4e'],
   },
   {
     id: 'pixel-blast',
@@ -54,24 +74,6 @@ export const EFFECTS: EffectPreset[] = [
     base: { day: '#f3f6f1', night: '#030308' },
     day: ['#25945b', '#25945b', '#f3f6f1'],
     night: ['#51e77d', '#51e77d', '#030308'],
-  },
-  {
-    id: 'crt-terminal',
-    sourceName: 'ThreeUI',
-    source: 'https://threeui.com/backgrounds/crt/terminal',
-    name: 'CRT',
-    base: { day: '#120d05', night: '#03100a' },
-    day: ['#e5bc71', '#e5bc71', '#120d05'],
-    night: ['#8df0b4', '#8df0b4', '#03100a'],
-  },
-  {
-    id: 'shader-gradient',
-    sourceName: 'Shader Gradient',
-    source: 'https://shadergradient.co/customize',
-    name: 'Shader Gradient',
-    base: { day: '#dbba95', night: '#dbba95' },
-    day: ['#ff5005', '#dbba95', '#d0bce1'],
-    night: ['#ff5005', '#dbba95', '#d0bce1'],
   },
 ];
 export function isEffect(value: unknown): value is EffectId {
@@ -92,6 +94,8 @@ const legacyEffects: Record<string, EffectId> = {
   glow: 'grain-gradient',
   moss: 'data-pixel-arc',
   ripple: 'pixel-blast',
+  // Retired family: CRT moves to the other ThreeUI family.
+  'crt-terminal': 'data-pixel-arc',
 };
 export function migrateEffect(value: unknown): EffectId | undefined {
   return isEffect(value)
@@ -105,9 +109,17 @@ export function getEffect(id: EffectId): EffectPreset {
 }
 export function effectBackground(id: EffectId, theme: Theme): string {
   const preset = getEffect(id);
-  if (id === 'crt-terminal') return preset.base[theme];
   return `radial-gradient(ellipse at 75% 30%, ${preset[theme][0]}55, transparent 65%), radial-gradient(ellipse at 20% 80%, ${preset[theme][1]}33, transparent 60%), ${preset.base[theme]}`;
 }
+
+/**
+ * Paper's Dithering "Default" preset (a 4x4 dithered sphere, blue on black),
+ * the one dithering variant with its own colours. Day swaps in a pale ground.
+ */
+export const DITHERING_ORB = {
+  back: { day: '#e4ebf0', night: '#000000' },
+  front: { day: '#0a84c0', night: '#00b2ff' },
+} satisfies Record<string, Record<Theme, string>>;
 
 /** Solid surface behind the ThreeUI Arc collection renderers (canvas clear colour and CSS fallback). */
 export const ARC_SURFACE: Record<Theme, string> = { day: '#eef1f6', night: '#0a0a0a' };

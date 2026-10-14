@@ -85,17 +85,9 @@ afterEach(() => vi.unstubAllGlobals());
 
 const platform = async () => (await import('./chrome')).chromePlatform;
 
-it('never writes storage for a single-variant effect', async () => {
-  const draw = await (await platform()).nextEffectVariant('crt-terminal');
-  await draw.saved;
-  expect(draw.variant).toBe('terminal');
-  expect(storage.get).not.toHaveBeenCalled();
-  expect(storage.set).not.toHaveBeenCalled();
-});
-
 it('returns the bag head after one read and records it in the background', async () => {
   store[variantShuffleKey('pixel-blast')] = { remaining: ['circle', 'diamond'], last: 'square' };
-  const draw = await (await platform()).nextEffectVariant('pixel-blast');
+  const draw = await (await platform()).nextEffectVariant('pixel-blast', []);
   expect(draw.variant).toBe('circle');
   await draw.saved;
   expect(store[variantShuffleKey('pixel-blast')]).toEqual({
@@ -126,12 +118,12 @@ it('applies functional preference updates to the latest stored value', async () 
   const chrome = await platform();
   await Promise.all([
     chrome.updatePreferences(current => ({ effects: [...current.effects, 'pixel-blast'] })),
-    chrome.updatePreferences(current => ({ effects: [...current.effects, 'crt-terminal'] })),
+    chrome.updatePreferences(current => ({ effects: [...current.effects, 'data-pixel-arc'] })),
   ]);
   expect(store[PREFERENCE_PREFIX + 'effects']).toEqual([
     'dithering',
     'pixel-blast',
-    'crt-terminal',
+    'data-pixel-arc',
   ]);
 });
 

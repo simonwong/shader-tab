@@ -31,11 +31,11 @@ export function page(c, lang) {
  <main id="main"><section class="hero wrap"><div class="hero-intro"><p class="eyebrow"><span></span>${c.eyebrow}</p><h1>${c.heading}</h1><p class="hero-copy">${c.intro}</p><div class="hero-actions"><a class="button primary" href="${installHref}"${installAttributes}>${installLabel}${svg('arrow')}</a><a class="text-link" href="#effects">${c.secondary}</a></div><p class="version">${c.version}</p></div><div class="hero-aside" aria-hidden="true"><div class="pixel-mark"><span></span><i></i><i></i><i></i></div><span>LIGHT<br>PIXELS<br>SPACE</span></div></section>
  <section class="experience wrap" id="effects" aria-labelledby="scene-title"><div class="section-top"><h2 id="scene-title">${c.scene}</h2><span class="live-label"><i></i><span id="live-label" aria-live="polite">${c.live}</span></span></div><div class="preview-shell" id="preview-shell"><div class="preview-stage" id="preview-stage" data-effect="grain-gradient" role="group" aria-label="Grain Gradient"><div id="shader" aria-hidden="true"></div><div class="preview-top"><span class="preview-caption">${c.demoTitle}</span><div class="preview-options"><button id="theme-toggle" aria-label="${c.theme}" title="${c.theme}">${svg('sun')}<span>${c.day}</span></button><button id="motion-toggle" aria-label="${c.pause}" title="${c.pause}" aria-pressed="false">${svg('pause')}</button></div></div><div class="preview-center" aria-hidden="true"><span class="preview-number">01</span></div><div class="preview-bottom"><button class="preview-settings" id="demo-settings" aria-label="${c.demoSettings}">${svg('settings')}</button><div class="preview-dock"><button id="demo-favorites" aria-label="${c.demoBookmarks}" aria-expanded="false">${svg('star')}</button><button id="demo-grid" aria-label="${c.demoBookmarks}" aria-expanded="false">${svg('grid')}</button></div><a class="preview-source" id="effect-source" href="https://shaders.paper.design/grain-gradient" target="_blank" rel="noopener noreferrer" title="${c.source}">Paper Shaders</a></div><div id="demo-popover" class="demo-popover" hidden><strong>${c.demoBookmarks}</strong><div><span>W</span><span>◎</span><span>R</span></div><p>${c.demoHint}</p></div></div></div><div class="effect-picker" role="group" aria-label="${c.effectGroup}">${[
    ['grain-gradient', 'Grain Gradient'],
+   ['shader-gradient', 'Shader Gradient'],
    ['dithering', 'Dithering'],
+   ['fluted-glass', 'Fluted Glass'],
    ['pixel-blast', 'Pixel Field'],
    ['data-pixel-arc', 'Predictive Arc'],
-   ['crt-terminal', 'CRT'],
-   ['shader-gradient', 'Shader Gradient'],
  ]
    .map(
      ([id, name], i) =>

@@ -49,13 +49,10 @@ export const legalCopy = {
     notices: 'Copyright and full license notices for bundled dependencies',
     versions: 'Version inventory',
     inventory:
-      'The inventory is generated from modules included in the build, covering runtime dependencies such as React, Base UI, dnd-kit, Hugeicons and Three.js.',
-    embedded: 'Additional notices for embedded dependencies',
-    embeddedNote:
-      'URL utilities and three-stdlib embedded in Shader Gradient, and React reconciler embedded in Fiber. See below for camera-controls and GLSL noise.',
+      'The inventory is generated from modules included in the build, covering runtime dependencies such as React, Base UI, dnd-kit and Hugeicons.',
     backgrounds: 'Backgrounds and fonts',
     adaptations:
-      'Local adaptations of ThreeUI cover rendering lifecycle, frame rate and resolution budgets, pointer interactions and decorative text.',
+      "Local adaptations of ThreeUI cover rendering lifecycle, frame rate and resolution budgets, and pointer interactions. Shader Gradient's plane shaders are ported to plain WebGL without three.js.",
   },
   // zh-CN pages are published at the extension root (privacy.html, licenses.html).
   // `colon` replaces the default ': ' after permission names and the embedded-notice link.
@@ -108,12 +105,10 @@ export const legalCopy = {
     notices: '已打包依赖的版权与完整许可声明',
     versions: '版本清单',
     inventory:
-      '该清单由构建时实际包含的模块生成，涵盖 React、Base UI、dnd-kit、Hugeicons、Three.js 等运行时依赖。',
-    embedded: '预打包依赖的补充许可',
-    embeddedNote:
-      'Shader Gradient 内嵌的 URL 工具与 three-stdlib，以及 Fiber 内嵌的 React reconciler。camera-controls 与 GLSL noise 的声明见下方。',
+      '该清单由构建时实际包含的模块生成，涵盖 React、Base UI、dnd-kit、Hugeicons 等运行时依赖。',
     backgrounds: '背景与字体',
-    adaptations: 'ThreeUI 的本地适配包括渲染生命周期、帧率和分辨率预算、指针交互与装饰文案。',
+    adaptations:
+      'ThreeUI 的本地适配包括渲染生命周期、帧率和分辨率预算与指针交互。Shader Gradient 的平面着色器移植为不依赖 three.js 的原生 WebGL。',
   },
   'zh-TW': {
     name: '繁體中文',
@@ -163,12 +158,10 @@ export const legalCopy = {
     notices: '已打包套件的著作權與完整授權聲明',
     versions: '版本清單',
     inventory:
-      '清單依建置時實際包含的模組產生，涵蓋 React、Base UI、dnd-kit、Hugeicons、Three.js 等執行時套件。',
-    embedded: '內嵌套件的補充授權',
-    embeddedNote:
-      'Shader Gradient 內嵌的 URL 工具與 three-stdlib，以及 Fiber 內嵌的 React reconciler。camera-controls 與 GLSL noise 聲明見下方。',
+      '清單依建置時實際包含的模組產生，涵蓋 React、Base UI、dnd-kit、Hugeicons 等執行時套件。',
     backgrounds: '背景與字型',
-    adaptations: 'ThreeUI 的本機調整涵蓋渲染生命週期、畫格率、解析度預算、游標互動與裝飾文案。',
+    adaptations:
+      'ThreeUI 的本機調整涵蓋渲染生命週期、畫格率、解析度預算與游標互動。Shader Gradient 的平面著色器移植為不依賴 three.js 的原生 WebGL。',
   },
   ja: {
     name: '日本語',
@@ -219,13 +212,10 @@ export const legalCopy = {
     notices: '同梱ライブラリの著作権とライセンス全文',
     versions: 'バージョン一覧',
     inventory:
-      '一覧はビルドに含まれるモジュールから生成され、React、Base UI、dnd-kit、Hugeicons、Three.js 等を含みます。',
-    embedded: '内蔵ライブラリの追加ライセンス',
-    embeddedNote:
-      'Shader Gradient 内蔵の URL ツールと three-stdlib、および Fiber 内蔵の React reconciler。camera-controls と GLSL noise は以下を参照してください。',
+      '一覧はビルドに含まれるモジュールから生成され、React、Base UI、dnd-kit、Hugeicons 等を含みます。',
     backgrounds: '背景とフォント',
     adaptations:
-      'ThreeUI の調整は描画ライフサイクル、フレームレートと解像度の制限、ポインター操作、装飾文を含みます。',
+      'ThreeUI の調整は描画ライフサイクル、フレームレートと解像度の制限、ポインター操作を含みます。Shader Gradient の平面シェーダーは three.js を使わない WebGL に移植しています。',
   },
   ko: {
     name: '한국어',
@@ -276,13 +266,10 @@ export const legalCopy = {
     notices: '포함된 의존성의 저작권 및 전체 라이선스',
     versions: '버전 목록',
     inventory:
-      '실제 빌드에 포함된 모듈에서 생성한 목록으로 React, Base UI, dnd-kit, Hugeicons, Three.js 등의 런타임 의존성을 포함합니다.',
-    embedded: '내장 의존성 추가 라이선스',
-    embeddedNote:
-      'Shader Gradient에 내장된 URL 도구와 three-stdlib 및 Fiber에 내장된 React reconciler. camera-controls와 GLSL noise는 아래를 참조하세요.',
+      '실제 빌드에 포함된 모듈에서 생성한 목록으로 React, Base UI, dnd-kit, Hugeicons 등의 런타임 의존성을 포함합니다.',
     backgrounds: '배경 및 글꼴',
     adaptations:
-      'ThreeUI의 로컬 수정에는 렌더링 수명 주기, 프레임 속도와 해상도 한도, 포인터 상호작용 및 장식 문구가 포함됩니다.',
+      'ThreeUI의 로컬 수정에는 렌더링 수명 주기, 프레임 속도와 해상도 한도 및 포인터 상호작용이 포함됩니다. Shader Gradient의 평면 셰이더는 three.js 없이 WebGL로 이식했습니다.',
   },
   fr: {
     name: 'Français',
@@ -334,13 +321,10 @@ export const legalCopy = {
     notices: 'Droits d’auteur et licences intégrales des dépendances incluses',
     versions: 'Liste des versions',
     inventory:
-      'La liste est générée à partir des modules inclus dans la compilation : React, Base UI, dnd-kit, Hugeicons, Three.js et autres dépendances d’exécution.',
-    embedded: 'Licences complémentaires des dépendances embarquées',
-    embeddedNote:
-      'Outils URL et three-stdlib embarqués dans Shader Gradient, et React reconciler embarqué dans Fiber. Voir ci-dessous pour camera-controls et GLSL noise.',
+      'La liste est générée à partir des modules inclus dans la compilation : React, Base UI, dnd-kit, Hugeicons et autres dépendances d’exécution.',
     backgrounds: 'Fonds et polices',
     adaptations:
-      'Les adaptations locales de ThreeUI concernent le cycle de rendu, les limites de fréquence et de résolution, les interactions du pointeur et les textes décoratifs.',
+      'Les adaptations locales de ThreeUI concernent le cycle de rendu, les limites de fréquence et de résolution et les interactions du pointeur. Les shaders de plan de Shader Gradient sont portés en WebGL natif, sans three.js.',
   },
   de: {
     name: 'Deutsch',
@@ -392,13 +376,10 @@ export const legalCopy = {
     notices: 'Urheberrechtsvermerke und vollständige Lizenzen gebündelter Abhängigkeiten',
     versions: 'Versionsübersicht',
     inventory:
-      'Die Liste wird aus den tatsächlich eingebundenen Modulen erstellt und umfasst React, Base UI, dnd-kit, Hugeicons, Three.js und weitere Laufzeitabhängigkeiten.',
-    embedded: 'Zusätzliche Lizenzen eingebetteter Abhängigkeiten',
-    embeddedNote:
-      'URL-Werkzeuge und three-stdlib in Shader Gradient sowie React reconciler in Fiber. camera-controls und GLSL noise stehen unten.',
+      'Die Liste wird aus den tatsächlich eingebundenen Modulen erstellt und umfasst React, Base UI, dnd-kit, Hugeicons und weitere Laufzeitabhängigkeiten.',
     backgrounds: 'Hintergründe und Schriften',
     adaptations:
-      'Lokale Anpassungen von ThreeUI betreffen Render-Lebenszyklus, Bildraten- und Auflösungsgrenzen, Zeigerinteraktionen und dekorative Texte.',
+      'Lokale Anpassungen von ThreeUI betreffen Render-Lebenszyklus, Bildraten- und Auflösungsgrenzen sowie Zeigerinteraktionen. Die Ebenen-Shader von Shader Gradient sind ohne three.js nach WebGL portiert.',
   },
   es: {
     name: 'Español',
@@ -450,12 +431,9 @@ export const legalCopy = {
     notices: 'Derechos de autor y licencias completas de las dependencias incluidas',
     versions: 'Lista de versiones',
     inventory:
-      'La lista se genera a partir de los módulos incluidos en la compilación, como React, Base UI, dnd-kit, Hugeicons, Three.js y otras dependencias de ejecución.',
-    embedded: 'Licencias adicionales de dependencias integradas',
-    embeddedNote:
-      'Herramientas URL y three-stdlib integrados en Shader Gradient, y React reconciler integrado en Fiber. camera-controls y GLSL noise figuran abajo.',
+      'La lista se genera a partir de los módulos incluidos en la compilación, como React, Base UI, dnd-kit, Hugeicons y otras dependencias de ejecución.',
     backgrounds: 'Fondos y fuentes',
     adaptations:
-      'Las adaptaciones locales de ThreeUI abarcan el ciclo de renderizado, límites de fotogramas y resolución, interacción del puntero y textos decorativos.',
+      'Las adaptaciones locales de ThreeUI abarcan el ciclo de renderizado, límites de fotogramas y resolución e interacción del puntero. Los shaders de plano de Shader Gradient se portaron a WebGL nativo, sin three.js.',
   },
 };

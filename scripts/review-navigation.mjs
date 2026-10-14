@@ -46,7 +46,7 @@ try {
       `(()=>{const d=document.querySelector('.dock-zone:not(.settings-zone)').getBoundingClientRect(),s=document.querySelector('.settings-zone').getBoundingClientRect(),t=document.querySelector('.favorites-tray').getBoundingClientRect();return {width:innerWidth,center:d.left+d.width/2,settingsLeft:s.left,gap:d.left-s.right,trayLeft:t.left,trayRight:t.right,overflow:document.documentElement.scrollWidth>innerWidth};})()`,
     );
     assert.equal(layout.center, width / 2);
-    assert.ok(layout.settingsLeft >= 24);
+    assert.ok(layout.settingsLeft >= 16, JSON.stringify(layout));
     assert.ok(layout.gap >= 0);
     assert.ok(layout.trayLeft >= 0 && layout.trayRight <= width);
     assert.equal(layout.overflow, false);
@@ -58,8 +58,7 @@ try {
   assert.equal(evaluate('document.activeElement.getAttribute("aria-label")'), '常用书签');
   run('press', 'Enter');
   wait('document.querySelector(".favorites-tray") !== null');
-  run('press', 'Tab');
-  run('press', 'Tab');
+  // Opening the tray from the keyboard moves focus to the first favorite.
   assert.equal(evaluate('document.activeElement.title'), 'GitHub');
   run('reload');
   run('press', 'Tab');
@@ -72,33 +71,37 @@ try {
     favorites,
   );
   run('press', 'Escape');
-  run('mouse', 'move', '120', '400');
-  wait('document.querySelector(".effect-source").dataset.visible === "true"');
+  run('mouse', 'move', '120', '700');
+  wait('document.querySelector(".favorites-tray") === null');
+  // A dock button opens its panel only after the pointer rests on it for 140 ms.
+  const hoverDelay = evaluate(
+    `(async()=>{const b=document.querySelector('button[aria-label="常用书签"]');const send=t=>b.dispatchEvent(new PointerEvent(t,{bubbles:true,pointerType:'mouse',relatedTarget:document.body}));const sleep=ms=>new Promise(r=>setTimeout(r,ms));const open=()=>document.querySelector('.favorites-tray')!==null;send('pointerover');await sleep(60);const early=open();send('pointerout');await sleep(300);const crossed=open();send('pointerover');await sleep(300);const rested=open();send('pointerout');return {early,crossed,rested};})()`,
+  );
+  assert.deepEqual(hoverDelay, { early: false, crossed: false, rested: true });
+  wait('document.querySelector(".favorites-tray") === null');
+  wait('document.querySelector(".source-zone").dataset.visible === "true"');
   const sources = {
     'grain-gradient': 'https://shaders.paper.design/grain-gradient',
+    'shader-gradient': 'https://shadergradient.co/',
     dithering: 'https://shaders.paper.design/dithering',
+    'fluted-glass': 'https://shaders.paper.design/fluted-glass',
     'pixel-blast': 'https://github.com/simonwong/shader-tab',
-    'data-pixel-arc': 'https://threeui.com/backgrounds/predictive-arc/data-pixel',
-    'crt-terminal': 'https://threeui.com/backgrounds/crt/terminal',
-    'shader-gradient': 'https://shadergradient.co/customize',
+    // Arc variants each link their own page; the variant is picked from the shuffle bag.
+    'data-pixel-arc': 'https://threeui.com/backgrounds/predictive-arc/',
   };
   for (const [id, url] of Object.entries(sources)) {
     evaluate(
       `(()=>{for(const [key,value] of Object.entries({activeEffect:'${id}',shuffle:false}))localStorage.setItem('glass-tab-preview:preference:v1:'+key,JSON.stringify(value));dispatchEvent(new StorageEvent('storage',{key:'glass-tab-preview:preference:v1:activeEffect'}));})()`,
     );
     wait(`document.querySelector('main').dataset.effect==='${id}'`);
-    assert.equal(evaluate('document.querySelector(".effect-source").href'), url);
+    assert.ok(evaluate('document.querySelector(".effect-source").href').startsWith(url));
   }
-  assert.equal(
-    evaluate('document.querySelector(".effect-source").textContent'),
-    'Shader Gradient↗',
-  );
+  assert.match(evaluate('document.querySelector(".effect-source").textContent'), /^ThreeUI · /);
   run('mouse', 'move', '120', '400');
   const sourceLayout = evaluate(
-    `(()=>{const a=document.querySelector('.effect-source'),r=a.getBoundingClientRect(),d=document.querySelector('.dock-zone:not(.settings-zone)').getBoundingClientRect();return {right:innerWidth-r.right,bottom:innerHeight-r.bottom,separate:r.left>=d.right||r.top>=d.bottom,opacity:getComputedStyle(a).opacity,target:a.target,rel:a.rel};})()`,
+    `(()=>{const a=document.querySelector('.effect-source'),r=a.getBoundingClientRect(),d=document.querySelector('.dock-zone:not(.settings-zone)').getBoundingClientRect();return {right:innerWidth-r.right,bottom:innerHeight-r.bottom,separate:r.left>=d.right||r.top>=d.bottom,target:a.target,rel:a.rel};})()`,
   );
-  assert.ok(sourceLayout.right >= 24 && sourceLayout.separate);
-  assert.ok(+sourceLayout.opacity < 0.6);
+  assert.ok(sourceLayout.right >= 16 && sourceLayout.separate, JSON.stringify(sourceLayout));
   assert.equal(sourceLayout.target, '_blank');
   assert.ok(sourceLayout.rel.includes('noopener'));
   run('mouse', 'move', '120', '400');
@@ -107,15 +110,20 @@ try {
   run('reload');
   wait('document.querySelector(".effect-source") !== null');
   run('mouse', 'move', '150', '450');
-  wait('document.querySelector(".effect-source").dataset.visible === "true"');
-  wait('document.querySelector(".effect-source").dataset.visible === "false"');
+  wait('document.querySelector(".source-zone").dataset.visible === "true"');
+  wait('document.querySelector(".source-zone").dataset.visible === "false"');
   assert.equal(
     evaluate('getComputedStyle(document.querySelector(".effect-source")).pointerEvents'),
     'none',
   );
+  // Mouse movement in the upper part of the page (towards the tab strip) leaves the controls asleep.
+  run('mouse', 'move', '150', '100');
+  run('mouse', 'move', '200', '300');
+  run('wait', '800');
+  assert.equal(evaluate('document.querySelector(".source-zone").dataset.visible'), 'false');
   run('set', 'viewport', '1440', '900');
   run('mouse', 'move', '100', '800');
-  wait('document.querySelector(".effect-source").dataset.visible === "true"');
+  wait('document.querySelector(".source-zone").dataset.visible === "true"');
   run('screenshot', resolve(output, 'navigation-and-source.png'));
   const errors = run('errors').errors;
   assert.equal(errors.length, 0);

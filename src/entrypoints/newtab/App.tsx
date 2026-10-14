@@ -26,8 +26,10 @@ import {
   type FavoriteRef,
 } from '../../features/favorites/model';
 import {
+  canHideVariant,
   DEFAULT_PREFERENCES,
   resolvePreferenceUpdate,
+  variantKey,
   type PreferenceUpdate,
   type Preferences,
 } from '../../features/preferences/model';
@@ -232,6 +234,18 @@ export function App({ platform, boot }: Props) {
     [platform],
   );
 
+  const shownKey = selection ? variantKey(selection.effect, selection.variant) : null;
+  // Hides the background on screen and moves on, leaving it out of the next pick already.
+  const hideVariant = (key: string) => {
+    const hiddenVariants = [...preferences.hiddenVariants, key];
+    onPreferenceChange(current => ({
+      hiddenVariants: current.hiddenVariants.includes(key)
+        ? current.hiddenVariants
+        : [...current.hiddenVariants, key],
+    }));
+    reshuffle(hiddenVariants);
+  };
+
   const closeSettings = () => setSettings(false);
   const returnFocus = () =>
     settingsReturnFocus.current?.isConnected ? settingsReturnFocus.current : settingsButton.current;
@@ -252,6 +266,7 @@ export function App({ platform, boot }: Props) {
             effect={selection.effect}
             variant={selection.variant}
             theme={theme}
+            motion={preferences.motion}
             pointerBlocked={settings}
           />
         ) : (
@@ -286,7 +301,14 @@ export function App({ platform, boot }: Props) {
             visible={controlsVisible}
             onEnter={dock.enter}
             onLeave={dock.leave}
-            onShuffle={canReshuffle ? reshuffle : undefined}
+            onShuffle={canReshuffle ? () => reshuffle() : undefined}
+            pinned={shownKey === preferences.pinnedVariant}
+            onPinChange={pinned => onPreferenceChange({ pinnedVariant: pinned ? shownKey : null })}
+            onHide={
+              shownKey && !preferences.pinnedVariant && canHideVariant(preferences, shownKey)
+                ? () => hideVariant(shownKey)
+                : undefined
+            }
           />
         )}
         {onboarding && dock.panel === null && (

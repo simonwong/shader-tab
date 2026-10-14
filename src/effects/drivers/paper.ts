@@ -9,13 +9,15 @@ import {
   getShaderNoiseTexture,
   type ShaderMountUniforms,
 } from '@paper-design/shaders';
-import { getEffect, THEME_BRIGHTNESS } from '../presets';
+import { DITHERING_ORB, getEffect, THEME_BRIGHTNESS } from '../presets';
 import { MAX_RENDER_PIXELS } from './surface';
 import { loseContext } from './webgl';
 import type { DriverFactory } from './types';
 export const createDriver: DriverFactory = async (host, { effect, theme, variant }) => {
-  const [shape = 'swirl', pattern = '4x4'] = variant.split(':');
+  const [shape = 'swirl', pattern = '8x8'] = variant.split(':');
   const grain = effect === 'grain-gradient';
+  // Paper's Default dithering preset: finer pixels, a smaller sphere, own colours.
+  const orb = !grain && variant === 'sphere:4x4';
   const preset = getEffect(effect);
   /* Both shaders output a blend of these colours, so dimming them dims the output. */
   const brightness = THEME_BRIGHTNESS[theme];
@@ -25,7 +27,7 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
   };
   const sizing = {
     u_fit: 2,
-    u_scale: grain ? 1.2 : 0.85,
+    u_scale: grain ? 1.2 : orb ? 0.42 : 0.85,
     u_rotation: 0,
     u_offsetX: 0,
     u_offsetY: 0,
@@ -52,11 +54,11 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
       }
     : {
         ...sizing,
-        u_colorBack: color(preset.base[theme]),
-        u_colorFront: color(preset[theme][0]),
+        u_colorBack: color(orb ? DITHERING_ORB.back[theme] : preset.base[theme]),
+        u_colorFront: color(orb ? DITHERING_ORB.front[theme] : preset[theme][0]),
         u_shape: DitheringShapes[shape as keyof typeof DitheringShapes] ?? DitheringShapes.swirl,
-        u_type: DitheringTypes[pattern as keyof typeof DitheringTypes] ?? DitheringTypes['4x4'],
-        u_pxSize: 3,
+        u_type: DitheringTypes[pattern as keyof typeof DitheringTypes] ?? DitheringTypes['8x8'],
+        u_pxSize: orb ? 2 : 3,
       };
   const mount = new ShaderMount(
     host,
@@ -68,6 +70,9 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
     1,
     MAX_RENDER_PIXELS,
   );
+  /* Grain gradients ignore the pointer: shifting the field slides its per-pixel
+     grain, which reads as static boiling. Dithering follows it gently. */
+  const parallax = grain ? 0 : 1;
   let previousX = 0,
     previousY = 0;
   return {
@@ -78,11 +83,13 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
       mount.setMinPixelRatio(density);
     },
     render(seconds, _delta, pointer) {
-      if (Math.abs(pointer.x - previousX) + Math.abs(pointer.y - previousY) > 0.002) {
-        mount.setUniforms({
-          u_offsetX: pointer.x * 0.06,
-          u_offsetY: -pointer.y * 0.06,
-          u_rotation: pointer.x * 5,
+      if (parallax && Math.abs(pointer.x - previousX) + Math.abs(pointer.y - previousY) > 0.002) {
+        // setUniforms() draws, and so does setFrame() below: write the values without
+        // drawing so a moving pointer costs one draw per frame, not two.
+        (mount as unknown as { setUniformValues: ShaderMount['setUniforms'] }).setUniformValues({
+          u_offsetX: pointer.x * 0.03,
+          u_offsetY: -pointer.y * 0.03,
+          u_rotation: pointer.x * 2.5,
         });
         previousX = pointer.x;
         previousY = pointer.y;

@@ -87,6 +87,17 @@ export const es: Messages = {
   languageHint:
     'Se aplica de inmediato y se guarda localmente. Los nombres de los marcadores no cambian.',
   shuffleBackground: 'Cambiar fondo',
+  motion: 'Movimiento',
+  motionHint: 'Cuánto se mueve el fondo',
+  motionStill: 'Quieto',
+  motionSoft: 'Suave',
+  motionLively: 'Vivo',
+  pinVariant: 'Fijar este fondo',
+  unpinVariant: 'Dejar de fijar',
+  pinnedVariant: 'Fondo fijado',
+  hideVariant: 'No volver a mostrar esta variante',
+  hiddenVariants: 'Variantes ocultas: {count}',
+  restoreHidden: 'Restaurar todas',
   selectedCount: '{count}/{total} seleccionados',
   openSettings: 'Abrir ajustes',
   firstRunHint:
@@ -96,13 +107,12 @@ export const es: Messages = {
     'Para volver a la nueva pestaña predeterminada de Chrome, desactiva Shader Tab en chrome://extensions.',
   openFailed:
     'Chrome no pudo abrir este enlace. Los enlaces a archivos requieren «Permitir el acceso a las URL de archivo» en los detalles de la extensión.',
-  'effect.grain-gradient': 'Grano fino y colores fluidos que reaccionan suavemente al puntero',
+  'effect.grain-gradient': 'Grano fino y colores que fluyen despacio',
   'effect.dithering': 'Remolinos monocromos con texturas de píxeles en movimiento',
+  'effect.shader-gradient': 'Pliegues de color suaves en 3D que suben y bajan despacio',
+  'effect.fluted-glass': 'Vidrio acanalado que refracta colores a la deriva',
   'effect.pixel-blast':
     'Mueve el puntero para agitar los píxeles; haz clic en el fondo para crear ondas',
   'effect.data-pixel-arc':
     'Estilos originales con píxeles de datos, partículas, cintas y semitonos',
-  'effect.crt-terminal': 'Texto de terminal luminoso con líneas de barrido suaves',
-  'effect.shader-gradient':
-    'Plano Halo, esfera Pensive y agua Mint originales; una forma aleatoria en cada nueva pestaña',
 };

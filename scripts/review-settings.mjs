@@ -10,6 +10,8 @@ const preference = values =>
   evaluate(
     `(()=>{for(const [key,value]of Object.entries(${JSON.stringify(values)}))localStorage.setItem('glass-tab-preview:preference:v1:'+key,JSON.stringify(value));dispatchEvent(new StorageEvent('storage',{key:'glass-tab-preview:preference:v1:activeEffect'}));})()`,
   );
+const revealed = selector =>
+  `document.querySelector('${selector}')?.getBoundingClientRect().width > 20`;
 const settings = () => {
   run('press', 'Control+,');
   wait('document.querySelector("[role=dialog]") !== null');
@@ -30,36 +32,91 @@ try {
   preference({
     appearance: 'day',
     shuffle: false,
-    activeEffect: 'shader-gradient',
+    activeEffect: 'pixel-blast',
     showFavorites: true,
     showBookmarks: true,
+    motion: 'soft',
+    hiddenVariants: [],
+    pinnedVariant: null,
   });
   wait(
-    'document.querySelector("main").dataset.effect === "shader-gradient" && document.querySelector(".ambient-background").dataset.renderer === "live"',
+    'document.querySelector("main").dataset.effect === "pixel-blast" && document.querySelector(".ambient-background").dataset.renderer === "live" && document.querySelector(".ambient-background").dataset.transitioning === "false"',
   );
   const timing = evaluate(
     `(async()=>{const a=window.__shaderProbe.uniforms.uTime,start=performance.now();await new Promise(r=>setTimeout(r,3000));return {wall:(performance.now()-start)/1000,shader:window.__shaderProbe.uniforms.uTime-a};})()`,
   );
+  // The shared breathing clock runs between 0.08 and 0.16 shader seconds per second.
   assert.ok(
-    timing.shader / timing.wall > 0.2 && timing.shader / timing.wall < 0.45,
+    timing.shader / timing.wall > 0.07 && timing.shader / timing.wall < 0.17,
     JSON.stringify(timing),
   );
   run('mouse', 'move', '700', '760');
   wait('document.querySelector(".source-glass").classList.contains("liquid-glass")');
   const controls = evaluate(
-    `(()=>{const buttons=[...document.querySelectorAll('.dock-button')].map(b=>({name:b.getAttribute('aria-label'),width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height}));const a=document.querySelector('.effect-source');return {buttons,sourceOpacity:getComputedStyle(a).opacity,sourceFilter:getComputedStyle(a.parentElement).backdropFilter};})()`,
+    `(()=>{const buttons=[...document.querySelectorAll('.dock-button')].map(b=>({name:b.getAttribute('aria-label'),width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height}));return {buttons};})()`,
   );
   assert.ok(controls.buttons.every(b => b.width === 34 && b.height === 34));
-  assert.ok(+controls.sourceOpacity >= 0.8);
-  assert.ok(controls.sourceFilter.includes('blur'));
+  const sourcePill = () =>
+    evaluate(
+      `(()=>{const a=document.querySelector('.effect-source');return {opacity:+getComputedStyle(a).opacity,filter:getComputedStyle(a.parentElement).backdropFilter,variant:getComputedStyle(document.querySelector('.source-variant')).display};})()`,
+    );
+  // At rest the source pill is faint text: no glass and no variant name.
+  run('wait', '400');
+  const resting = sourcePill();
+  assert.ok(resting.opacity < 0.7, JSON.stringify(resting));
+  assert.equal(resting.filter, 'none');
+  assert.equal(resting.variant, 'none');
   run('screenshot', resolve(output, 'controls-day.png'));
+  run('hover', '.effect-source');
+  run('wait', '400');
+  const hovered = sourcePill();
+  assert.ok(hovered.opacity >= 0.8, JSON.stringify(hovered));
+  assert.ok(hovered.filter.includes('blur'));
+  assert.notEqual(hovered.variant, 'none');
+  run('screenshot', resolve(output, 'controls-source-hover.png'));
+  // Pin, unpin and hide from the pill. Pinning and unpinning keep the background on screen.
+  const shown = () => evaluate('document.querySelector(".ambient-background").dataset.variant');
+  const stored = key =>
+    evaluate(`JSON.parse(localStorage.getItem('glass-tab-preview:preference:v1:${key}'))`);
+  const first = shown();
+  run('click', '.source-pin');
+  wait(
+    `document.querySelector('.source-pin').ariaPressed === 'true' && !document.querySelector('.source-shuffle') && !document.querySelector('.source-hide')`,
+  );
+  assert.equal(stored('pinnedVariant'), `pixel-blast/${first}`);
+  run('click', '.source-pin');
+  wait(
+    `document.querySelector('.source-pin').ariaPressed === 'false' && ${revealed('.source-hide')}`,
+  );
+  assert.equal(stored('pinnedVariant'), null);
+  assert.equal(shown(), first);
+  run('click', '.source-hide');
+  wait(
+    `document.querySelector('.ambient-background').dataset.variant !== ${JSON.stringify(first)} && document.querySelector('.ambient-background').dataset.transitioning === 'false'`,
+  );
+  assert.deepEqual(stored('hiddenVariants'), [`pixel-blast/${first}`]);
+  run('mouse', 'move', '700', '760');
   settings();
+  // Motion level and restoring hidden variants sit under the background cards.
+  const idle = `[...document.querySelectorAll('.background-settings button')].every(b => !b.disabled)`;
+  click('button', '静');
+  wait(
+    `JSON.parse(localStorage.getItem('glass-tab-preview:preference:v1:motion')) === 'still' && ${idle}`,
+  );
+  click('button', '全部恢复');
+  wait(
+    `JSON.parse(localStorage.getItem('glass-tab-preview:preference:v1:hiddenVariants')).length === 0 && ${idle}`,
+  );
+  click('button', '柔');
+  wait(
+    `JSON.parse(localStorage.getItem('glass-tab-preview:preference:v1:motion')) === 'soft' && ${idle}`,
+  );
   assert.ok(evaluate('document.querySelectorAll(".picker-folder").length') >= 5);
   assert.equal(evaluate('document.querySelectorAll(".candidate-list").length'), 0);
   evaluate('window.__backgroundBefore=document.querySelector(".ambient-background canvas")');
-  run('find', 'role', 'button', 'hover', '--name', 'CRT', '--exact');
-  assert.equal(evaluate('document.querySelector("main").dataset.effect'), 'shader-gradient');
-  run('focus', 'button[aria-label="Dithering"]');
+  run('find', 'role', 'radio', 'hover', '--name', 'Predictive Arc,');
+  assert.equal(evaluate('document.querySelector("main").dataset.effect'), 'pixel-blast');
+  run('focus', 'button[aria-label^="Dithering,"]');
   assert.equal(
     evaluate('document.querySelector(".ambient-background canvas")===window.__backgroundBefore'),
     true,
@@ -187,7 +244,7 @@ try {
     ),
   );
   console.log(
-    'Settings passed: smaller glass controls, slower motion, no hover preview, nested bookmark search/add, independent persisted visibility and narrow layout.',
+    'Settings passed: smaller glass controls, slower motion, pill pin/hide, motion levels, no hover preview, nested bookmark search/add, independent persisted visibility and narrow layout.',
   );
 } finally {
   closeBrowser();

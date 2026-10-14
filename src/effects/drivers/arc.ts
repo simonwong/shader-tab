@@ -54,7 +54,7 @@ export const createPredictiveDriver: DriverFactory = (host, { theme }) => {
     gl.uniform1f(uniform('uThickness'), options.thickness);
     gl.uniform1f(uniform('uGain'), options.brightness);
     return (seconds, pointer) => {
-      gl.uniform1f(time, seconds * 0.9 * options.speed);
+      gl.uniform1f(time, seconds * 0.5 * options.speed);
       gl.uniform1f(arch, options.archHeight + pointer.y * 0.04);
     };
   });

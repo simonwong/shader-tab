@@ -3,10 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { Plugin } from 'vite';
 
-const fallbacks: Record<string, string> = {
-  '@react-three/fiber': 'public/licenses/react-three-fiber.txt',
-  '@shadergradient/react': 'public/licenses/shader-gradient.txt',
-};
+const fallbacks: Record<string, string> = {};
 interface PackageInfo {
   name: string;
   version: string;
@@ -50,14 +47,6 @@ export function bundledLicenses(): Plugin {
       }
       if (![...packages.values()].some(value => value.info.name === 'react'))
         throw new Error('Bundled dependency inventory is incomplete: React missing');
-      for (const [name, version] of Object.entries({
-        '@shadergradient/react': '2.4.20',
-        '@react-three/fiber': '9.7.0',
-      })) {
-        const dependency = [...packages.values()].find(value => value.info.name === name);
-        if (dependency && dependency.info.version !== version)
-          throw new Error(`Review embedded dependency notices before upgrading ${name}`);
-      }
       const missing = [];
       const inventory = [];
       const sections = [];

@@ -1,8 +1,7 @@
-import { variantIds } from '../effects/variants';
 import {
   drawStoredVariant,
   settleVariant,
-  variantStorageKeys,
+  variantShuffleKey,
 } from '../features/preferences/variant-shuffle';
 import { flattenBookmarks } from '../features/bookmarks/model';
 import {
@@ -60,16 +59,23 @@ export const chromePlatform: Platform = {
       const legacy = legacyFavoriteKeys(items);
       if (legacy.length) await chrome.storage.local.remove(legacy);
     }),
-  nextEffectVariant: async effect => {
-    const ids = variantIds(effect);
-    // A single-variant effect has nothing to shuffle and never touches storage.
-    if (ids.length === 1) return { variant: ids[0]!, saved: Promise.resolve() };
-    const keys = variantStorageKeys(effect);
-    const { variant } = drawStoredVariant(effect, await chrome.storage.local.get(keys));
+  nextEffectVariant: async (effect, hidden) => {
+    const key = variantShuffleKey(effect);
+    const { variant } = drawStoredVariant(
+      effect,
+      await chrome.storage.local.get([key]),
+      Math.random,
+      hidden,
+    );
     const saved = navigator.locks.request(`glass-tab:variant:${effect}`, async () => {
-      const { set, remove } = settleVariant(effect, await chrome.storage.local.get(keys), variant);
+      const { set } = settleVariant(
+        effect,
+        await chrome.storage.local.get([key]),
+        variant,
+        Math.random,
+        hidden,
+      );
       await chrome.storage.local.set(set);
-      if (remove.length) await chrome.storage.local.remove(remove);
     });
     return { variant, saved };
   },

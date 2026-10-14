@@ -3,6 +3,7 @@ import {
   BATTERY_DENSITY,
   IDLE_FREEZE_MS,
   IDLE_SLOW_MS,
+  MOTION_RATES,
   POINTER_BURST_MS,
   RATES,
   UNFOCUSED_GRACE_MS,
@@ -18,10 +19,18 @@ const awake: RateConditions = {
   onBattery: false,
   dialogOpen: false,
   pointerActive: false,
+  motion: 'soft',
 };
 const fps = (patch: Partial<RateConditions>) => planRate({ ...awake, ...patch }).fps;
 
 describe('planRate', () => {
+  it('sets the base rate by motion level', () => {
+    expect(fps({ motion: 'still' })).toBe(MOTION_RATES.still);
+    expect(fps({ motion: 'soft' })).toBe(RATES.base);
+    expect(fps({ motion: 'lively' })).toBe(MOTION_RATES.lively);
+    expect(fps({ motion: 'lively', dialogOpen: true })).toBe(RATES.dialog);
+  });
+
   it('runs at the base rate and bursts only for pointer-reactive movement', () => {
     expect(fps({})).toBe(RATES.base);
     expect(fps({ pointerActive: true })).toBe(RATES.pointer);

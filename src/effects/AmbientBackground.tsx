@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { resolveVariant, type VariantDef } from './variants';
 import type { EffectId, Theme } from './presets';
 import type { AmbientController, AmbientFailure } from './ambient';
+import type { Motion } from './motion';
 
 interface Props {
   effect: EffectId;
@@ -10,6 +11,7 @@ interface Props {
   theme: Theme;
   /** The settings dialog is open: ignore the pointer and draw at a lower rate. */
   pointerBlocked: boolean;
+  motion: Motion;
 }
 
 /**
@@ -37,6 +39,7 @@ interface Layer {
 interface Stage {
   show: (scene: Scene) => void;
   setPointerBlocked: (blocked: boolean) => void;
+  setMotion: (motion: Motion) => void;
   dispose: () => void;
 }
 
@@ -70,6 +73,7 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
   let outgoingTimer = 0,
     releaseTimer = 0,
     retryTimer = 0;
+  let motionLevel: Motion = 'soft';
   let pointerBlocked = false,
     disposed = false,
     suspended = false;
@@ -177,6 +181,7 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
           reason => onFailure(layer, reason),
         );
         layer.controller.setPointerBlocked(pointerBlocked);
+        layer.controller.setMotion(motionLevel);
         // Lets CSS give a crossfade over a previous scene a different duration than the first fade-in.
         layer.controller.layer.dataset.enter = live ? 'crossfade' : 'fade';
       })
@@ -260,6 +265,10 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
       pointerBlocked = blocked;
       for (const layer of [live, incoming]) layer?.controller?.setPointerBlocked(blocked);
     },
+    setMotion(next) {
+      motionLevel = next;
+      for (const layer of [live, incoming]) layer?.controller?.setMotion(next);
+    },
     dispose() {
       disposed = true;
       motion.removeEventListener('change', sync);
@@ -274,7 +283,7 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
   };
 }
 
-export function AmbientBackground({ effect, variant, theme, pointerBlocked }: Props) {
+export function AmbientBackground({ effect, variant, theme, pointerBlocked, motion }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const stage = useRef<Stage>(undefined);
   const [renderer, setRenderer] = useState<Renderer>('static');
@@ -295,6 +304,9 @@ export function AmbientBackground({ effect, variant, theme, pointerBlocked }: Pr
   useLayoutEffect(() => {
     stage.current?.setPointerBlocked(pointerBlocked);
   }, [pointerBlocked]);
+  useLayoutEffect(() => {
+    stage.current?.setMotion(motion);
+  }, [motion]);
   return (
     <div
       ref={host}

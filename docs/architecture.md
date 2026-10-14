@@ -6,10 +6,10 @@
 - React / TypeScript 负责组件和交互状态。
 - Base UI（`@base-ui/react` 1.8.0）提供设置对话框与书签菜单的定位、键盘导航、弹层和模态焦点管理，替代原 Radix 组件；视觉由本项目 CSS 实现。
 - dnd-kit 支持指针与键盘收藏排序。
-- Paper Shaders、ThreeUI 与 Shader Gradient 官方渲染核心及自研 Pixel Field 着色器负责六种背景，CSS 自定义属性负责日夜玻璃材质。
+- Paper Shaders、移植的 ShaderGradient 着色器、ThreeUI 官方渲染核心及自研 Pixel Field 着色器负责六种背景，CSS 自定义属性负责日夜玻璃材质。
 - Hugeicons 官方免费包统一操作图标；Space Grotesk 字体随扩展本地打包。
 
-背景依赖按渲染器动态导入。Three.js 由 Shader Gradient 与 Amber Halftone 使用；Pixel Field 为原生 WebGL，无额外依赖。
+背景依赖按渲染器动态导入。Paper Shaders 来自 npm 包；Shader Gradient、Pixel Field 与 Predictive Arc 系列直接使用 WebGL，无额外依赖，不打包 three.js。Fluted Glass 的示例照片作为独立资源随渲染器加载。
 
 ## 数据
 
@@ -31,7 +31,7 @@
 
 ### 变体清单
 
-`src/effects/variants.ts` 的 `EFFECT_VARIANTS` 是全部变体的唯一清单，当前 49 种。每项记录稳定 id、来源徽标名称与链接、日夜静态背景、明暗基调、可选像素密度上限和按需加载的渲染器。洗牌存储、渲染器分派、来源徽标、CSS 降级和 `scripts/` 下的验证脚本（经 `variantIdsByEffect`）都从这里读取；新增或移除变体只改这一处。
+`src/effects/variants.ts` 的 `EFFECT_VARIANTS` 是全部变体的唯一清单，当前 28 种。每项记录稳定 id、来源徽标名称与链接、日夜静态背景、明暗基调、可选像素密度上限和按需加载的渲染器。洗牌存储、渲染器分派、来源徽标、CSS 降级和 `scripts/` 下的验证脚本（经 `variantIdsByEffect`）都从这里读取；新增或移除变体只改这一处。
 
 ### 切换与淡入
 
@@ -45,7 +45,7 @@
 
 | 状态                                       | fps             |
 | ------------------------------------------ | --------------- |
-| 默认                                       | 20              |
+| 默认（动效 静 / 柔 / 活）                  | 10 / 20 / 30    |
 | 指针在会直接绘制指针的背景上移动（1 秒内） | 30              |
 | 使用电池                                   | 15              |
 | 窗口失焦超过 15 秒                         | 10              |
@@ -55,13 +55,19 @@
 
 新标签页打开时焦点在地址栏，15 秒宽限期保证打开后的前几秒按默认帧率绘制。使用电池时像素密度另限为 1。`frame-loop.ts` 只在 rAF 回调内绘制，帧槽按固定间隔推进以保持相位；等待超过 60 ms 时先用定时器休眠，接近帧槽再切回 rAF。Paper 自带时钟设为零，用公共时钟推进。
 
-像素密度上限 2，缓冲区最长边上限 2560、总像素不超过 400 万（`drivers/surface.ts`）。Grain Gradient 另限密度 1.25。
+像素密度上限 2，缓冲区最长边上限 2560、总像素不超过 400 万（`drivers/surface.ts`）。Grain Gradient 另限密度 1.25，Shader Gradient 限 1。
+
+### 动效强度
+
+设置里的动效分静、柔、活三档，默认柔，存于 `preference:v1:motion`。档位同时改变呼吸时钟的推进速度（`MOTION_SPEED`：0.35 / 1 / 1.8 倍）和默认帧率（`MOTION_RATES`：10 / 20 / 30 fps）。静档不响应指针，光斑和涟漪都不出现。`review-motion.mjs --motion <档位>` 测量各档的像素变化；预算只约束柔和静。
 
 ### 随机
 
-每次打开新标签页选择一次效果与变体；主题切换、菜单和设置交互不会重抽。每个效果有独立洗牌袋，存于 `effect-variant:shuffle:v1:<effect>`，同一轮不重复，轮次交界不紧邻重复；袋子通过 Web Locks 串行化，避免多个标签页竞争。Shader Gradient 旧的 `shader-gradient:shuffle:v1` 队列读取时并入新袋子；旧 `shaderGradientShape` 设置不再读取。背景类别、主题与两个入口显示开关保存于本地。旧 ID 在读取时迁移，不修改收藏和其他设置。
+每次打开新标签页选择一次效果与变体；主题切换、菜单和设置交互不会重抽。每个效果有独立洗牌袋，存于 `effect-variant:shuffle:v1:<effect>`，同一轮不重复，轮次交界不紧邻重复；袋子通过 Web Locks 串行化，避免多个标签页竞争；袋中已移除的变体读取时丢弃。背景类别、主题与两个入口显示开关保存于本地。旧效果 ID 在读取时迁移（如 `crt-terminal` 改为 `data-pixel-arc`），不修改收藏和其他设置。
 
-指针仅更新目标坐标，公共渲染循环平滑跟随。移入控件、窗口失焦或隐藏后目标归位；Pixel Field 的涟漪按时间自然衰减。触屏支持 Pixel Field 点击涟漪，不跟随触摸移动。释放渲染器时移除全部输入监听。
+效果按权重抽取：权重为该类别可见变体数的平方根（`effectWeights`），变体多的类别出现得稍多，但不会把 3 种变体的类别挤掉。`hiddenVariants` 保存“不再显示”的变体（键为 `effect/variant`），这些变体从洗牌袋和新一轮中剔除；某类别的变体全部隐藏时该类别退出抽取，整个随机池都被隐藏时忽略隐藏列表。`pinnedVariant` 固定一个变体，每次打开都显示它，不抽取、不消耗洗牌袋。页面的效果在偏好加载后锁定，改动隐藏列表或取消固定都不会让当前页面换背景；取消固定时当前画面保留，下次打开恢复随机。读取时丢弃已退役变体的键。
+
+指针仅更新目标坐标，公共渲染循环平滑跟随。移入控件、窗口失焦或隐藏后目标归位；Pixel Field 的指针光斑约 0.6 秒淡入、2 秒淡出，点击涟漪按时间自然衰减。触屏支持 Pixel Field 点击涟漪，不跟随触摸移动。释放渲染器时移除全部输入监听。
 
 ## 材质与加载
 
@@ -82,8 +88,7 @@
 - [Chrome storage](https://developer.chrome.com/docs/extensions/reference/api/storage)
 - [Chrome favicon](https://developer.chrome.com/docs/extensions/how-to/ui/favicons)
 - [Paper Shaders](https://github.com/paper-design/shaders)
+- [ShaderGradient](https://github.com/ruucm/shadergradient)
 - [ThreeUI](https://github.com/MengTo/threeui)
 
 `bookmark-tree.ts` 从原始 Chrome 树生成候选目录，过滤非 HTTP/HTTPS 链接并保留匹配项的完整祖先路径。折叠的子目录不挂载内容，搜索用 deferred value 更新。`showFavorites`、`showBookmarks` 默认均为 true，独立存储；入口隐藏不改变收藏或 Chrome 书签。
-
-Shader Gradient 使用官方 `@shadergradient/react` 2.4.20 与 Fiber 9.7.0。Fiber 采用 `frameloop: never`，官方动画时钟关闭，公共呼吸时钟更新材质 `uTime` 并调用 `advance`；隐藏时没有独立动画循环。React 19.2.8 满足 Fiber 的版本范围。
