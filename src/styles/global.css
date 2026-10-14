@@ -402,6 +402,18 @@ small {
   white-space: pre;
 }
 
+/* While the pill holds its width after a button press, the name fills what is left and truncates. */
+.source-glass[data-locked] .effect-source {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  line-height: calc(24 * var(--u));
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Hide, pin and shuffle buttons, revealed when the pill is hovered or focused. */
 .source-action {
   display: grid;
