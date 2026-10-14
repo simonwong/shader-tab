@@ -2,7 +2,7 @@
 // Modified by Shader Tab: drawn with raw WebGL instead of three.js.
 import { fragment } from '../vendor/amber-halftone-shaders';
 import { ARC_SURFACE, THEME_BRIGHTNESS } from '../presets';
-import { hexColor, mountFullscreenShader } from './webgl';
+import { hexColor, mountShader } from './webgl';
 import type { DriverFactory } from './types';
 
 /* three.js converted the original sRGB hex colours to linear RGB before passing
@@ -15,7 +15,7 @@ const SPACING = 0.085;
 
 export const createDriver: DriverFactory = (host, { theme }) => {
   const light = theme === 'day';
-  return mountFullscreenShader(host, {
+  return mountShader(host, {
     engine: 'threeui-webgl',
     fragment,
     setup(gl, uniform) {

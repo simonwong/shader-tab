@@ -1,7 +1,7 @@
 import { DATA_PIXEL_ARC_DEFAULTS, DATA_PIXEL_ARC_FRAGMENT } from '../vendor/dataPixelArcRenderer';
 import { PREDICTIVE_ARC_DEFAULTS, PREDICTIVE_ARC_FRAGMENT } from '../vendor/predictiveArcRenderer';
 import { THEME_BRIGHTNESS, type Theme } from '../presets';
-import { cssSurfaceUniforms, mountFullscreenShader } from './webgl';
+import { cssSurfaceUniforms, mountShader } from './webgl';
 import type { DriverFactory, Pointer } from './types';
 
 type Uniform = (name: string) => WebGLUniformLocation | null;
@@ -12,11 +12,11 @@ function mountArc(
   theme: Theme,
   fragment: string,
   setup: (
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext | WebGLRenderingContext,
     uniform: Uniform,
   ) => (seconds: number, pointer: Pointer) => void,
 ) {
-  return mountFullscreenShader(host, {
+  return mountShader(host, {
     engine: 'threeui-webgl',
     fragment,
     setup(gl, uniform) {

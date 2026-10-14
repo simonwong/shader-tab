@@ -19,8 +19,7 @@ import {
 } from '@paper-design/shaders';
 import photoUrl from '../../assets/fluted-glass/paper-flowers.webp?url&no-inline';
 import { THEME_BRIGHTNESS, type Theme } from '../presets';
-import { releaseCanvas } from './surface';
-import { deleteProgram, linkProgram, loseContext, type LinkedProgram } from './webgl';
+import { mountShader } from './webgl';
 import type { DriverFactory } from './types';
 
 const VERTEX = `#version 300 es
@@ -166,104 +165,75 @@ export const createDriver: DriverFactory = async (host, { theme, variant }) => {
   const preset = PRESETS[variant] ?? PRESETS.default!;
   const photo = preparePhoto(await loadPhoto(), theme, preset.photoBlur);
   const photoAspect = photo.width / photo.height;
-  const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl2', {
-    alpha: false,
-    antialias: false,
-    depth: false,
-    stencil: false,
-    powerPreference: 'low-power',
+  return mountShader(host, {
+    engine: 'paper-fluted-glass',
+    context: 'webgl2',
+    vertex: VERTEX,
+    fragment: flutedGlassFragmentShader,
+    attribute: 'a_position',
+    setup(gl, uniform, resources) {
+      resources.onDispose(() => {
+        photo.width = photo.height = 1;
+      });
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, resources.texture());
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, photo);
+
+      const brightness = THEME_BRIGHTNESS[theme];
+      gl.uniform1i(uniform('u_image'), 0);
+      gl.uniform1f(uniform('u_scale'), preset.scale);
+      gl.uniform1f(uniform('u_imageAspectRatio'), photoAspect);
+      const tint = TINT[theme];
+      gl.uniform4f(
+        uniform('u_colorBack'),
+        ...(SKY.map((value, index) => value * tint[index]! * brightness) as [
+          number,
+          number,
+          number,
+        ]),
+        1,
+      );
+      gl.uniform4f(uniform('u_colorShadow'), 0, 0, 0, 1);
+      gl.uniform4f(uniform('u_colorHighlight'), brightness, brightness, brightness, 1);
+      gl.uniform1f(uniform('u_shadows'), preset.shadows);
+      gl.uniform1f(uniform('u_size'), preset.size);
+      gl.uniform1f(uniform('u_angle'), preset.angle);
+      gl.uniform1f(uniform('u_shape'), GlassGridShapes[preset.shape]);
+      gl.uniform1f(uniform('u_distortionShape'), GlassDistortionShapes[preset.distortionShape]);
+      gl.uniform1f(uniform('u_distortion'), preset.distortion);
+      gl.uniform1f(uniform('u_highlights'), preset.highlights);
+      gl.uniform1f(uniform('u_blur'), preset.blur);
+      gl.uniform1f(uniform('u_edges'), preset.edges);
+      gl.uniform1f(uniform('u_stretch'), preset.stretch);
+      gl.uniform1f(uniform('u_grainMixer'), preset.grainMixer);
+      gl.uniform1f(uniform('u_grainOverlay'), preset.grainOverlay);
+      for (const side of ['Left', 'Right', 'Top', 'Bottom'])
+        gl.uniform1f(uniform(`u_margin${side}`), 0);
+      const resolution = uniform('u_resolution'),
+        pixelRatio = uniform('u_pixelRatio'),
+        cover = uniform('u_cover'),
+        shift = uniform('u_shift');
+
+      return {
+        resize({ pixelWidth, pixelHeight, width, height, density }) {
+          gl.uniform2f(resolution, pixelWidth, pixelHeight);
+          gl.uniform1f(pixelRatio, density);
+          // Half the photo's UV range visible across the screen for `fit: cover`.
+          const aspect = width / height;
+          gl.uniform2f(
+            cover,
+            aspect > photoAspect ? 0.5 : (0.5 * aspect) / photoAspect,
+            aspect > photoAspect ? (0.5 * photoAspect) / aspect : 0.5,
+          );
+        },
+        frame(seconds) {
+          gl.uniform1f(shift, preset.slide * Math.sin(seconds));
+        },
+      };
+    },
   });
-  if (!gl) throw new Error('WebGL 2 is unavailable');
-
-  let linked: LinkedProgram | undefined;
-  let buffer: WebGLBuffer | null = null;
-  let texture: WebGLTexture | null = null;
-  const dispose = () => {
-    gl.deleteTexture(texture);
-    gl.deleteBuffer(buffer);
-    deleteProgram(gl, linked);
-    loseContext(gl);
-    releaseCanvas(canvas);
-    photo.width = photo.height = 1;
-  };
-  try {
-    linked = linkProgram(gl, VERTEX, flutedGlassFragmentShader);
-    const { program } = linked;
-    gl.useProgram(program);
-    buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-    texture = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, photo);
-
-    const uniform = (name: string) => gl.getUniformLocation(program, name);
-    const brightness = THEME_BRIGHTNESS[theme];
-    gl.uniform1i(uniform('u_image'), 0);
-    gl.uniform1f(uniform('u_scale'), preset.scale);
-    gl.uniform1f(uniform('u_imageAspectRatio'), photoAspect);
-    const tint = TINT[theme];
-    gl.uniform4f(
-      uniform('u_colorBack'),
-      ...(SKY.map((value, index) => value * tint[index]! * brightness) as [number, number, number]),
-      1,
-    );
-    gl.uniform4f(uniform('u_colorShadow'), 0, 0, 0, 1);
-    gl.uniform4f(uniform('u_colorHighlight'), brightness, brightness, brightness, 1);
-    gl.uniform1f(uniform('u_shadows'), preset.shadows);
-    gl.uniform1f(uniform('u_size'), preset.size);
-    gl.uniform1f(uniform('u_angle'), preset.angle);
-    gl.uniform1f(uniform('u_shape'), GlassGridShapes[preset.shape]);
-    gl.uniform1f(uniform('u_distortionShape'), GlassDistortionShapes[preset.distortionShape]);
-    gl.uniform1f(uniform('u_distortion'), preset.distortion);
-    gl.uniform1f(uniform('u_highlights'), preset.highlights);
-    gl.uniform1f(uniform('u_blur'), preset.blur);
-    gl.uniform1f(uniform('u_edges'), preset.edges);
-    gl.uniform1f(uniform('u_stretch'), preset.stretch);
-    gl.uniform1f(uniform('u_grainMixer'), preset.grainMixer);
-    gl.uniform1f(uniform('u_grainOverlay'), preset.grainOverlay);
-    for (const side of ['Left', 'Right', 'Top', 'Bottom'])
-      gl.uniform1f(uniform(`u_margin${side}`), 0);
-    const resolution = uniform('u_resolution'),
-      pixelRatio = uniform('u_pixelRatio'),
-      cover = uniform('u_cover'),
-      shift = uniform('u_shift');
-
-    host.append(canvas);
-    return {
-      canvas,
-      engine: 'paper-fluted-glass',
-      resize(width, height, density) {
-        canvas.width = Math.max(1, Math.round(width * density));
-        canvas.height = Math.max(1, Math.round(height * density));
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.uniform2f(resolution, canvas.width, canvas.height);
-        gl.uniform1f(pixelRatio, density);
-        // Half the photo's UV range visible across the screen for `fit: cover`.
-        const aspect = width / height;
-        gl.uniform2f(
-          cover,
-          aspect > photoAspect ? 0.5 : (0.5 * aspect) / photoAspect,
-          aspect > photoAspect ? (0.5 * photoAspect) / aspect : 0.5,
-        );
-      },
-      render(seconds) {
-        gl.uniform1f(shift, preset.slide * Math.sin(seconds));
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-      },
-      dispose,
-    };
-  } catch (error) {
-    dispose();
-    throw error;
-  }
 };

@@ -11,14 +11,7 @@
  * over a fullscreen triangle: one draw call per frame, no offscreen buffers.
  */
 import { getEffect, THEME_BRIGHTNESS } from '../presets';
-import { releaseCanvas } from './surface';
-import {
-  bindFullscreenTriangle,
-  deleteProgram,
-  linkProgram,
-  loseContext,
-  type LinkedProgram,
-} from './webgl';
+import { hexColor, mountShader } from './webgl';
 import type { DriverFactory, Pointer } from './types';
 
 /** Output brightness per theme, baked into the shader instead of a CSS filter. */
@@ -38,11 +31,6 @@ const HOVER_OUT = 2;
 const HOVER_FOLLOW = 0.35;
 /** Seconds after the last pointer move before the lens starts to fade. */
 const HOVER_HOLD = 1.2;
-
-const VERTEX = `
-attribute vec2 position;
-void main() { gl_Position = vec4(position, 0.0, 1.0); }
-`;
 
 const FRAGMENT = `
 #ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -175,127 +163,91 @@ void main() {
 }
 `;
 
-function rgb(hex: string): [number, number, number] {
-  const value = parseInt(hex.slice(1), 16);
-  return [((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
-}
-
 /** Pointer coordinates (-1..1, y up) to shader UV (0..1, y down), written into `out`. */
 function toUv(pointer: Pointer, out: { x: number; y: number }) {
   out.x = (pointer.x + 1) * 0.5;
   out.y = 1 - (pointer.y + 1) * 0.5;
 }
 
-export const createDriver: DriverFactory = (host, { theme, variant }) => {
-  const canvas = document.createElement('canvas');
-  const options: WebGLContextAttributes = {
-    alpha: false,
-    antialias: false,
-    depth: false,
-    stencil: false,
-    powerPreference: 'low-power',
-  };
-  const gl = canvas.getContext('webgl2', options) ?? canvas.getContext('webgl', options);
-  if (!gl) throw new Error('WebGL is unavailable');
-  let linked: LinkedProgram | undefined;
-  let buffer: WebGLBuffer | null = null;
-  const dispose = () => {
-    gl.deleteBuffer(buffer);
-    deleteProgram(gl, linked);
-    loseContext(gl);
-    releaseCanvas(canvas);
-  };
-  try {
-    linked = linkProgram(gl, VERTEX, FRAGMENT);
-    const { program } = linked;
-    gl.useProgram(program);
-    buffer = bindFullscreenTriangle(gl, program, 'position');
-    const uniform = (name: string) => gl.getUniformLocation(program, name);
-    const resolution = uniform('uResolution');
-    const time = uniform('uTime');
-    const cell = uniform('uCell');
-    const hover = uniform('uHover');
-    const ripples = uniform('uRipples');
+export const createDriver: DriverFactory = (host, { theme, variant }) =>
+  mountShader(host, {
+    engine: 'shader-tab-webgl',
+    context: 'webgl2-or-webgl',
+    fragment: FRAGMENT,
+    setup(gl, uniform) {
+      const resolution = uniform('uResolution');
+      const time = uniform('uTime');
+      const cell = uniform('uCell');
+      const hover = uniform('uHover');
+      const ripples = uniform('uRipples');
 
-    const preset = getEffect('pixel-blast');
-    gl.uniform3fv(uniform('uPaper'), rgb(preset.base[theme]));
-    gl.uniform3fv(uniform('uInk'), rgb(preset[theme][0]));
-    gl.uniform1f(uniform('uInkStrength'), theme === 'day' ? 0.82 : 0.78);
-    gl.uniform1f(uniform('uBrightness'), THEME_BRIGHTNESS[theme]);
-    gl.uniform1f(uniform('uShape'), SHAPES[variant] ?? 0);
+      const preset = getEffect('pixel-blast');
+      gl.uniform3fv(uniform('uPaper'), hexColor(preset.base[theme]));
+      gl.uniform3fv(uniform('uInk'), hexColor(preset[theme][0]));
+      gl.uniform1f(uniform('uInkStrength'), theme === 'day' ? 0.82 : 0.78);
+      gl.uniform1f(uniform('uBrightness'), THEME_BRIGHTNESS[theme]);
+      gl.uniform1f(uniform('uShape'), SHAPES[variant] ?? 0);
 
-    /* Click ring buffer, uploaded as-is; ages advance with real frame time. */
-    const rippleData = new Float32Array(RIPPLES * 4);
-    let nextRipple = 0;
-    let ripplesLive = false;
-    let clock = 0;
-    const cursor = { x: 0.5, y: 0.5 };
-    const tap = { x: 0.5, y: 0.5 };
-    const smoothed = { x: 0.5, y: 0.5 };
-    let lastMove = -Infinity;
-    let hoverStrength = 0;
+      /* Click ring buffer, uploaded as-is; ages advance with real frame time. */
+      const rippleData = new Float32Array(RIPPLES * 4);
+      let nextRipple = 0;
+      let ripplesLive = false;
+      let clock = 0;
+      const cursor = { x: 0.5, y: 0.5 };
+      const tap = { x: 0.5, y: 0.5 };
+      const smoothed = { x: 0.5, y: 0.5 };
+      let lastMove = -Infinity;
+      let hoverStrength = 0;
 
-    const emit = (x: number, y: number, strength: number) => {
-      const offset = nextRipple * 4;
-      rippleData[offset] = x;
-      rippleData[offset + 1] = y;
-      rippleData[offset + 2] = 0;
-      rippleData[offset + 3] = strength;
-      nextRipple = (nextRipple + 1) % RIPPLES;
-      ripplesLive = true;
-    };
+      const emit = (x: number, y: number, strength: number) => {
+        const offset = nextRipple * 4;
+        rippleData[offset] = x;
+        rippleData[offset + 1] = y;
+        rippleData[offset + 2] = 0;
+        rippleData[offset + 3] = strength;
+        nextRipple = (nextRipple + 1) % RIPPLES;
+        ripplesLive = true;
+      };
 
-    host.append(canvas);
-    return {
-      canvas,
-      engine: 'shader-tab-webgl',
-      resize(width, height, density) {
-        const pitch = Math.max(4, 2 * Math.round((CELL_CSS * density) / 2));
-        canvas.width = Math.max(1, Math.round(width * density));
-        canvas.height = Math.max(1, Math.round(height * density));
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.uniform2f(resolution, canvas.width, canvas.height);
-        gl.uniform1f(cell, pitch);
-      },
-      move(pointer) {
-        toUv(pointer, cursor);
-        if (lastMove === -Infinity) {
-          smoothed.x = cursor.x;
-          smoothed.y = cursor.y;
-        }
-        lastMove = clock;
-      },
-      click(pointer) {
-        toUv(pointer, tap);
-        emit(tap.x, tap.y, CLICK_STRENGTH);
-      },
-      render(seconds, delta) {
-        clock += delta;
-        const follow = 1 - Math.exp(-delta / HOVER_FOLLOW);
-        smoothed.x += (cursor.x - smoothed.x) * follow;
-        smoothed.y += (cursor.y - smoothed.y) * follow;
-        const targetHover = clock - lastMove < HOVER_HOLD ? HOVER_STRENGTH : 0;
-        hoverStrength +=
-          (targetHover - hoverStrength) *
-          (1 - Math.exp(-delta / (targetHover ? HOVER_IN : HOVER_OUT)));
-        gl.uniform3f(hover, smoothed.x, smoothed.y, hoverStrength);
-        if (ripplesLive) {
-          ripplesLive = false;
-          for (let index = 2; index < rippleData.length; index += 4) {
-            if (rippleData[index + 1]! <= 0) continue;
-            rippleData[index] = rippleData[index]! + delta;
-            if (rippleData[index]! > RIPPLE_LIFE) rippleData[index + 1] = 0;
-            else ripplesLive = true;
+      return {
+        resize({ pixelWidth, pixelHeight, density }) {
+          gl.uniform2f(resolution, pixelWidth, pixelHeight);
+          gl.uniform1f(cell, Math.max(4, 2 * Math.round((CELL_CSS * density) / 2)));
+        },
+        move(pointer) {
+          toUv(pointer, cursor);
+          if (lastMove === -Infinity) {
+            smoothed.x = cursor.x;
+            smoothed.y = cursor.y;
           }
-          gl.uniform4fv(ripples, rippleData);
-        }
-        gl.uniform1f(time, seconds);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-      },
-      dispose,
-    };
-  } catch (error) {
-    dispose();
-    throw error;
-  }
-};
+          lastMove = clock;
+        },
+        click(pointer) {
+          toUv(pointer, tap);
+          emit(tap.x, tap.y, CLICK_STRENGTH);
+        },
+        frame(seconds, _pointer, delta) {
+          clock += delta;
+          const follow = 1 - Math.exp(-delta / HOVER_FOLLOW);
+          smoothed.x += (cursor.x - smoothed.x) * follow;
+          smoothed.y += (cursor.y - smoothed.y) * follow;
+          const targetHover = clock - lastMove < HOVER_HOLD ? HOVER_STRENGTH : 0;
+          hoverStrength +=
+            (targetHover - hoverStrength) *
+            (1 - Math.exp(-delta / (targetHover ? HOVER_IN : HOVER_OUT)));
+          gl.uniform3f(hover, smoothed.x, smoothed.y, hoverStrength);
+          if (ripplesLive) {
+            ripplesLive = false;
+            for (let index = 2; index < rippleData.length; index += 4) {
+              if (rippleData[index + 1]! <= 0) continue;
+              rippleData[index] = rippleData[index]! + delta;
+              if (rippleData[index]! > RIPPLE_LIFE) rippleData[index + 1] = 0;
+              else ripplesLive = true;
+            }
+            gl.uniform4fv(ripples, rippleData);
+          }
+          gl.uniform1f(time, seconds);
+        },
+      };
+    },
+  });
