@@ -23,10 +23,19 @@ Edit these; the rest derives from them.
 - `scripts/localization/legal-copy.mjs`: `pnpm locales` generates `public/_locales/` and the legal HTML (`public/privacy.html`, `public/licenses.html`, `public/locales/**`) from it. `dev`, `build` and `zip` regenerate them on every run.
 - `src/effects/vendor/README.md`: the record of upstream renderer code and its local changes, covering `vendor/` and the ThreeUI ports in `drivers/arc-*.ts`. Those files keep their upstream copyright line and a "Modified by Shader Tab" note.
 
+## Where behaviour lives
+
+Change and test these modules through their own interface; their callers are thin.
+
+- `src/platform/storage.ts`: everything stored: favorites, preferences, shuffle draws, legacy migrations and the Web Locks around them. `chrome.ts` and `preview.ts` only adapt `chrome.storage.local` and localStorage to its `Store` interface. Tests: `storage.test.ts`, over an in-memory store.
+- `src/features/preferences/background-picker.ts`: the page's background: effect from the weighted pool, variant from the shuffle bag, reshuffle, hide and pin. `use-effect-selection.ts` is only its React binding. Tests: `background-picker.test.ts`.
+- `mountShader` in `src/effects/drivers/webgl.ts`: every raw WebGL driver mounts through it. It owns the context, canvas size and viewport, the draw call and the release of GPU objects; a driver supplies uniforms, geometry and per-frame logic in `setup`.
+
 ## Invariants
 
 - Platform seam: UI code reaches Chrome only through the `Platform` interface (`src/platform/types.ts`). `src/platform/index.ts` picks the Chrome implementation in the extension, the preview one in dev web pages, and an "unavailable" stub in a production build outside Chrome.
-- Storage: `chrome.storage.local` only, unsynced; Chrome's bookmark tree is read-only to the extension. Keys carry versions (`favorites:v2`, `preference:v1:<field>`, `effect-variant:shuffle:v1:<effect>`), and readers migrate old values and drop unknown ones, so a format change ships with a read-time migration. Favorites and shuffle bags change inside `navigator.locks` because tabs share the store.
+- Storage: `chrome.storage.local` only, unsynced; Chrome's bookmark tree is read-only to the extension. Keys carry versions (`favorites:v2`, `preference:v1:<field>`, `effect-variant:shuffle:v1:<effect>`), and readers migrate old values and drop unknown ones, so a format change ships with a read-time migration. Favorites, preferences and shuffle bags change inside `navigator.locks` because tabs share the store; lock names (`glass-tab:…`) are part of the format, since tabs of the old and new version run side by side after an update.
+- Preview namespace: the `glass-tab-preview:` localStorage prefix and `glass-tab:preview-` lock names stay in `src/platform/preview.ts`. The review scripts write that prefix directly, and `check-build.mjs` fails if it reaches the production bundle.
 - First paint: `src/entrypoints/newtab/boot.ts` mirrors the resolved theme, locale, messages and static background colours into localStorage `shader-tab:boot:v1` and applies them synchronously before React renders (the CSP rules out inline scripts). Whatever shapes the first frame goes through this cache.
 - Offline: permissions are exactly `bookmarks`, `storage`, `favicon`, and the CSP sets `connect-src 'self'`. Fonts, shaders and images ship in the package; favicons come from Chrome's local `_favicon` cache.
 - Bundle budget: renderers, settings, the bookmark menu and non-English dictionaries load by dynamic import. `check-build.mjs` holds first-screen JS under 265 KB, asserts that settings and the bookmark menu stay dynamic imports, and fails if three.js or ShaderGradient's React package ships.
