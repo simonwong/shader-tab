@@ -1,12 +1,7 @@
 import { expect, it } from 'vitest';
 import { variantIds } from '../../effects/variants';
 import { EFFECT_IDS } from '../../effects/presets';
-import {
-  drawStoredVariant,
-  drawVariant,
-  settleVariant,
-  variantShuffleKey,
-} from './variant-shuffle';
+import { drawVariant, settleVariant } from './variant-shuffle';
 import { readPreferences, PREFERENCE_PREFIX } from './model';
 
 it.each(EFFECT_IDS)('%s draws all variants per round without repeating at the boundary', effect => {
@@ -76,12 +71,12 @@ it('drops legacy Shader Gradient shapes and keeps the family selected', () => {
 
 it.each(EFFECT_IDS)('%s: peeking then settling covers every variant per round', effect => {
   const choices = variantIds(effect);
-  let items: Record<string, unknown> = {};
+  let saved: unknown;
   const shown: string[] = [];
   for (let i = 0; i < choices.length * 3; i++) {
-    const { variant } = drawStoredVariant(effect, items);
+    const { variant } = drawVariant(effect, saved);
     shown.push(variant);
-    items = { ...items, ...settleVariant(effect, items, variant).set };
+    saved = settleVariant(effect, saved, variant);
   }
   for (let i = 0; i < shown.length; i += choices.length) {
     expect(shown.slice(i, i + choices.length).toSorted()).toEqual([...choices].toSorted());
@@ -89,15 +84,12 @@ it.each(EFFECT_IDS)('%s: peeking then settling covers every variant per round', 
 });
 
 it('settles against a bag another tab already advanced', () => {
-  const key = variantShuffleKey('pixel-blast');
   // This tab peeked "circle"; another tab drew it first and left only "diamond".
   expect(
-    settleVariant('pixel-blast', { [key]: { remaining: ['diamond'], last: 'circle' } }, 'circle')
-      .set[key],
+    settleVariant('pixel-blast', { remaining: ['diamond'], last: 'circle' }, 'circle'),
   ).toEqual({ remaining: ['diamond'], last: 'circle' });
   // The bag is used up: a new round starts without the variant on screen.
-  const fresh = settleVariant('pixel-blast', { [key]: { remaining: [], last: 'square' } }, 'square')
-    .set[key]!;
+  const fresh = settleVariant('pixel-blast', { remaining: [], last: 'square' }, 'square');
   expect(fresh.remaining.toSorted()).toEqual(['circle', 'diamond', 'triangle']);
   expect(fresh.last).toBe('square');
 });
@@ -111,8 +103,7 @@ it('leaves hidden variants out of the bag and of new rounds', () => {
     expect(ids.slice(0, 2)).not.toContain(draw.variant);
     saved = draw.state;
   }
-  const settled = settleVariant('dithering', {}, ids[2]!, Math.random, hidden);
-  const state = settled.set[variantShuffleKey('dithering')]!;
+  const state = settleVariant('dithering', undefined, ids[2]!, Math.random, hidden);
   expect(state.remaining).toHaveLength(ids.length - 3);
   expect(state.remaining.some(id => ids.slice(0, 2).includes(id))).toBe(false);
 });

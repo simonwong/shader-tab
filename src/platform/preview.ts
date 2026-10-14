@@ -1,12 +1,6 @@
-import { drawStoredVariant, settleVariant } from '../features/preferences/variant-shuffle';
-import { flattenBookmarks, type BookmarkNode } from '../features/bookmarks/model';
-import { FAVORITES_KEY, changeFavorites, readFavorites } from '../features/favorites/model';
-import {
-  preferenceEntries,
-  readPreferences,
-  resolvePreferenceUpdate,
-} from '../features/preferences/model';
-import type { Listener, Platform } from './types';
+import type { BookmarkNode } from '../features/bookmarks/model';
+import { createStorage, type Store } from './storage';
+import type { Platform } from './types';
 
 const link = (id: string, title: string, url: string): BookmarkNode => ({
   id,
@@ -86,74 +80,69 @@ const tree: BookmarkNode[] = [
   },
 ];
 const PREFIX = 'glass-tab-preview:';
+/** Writes from this tab, with the keys they changed; other tabs get a `storage` event. */
 const changed = new EventTarget();
-function getItems(): Record<string, unknown> {
-  const items: Record<string, unknown> = {};
-  for (let index = 0; index < localStorage.length; index++) {
-    const key = localStorage.key(index);
-    if (!key?.startsWith(PREFIX)) continue;
-    try {
-      items[key.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(key)!);
-    } catch {
-      /* Ignore invalid preview data. */
+const announce = (keys: string[]) =>
+  changed.dispatchEvent(new CustomEvent<string[]>('change', { detail: keys }));
+const store: Store = {
+  get: async keys => {
+    const items: Record<string, unknown> = {};
+    for (let index = 0; index < localStorage.length; index++) {
+      const stored = localStorage.key(index);
+      if (!stored?.startsWith(PREFIX)) continue;
+      const key = stored.slice(PREFIX.length);
+      if (keys && !keys.includes(key)) continue;
+      try {
+        items[key] = JSON.parse(localStorage.getItem(stored)!);
+      } catch {
+        /* Ignore invalid preview data. */
+      }
     }
-  }
-  return items;
-}
-/** Stored favorites, or sample ones until the preview saves its own. */
-function getFavoriteItems(): Record<string, unknown> {
-  const items = getItems();
-  if (items[FAVORITES_KEY] === undefined)
-    items[FAVORITES_KEY] = sites.slice(0, 6).map(site => site.id);
-  return items;
-}
-function watch(listener: Listener) {
-  const handle = (event: StorageEvent) => {
-    if (event.key === null || event.key.startsWith(PREFIX)) listener();
-  };
-  changed.addEventListener('change', listener);
-  window.addEventListener('storage', handle);
-  return () => {
-    changed.removeEventListener('change', listener);
-    window.removeEventListener('storage', handle);
-  };
-}
+    return items;
+  },
+  set: async items => {
+    for (const [key, value] of Object.entries(items))
+      localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    announce(Object.keys(items));
+  },
+  remove: async keys => {
+    for (const key of keys) localStorage.removeItem(PREFIX + key);
+    announce(keys);
+  },
+  watch: (matches, listener) => {
+    const local = (event: Event) => {
+      if ((event as CustomEvent<string[]>).detail.some(matches)) listener();
+    };
+    // Review scripts also dispatch `storage` events after writing preview keys directly.
+    const other = (event: StorageEvent) => {
+      if (
+        event.key === null ||
+        (event.key.startsWith(PREFIX) && matches(event.key.slice(PREFIX.length)))
+      )
+        listener();
+    };
+    changed.addEventListener('change', local);
+    window.addEventListener('storage', other);
+    return () => {
+      changed.removeEventListener('change', local);
+      window.removeEventListener('storage', other);
+    };
+  },
+};
+const getTree = async () => structuredClone(tree);
+
 export const previewPlatform: Platform = {
   mode: 'preview',
-  getTree: async () => structuredClone(tree),
-  getFavorites: async () => readFavorites(getFavoriteItems()),
-  updateFavorites: action =>
-    navigator.locks.request('glass-tab:preview-favorites', async () => {
-      const next = changeFavorites(
-        readFavorites(getFavoriteItems()),
-        action,
-        flattenBookmarks(tree),
-      );
-      localStorage.setItem(PREFIX + FAVORITES_KEY, JSON.stringify(next));
-      changed.dispatchEvent(new Event('change'));
-    }),
-  nextEffectVariant: async (effect, hidden) => {
-    const { variant } = drawStoredVariant(effect, getItems(), Math.random, hidden);
-    const saved = navigator.locks.request(`glass-tab:preview-variant:${effect}`, async () => {
-      const { set } = settleVariant(effect, getItems(), variant, Math.random, hidden);
-      for (const [key, state] of Object.entries(set))
-        localStorage.setItem(PREFIX + key, JSON.stringify(state));
-    });
-    return { variant, saved };
-  },
-  getPreferences: async () => readPreferences(getItems()),
-  updatePreferences: update =>
-    navigator.locks.request('glass-tab:preview-preferences', async () => {
-      const patch = resolvePreferenceUpdate(readPreferences(getItems()), update);
-      for (const [key, value] of Object.entries(preferenceEntries(patch)))
-        localStorage.setItem(PREFIX + key, JSON.stringify(value));
-      changed.dispatchEvent(new Event('change'));
-    }),
+  getTree,
+  ...createStorage({
+    store,
+    getTree,
+    lockPrefix: 'glass-tab:preview-',
+    sampleFavorites: sites.slice(0, 6).map(site => ({ id: site.id })),
+  }),
   openUrl: async (url, background) => {
     // A dev server page cannot open browser pages or files; log what the extension would do.
     console.info(`[preview] open ${url}${background ? ' in a background tab' : ''}`);
   },
   watchBookmarks: () => () => {},
-  watchFavorites: watch,
-  watchPreferences: watch,
 };
