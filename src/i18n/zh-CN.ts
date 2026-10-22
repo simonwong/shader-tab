@@ -87,6 +87,11 @@ export const zhCN: Messages = {
   motionStill: '静',
   motionSoft: '柔',
   motionLively: '活',
+  stillReducedMotion: '系统开启了减少动态效果，背景显示静止画面。',
+  stillSoftware:
+    'Chrome 当前没有用显卡绘图，为节省 CPU，背景显示静止画面。可在 Chrome 设置 → 系统中开启“使用图形加速功能（如果可用）”，然后重启 Chrome。',
+  stillSlow: '部分背景在这台设备上运行过慢，已改为静止画面。',
+  stillRetry: '重新检测',
   pinVariant: '固定这个背景',
   unpinVariant: '取消固定',
   pinnedVariant: '已固定的背景',

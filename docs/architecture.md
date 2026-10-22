@@ -29,7 +29,7 @@
 
 ## 背景
 
-`presets.ts` 定义全部背景类别与配色，9 个新 Paper 类别的逐变体配色在 `PAPER_PALETTES`，`drivers/` 连接框架，`vendor/` 保留官方渲染核心及来源说明。`ambient.ts` 管理单个场景的帧循环、12 秒呼吸时钟、指针与尺寸；React 层处理主题、效果、系统动态效果偏好和静态降级。
+`presets.ts` 定义全部背景类别与配色，9 个新 Paper 类别的逐变体配色在 `PAPER_PALETTES`，`drivers/` 连接框架，`vendor/` 保留官方渲染核心及来源说明。`ambient.ts` 管理单个场景的帧循环、12 秒呼吸时钟、指针与尺寸；React 层处理主题、效果、静止画面和静态降级。
 
 ### 变体清单
 
@@ -39,7 +39,17 @@
 
 `AmbientBackground.tsx` 的 `createStage` 管理画布层。首帧先显示 CSS 底色；新场景加载时旧场景继续绘制，就绪后在上层淡入（首次 350 ms，切换 600 ms），淡入期间旧画面冻结，结束后释放，因此同时最多两个 WebGL 上下文。新场景加载失败时保留旧场景。取消标记保证过期的异步加载不会覆盖新选择。
 
-标签页隐藏时立即停绘，10 秒（`HIDDEN_RELEASE_MS`）后释放画布，返回时重建；隐藏期间预取渲染器分块。可见状态下上下文丢失时，2 秒后重建一次，再次丢失则改用静态背景。减少动态效果、后端不可用或渲染器失败时使用 HTML/CSS 渐变或底色，不请求图片。
+标签页隐藏时立即停绘，10 秒（`HIDDEN_RELEASE_MS`）后释放画布，返回时重建；隐藏期间预取渲染器分块。可见状态下上下文丢失时，2 秒后重建一次，再次丢失则改用静态背景。后端不可用或渲染器失败时使用 HTML/CSS 渐变或底色，不请求图片。
+
+### 静止画面
+
+以下情况仍挂载场景，但只画一帧，此后只在画布尺寸变化时重画，不响应指针。宿主元素的 `data-renderer` 仍为 `live`，`data-still` 记录原因：
+
+- `reduced-motion`：系统开启减少动态效果（Windows 的“动画效果”关闭也算）。
+- `software`：WebGL 跑在 CPU 上。驱动创建后读取其上下文的 `WEBGL_debug_renderer_info`，名称含 SwiftShader、Microsoft Basic Render Driver（WARP）、llvmpipe 等即判定。`failIfMajorPerformanceCaveat` 拦不住 `--use-angle=swiftshader`，所以不用它。只记在当前页面内存中，每次挂载重新判断。
+- `slow`：`rate-policy.ts` 的 `createRateWatch` 比较实际绘制帧数与计划帧率。预热 2 秒后按 4 秒一窗统计，连续两窗低于计划的 60% 就冻结该变体。计划低于 10 fps 时不统计；两帧间隔超过 400 ms 视为卡顿或浏览器限流（headless Chrome 会把 rAF 限到每秒约 1 次），当前窗作废重来。标记按 `effect/variant` 写入 localStorage 键 `shader-tab:slow-variants:v1`（值为标记时间），3 天后失效，期间该变体在这台设备上直接显示静止画面。
+
+设置的动效一行下方会说明原因：软件渲染时提示开启 Chrome 的图形加速；慢标记时提供“重新检测”，清除全部标记后恢复动画。状态在 `src/effects/render-limits.ts`。
 
 ### 帧率策略
 

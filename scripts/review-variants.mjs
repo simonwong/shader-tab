@@ -104,8 +104,17 @@ try {
   run('screenshot', resolve(output, 'settings-narrow.png'));
   run('press', 'Escape');
   run('set', 'media', 'light', 'reduced-motion');
-  wait("document.querySelector('.ambient-background')?.dataset.renderer==='static'");
-  assert.equal(evaluate("document.querySelectorAll('.ambient-background canvas').length"), 0);
+  // Reduced motion keeps the scene but holds one frame: the loop stops asking for frames.
+  wait(
+    "document.querySelector('.ambient-background')?.dataset.renderer==='live' && document.querySelector('.ambient-background').dataset.still==='reduced-motion'",
+  );
+  assert.equal(evaluate("document.querySelectorAll('.ambient-background canvas').length"), 1);
+  assert.equal(
+    evaluate(
+      'new Promise(done=>{let n=0;const raf=window.requestAnimationFrame;window.requestAnimationFrame=cb=>{n++;return raf(cb)};setTimeout(()=>{window.requestAnimationFrame=raf;done(n)},1500)})',
+    ),
+    0,
+  );
   const errors = run('errors').errors;
   assert.deepEqual(errors, []);
   await writeFile(

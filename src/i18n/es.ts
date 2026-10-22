@@ -92,6 +92,13 @@ export const es: Messages = {
   motionStill: 'Quieto',
   motionSoft: 'Suave',
   motionLively: 'Vivo',
+  stillReducedMotion:
+    'Tu sistema tiene activada la reducción de movimiento, así que el fondo muestra una imagen fija.',
+  stillSoftware:
+    'Chrome está dibujando sin la GPU. Para ahorrar CPU, el fondo muestra una imagen fija. Activa «Usar aceleración de gráficos cuando esté disponible» en Configuración de Chrome → Sistema y reinicia Chrome.',
+  stillSlow:
+    'Algunos fondos iban demasiado lentos en este dispositivo y ahora muestran una imagen fija.',
+  stillRetry: 'Volver a probar',
   pinVariant: 'Fijar este fondo',
   unpinVariant: 'Dejar de fijar',
   pinnedVariant: 'Fondo fijado',

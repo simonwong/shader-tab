@@ -90,6 +90,11 @@ export const en = {
   motionStill: 'Still',
   motionSoft: 'Soft',
   motionLively: 'Lively',
+  stillReducedMotion: 'Your system is set to reduce motion, so the background shows a still frame.',
+  stillSoftware:
+    'Chrome is drawing without the GPU, so the background shows a still frame to save CPU. Turn on “Use graphics acceleration when available” in Chrome Settings → System, then restart Chrome.',
+  stillSlow: 'Some backgrounds ran too slowly on this device and now show a still frame.',
+  stillRetry: 'Try again',
   pinVariant: 'Pin this background',
   unpinVariant: 'Unpin',
   pinnedVariant: 'Pinned background',

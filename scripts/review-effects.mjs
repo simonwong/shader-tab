@@ -150,8 +150,9 @@ try {
   run(
     'wait',
     '--fn',
-    'document.querySelector(".ambient-background").dataset.renderer === "static"',
+    'document.querySelector(".ambient-background").dataset.still === "reduced-motion"',
   );
+  // The static fallback sits under the canvas and shows until a scene's first frame.
   const fallbacks = [];
   for (const appearance of ['day', 'night'])
     for (const id of ids) {
@@ -173,7 +174,6 @@ try {
           (background === 'none' && backgroundColor !== 'rgba(0, 0, 0, 0)'),
         'Static fallback must contain a gradient or an opaque color',
       );
-      assert.equal(evaluate('document.querySelectorAll("canvas").length'), 0);
       fallbacks.push({ id, appearance });
     }
   run('set', 'viewport', '390', '844');
