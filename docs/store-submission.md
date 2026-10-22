@@ -1,6 +1,6 @@
 # Shader Tab 商店提交资料
 
-版本：0.7.0。支持邮箱：support@moonunder.app。
+版本：0.7.1。支持邮箱：support@moonunder.app。
 
 ## 单一用途
 
@@ -12,7 +12,7 @@
 
 ## 功能说明
 
-15 类本地渲染背景共 42 种变体，支持日夜主题、指针交互、静 / 柔 / 活三档动效与新标签页随机变体；可在页面角落固定、隐藏或切换背景。查看 Chrome 书签文件夹、搜索并收藏常用书签、调整展示排序；常用书签可平铺在底栏或收在星标里，首次安装可从书签栏一键导入。系统开启减少动态效果时显示静态背景；页面隐藏时停止绘制。
+15 类本地渲染背景共 42 种变体，支持日夜主题、指针交互、静 / 柔 / 活三档动效与新标签页随机变体；可在页面角落固定、隐藏或切换背景。查看 Chrome 书签文件夹、搜索并收藏常用书签、调整展示排序；常用书签可平铺在底栏或收在星标里，首次安装可从书签栏一键导入。系统开启减少动态效果或没有显卡加速时，背景停在一帧静止画面；页面隐藏时停止绘制。
 
 ## 权限理由
 
@@ -35,7 +35,7 @@
 
 `public/privacy.html`、`public/legal.css`、`public/licenses.html` 及构建后的 `licenses/`、`icon/` 可作为静态网站托管。政策页面无需登录，不包含追踪脚本。商店字段填写托管后的完整 HTTPS 隐私政策 URL；`chrome-extension://` 地址不能作为公开网址。
 
-政策页面随官网托管在 https://shadertab.moonunder.app/ 。商店图标、截图和宣传文案需与 0.7.0 实际功能一致，不使用蓝屏或暗示其他品牌授权的素材。
+政策页面随官网托管在 https://shadertab.moonunder.app/ 。商店图标、截图和宣传文案需与 0.7.1 实际功能一致，不使用蓝屏或暗示其他品牌授权的素材。
 
 0.4.1 已在 Chrome 网上应用店发布；审核与发布状态以开发者后台为准。
 
@@ -62,7 +62,7 @@ Bookmarks
 
 Performance
 • Rendering stops when the tab is hidden. The frame rate drops on battery power or when the window is not focused.
-• If your system is set to reduce motion, a still background is shown.
+• If your system is set to reduce motion, or Chrome has no graphics acceleration, the background holds a still frame.
 
 Languages: English, Simplified Chinese, Traditional Chinese, Japanese, Korean, French, German and Spanish.
 
@@ -94,7 +94,7 @@ Shader Tab 把 Chrome 的新标签页换成动态背景，并提供书签的快�
 
 性能
 • 标签页不可见时停止绘制；使用电池或窗口未聚焦时降低帧率。
-• 系统开启“减少动态效果”时显示静态背景。
+• 系统开启“减少动态效果”或 Chrome 没有显卡加速时，背景停在一帧静止画面。
 
 语言：简体中文、繁体中文、英文、日文、韩文、法文、德文、西班牙文。
 

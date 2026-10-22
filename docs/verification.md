@@ -2,6 +2,15 @@
 
 各节记录对应版本当时的结果，数字不随后续版本更新。当前变体清单以 `src/effects/variants.ts` 的 `EFFECT_VARIANTS` 为准，共 42 种，分属 15 个类别，详见[变体清单](effect-variants.md)。
 
+## 0.7.1 Windows 兼容：静止画面、帧循环与字体
+
+- `pnpm check` 通过：21 个文件共 204 项测试、生产构建及产物校验。
+- ZIP 438,574 字节、103 个文件，与生产目录逐文件一致；首屏 JS 260,496 字节，低于 265 KB 预算。校验和见 `artifacts/release-0.7.1.json`。
+- `pnpm review:variants`：84 组通过；减少动态效果下保留一帧画面，1.5 秒内 0 次 rAF。
+- 软件渲染（`--disable-gpu --enable-unsafe-swiftshader`，1536 × 864、125% 缩放）：Grain Gradient、Smoke Ring、Fluted Glass、Shader Gradient、Pixel Field 均判定为 `software` 并停在一帧，浏览器进程合计 CPU 1.2–5.8%。
+- 帧循环（单元测试中的模拟显示器，20 fps）：每帧 rAF 唤醒 60 Hz 2.08 次、144 Hz 4.0 次；改前 3.08 次、7.2 次。
+- Dithering Swirl 8×8 在 125% 缩放下截图，点阵格宽全部为 4 个设备像素；改前 2 与 3 像素混杂。
+
 ## 0.7.0 新背景类别、底栏平铺与首次引导
 
 - `pnpm check` 通过：20 个文件共 185 项测试、生产构建及产物校验。
