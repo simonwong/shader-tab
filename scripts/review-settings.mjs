@@ -215,7 +215,9 @@ try {
     close();
   }
   run('set', 'media', 'light', 'reduced-motion');
-  wait('document.querySelectorAll(".ambient-background canvas").length===0');
+  wait(
+    'document.querySelector(".ambient-background").dataset.still==="reduced-motion" && document.querySelectorAll(".ambient-background canvas").length===1',
+  );
   run('mouse', 'move', '100', '500');
   assert.equal(
     evaluate('getComputedStyle(document.querySelector(".dock-button")).transitionDuration'),

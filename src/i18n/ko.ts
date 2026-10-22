@@ -89,6 +89,11 @@ export const ko: Messages = {
   motionStill: '고요',
   motionSoft: '부드럽게',
   motionLively: '활발',
+  stillReducedMotion: '시스템에서 동작 줄이기가 켜져 있어 배경을 정지 화면으로 표시합니다.',
+  stillSoftware:
+    'Chrome이 GPU 없이 그리고 있어 CPU 사용을 줄이려고 배경을 정지 화면으로 표시합니다. Chrome 설정 → 시스템에서 ‘가능한 경우 그래픽 가속 사용’을 켠 뒤 Chrome을 다시 시작하세요.',
+  stillSlow: '일부 배경이 이 기기에서 너무 느리게 실행되어 정지 화면으로 바꿨습니다.',
+  stillRetry: '다시 확인',
   pinVariant: '이 배경 고정',
   unpinVariant: '고정 해제',
   pinnedVariant: '고정된 배경',

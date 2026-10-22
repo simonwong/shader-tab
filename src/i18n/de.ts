@@ -91,6 +91,13 @@ export const de: Messages = {
   motionStill: 'Ruhig',
   motionSoft: 'Sanft',
   motionLively: 'Lebhaft',
+  stillReducedMotion:
+    'Ihr System ist auf reduzierte Bewegung eingestellt, daher zeigt der Hintergrund ein Standbild.',
+  stillSoftware:
+    'Chrome zeichnet ohne GPU. Um die CPU zu schonen, zeigt der Hintergrund ein Standbild. Aktivieren Sie in den Chrome-Einstellungen unter „System“ die Option „Grafikbeschleunigung verwenden, falls verfügbar“ und starten Sie Chrome neu.',
+  stillSlow:
+    'Einige Hintergründe liefen auf diesem Gerät zu langsam und zeigen jetzt ein Standbild.',
+  stillRetry: 'Erneut prüfen',
   pinVariant: 'Diesen Hintergrund anheften',
   unpinVariant: 'Lösen',
   pinnedVariant: 'Angehefteter Hintergrund',

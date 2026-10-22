@@ -218,3 +218,66 @@ export function createRateMonitor(onChange: (plan: RatePlan) => void): RateMonit
     },
   };
 }
+
+/** Frames drawn while the loop starts up or after a rate change are not measured. */
+export const WATCH_WARMUP_MS = 2_000;
+/** Length of one measuring window. */
+export const WATCH_WINDOW_MS = 4_000;
+/** A window is slow when it delivers less than this share of the planned rate. */
+export const WATCH_SLOW_RATIO = 0.6;
+/** Consecutive slow windows before the variant counts as too heavy for this device. */
+export const WATCH_SLOW_WINDOWS = 2;
+/** Plans below this rate (idle, frozen) are not measured. */
+export const WATCH_MIN_FPS = 10;
+/**
+ * A gap this long between frames is a stall (a long task, or rAF throttled
+ * by the browser) rather than a slow GPU, which delivers late but steady
+ * frames; the window starts over.
+ */
+export const WATCH_STALL_MS = 400;
+
+export interface RateWatch {
+  /** Starts over, e.g. after a pause or a rate change. */
+  reset: (at: number) => void;
+  /** Records a drawn frame; true once the delivered rate has stayed well below `fps`. */
+  frame: (at: number, fps: number) => boolean;
+}
+
+/**
+ * Compares the frames the loop actually draws with the planned rate. Under
+ * CPU rendering or on a GPU that cannot keep up, rAF arrives late and the
+ * delivered rate falls far below plan.
+ */
+export function createRateWatch(): RateWatch {
+  let measureFrom = Infinity;
+  /** Time of the frame that opened the current window. */
+  let opened: number | undefined;
+  let last = 0;
+  let frames = 0;
+  let slowWindows = 0;
+  return {
+    reset(at) {
+      measureFrom = at + WATCH_WARMUP_MS;
+      opened = undefined;
+      slowWindows = 0;
+    },
+    frame(at, fps) {
+      if (fps < WATCH_MIN_FPS || at < measureFrom) return false;
+      const stalled = at - last > WATCH_STALL_MS;
+      last = at;
+      if (opened === undefined || stalled) {
+        opened = at;
+        frames = 0;
+        return false;
+      }
+      frames++;
+      const elapsed = at - opened;
+      if (elapsed < WATCH_WINDOW_MS) return false;
+      const delivered = (frames * 1000) / elapsed;
+      slowWindows = delivered < fps * WATCH_SLOW_RATIO ? slowWindows + 1 : 0;
+      opened = at;
+      frames = 0;
+      return slowWindows >= WATCH_SLOW_WINDOWS;
+    },
+  };
+}

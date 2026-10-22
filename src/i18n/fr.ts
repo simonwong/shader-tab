@@ -93,6 +93,13 @@ export const fr: Messages = {
   motionStill: 'Calme',
   motionSoft: 'Doux',
   motionLively: 'Vif',
+  stillReducedMotion:
+    'Votre système demande moins d’animations, donc l’arrière-plan affiche une image fixe.',
+  stillSoftware:
+    'Chrome dessine sans le GPU. Pour ménager le processeur, l’arrière-plan affiche une image fixe. Activez « Utiliser l’accélération graphique si disponible » dans Paramètres de Chrome → Système, puis redémarrez Chrome.',
+  stillSlow:
+    'Certains arrière-plans étaient trop lents sur cet appareil et affichent maintenant une image fixe.',
+  stillRetry: 'Réessayer',
   pinVariant: 'Épingler cet arrière-plan',
   unpinVariant: 'Désépingler',
   pinnedVariant: 'Arrière-plan épinglé',

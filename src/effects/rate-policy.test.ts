@@ -7,10 +7,15 @@ import {
   POINTER_BURST_MS,
   RATES,
   UNFOCUSED_GRACE_MS,
+  WATCH_SLOW_WINDOWS,
+  WATCH_WARMUP_MS,
+  WATCH_WINDOW_MS,
   createRateMonitor,
+  createRateWatch,
   planRate,
   type RateConditions,
   type RatePlan,
+  type RateWatch,
 } from './rate-policy';
 
 const awake: RateConditions = {
@@ -155,5 +160,66 @@ describe('createRateMonitor', () => {
     expect(monitor.plan.fps).toBe(RATES.base);
     monitor.dispose();
     expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+/** Feeds frames at `rate` fps from `from` to `to` ms; returns the first time the watch reports slow. */
+const feed = (watch: RateWatch, planned: number, rate: number, from: number, to: number) => {
+  for (let at = from; at <= to; at += 1000 / rate) if (watch.frame(at, planned)) return at;
+  return undefined;
+};
+
+describe('createRateWatch', () => {
+  it('stays quiet when the delivered rate is near plan', () => {
+    const watch = createRateWatch();
+    watch.reset(0);
+    expect(feed(watch, 20, 20, 0, 60_000)).toBeUndefined();
+    expect(feed(watch, 20, 13, 60_000, 120_000)).toBeUndefined();
+  });
+
+  it('reports after consecutive slow windows past the warm-up', () => {
+    const watch = createRateWatch();
+    watch.reset(0);
+    const at = feed(watch, 20, 7, 0, 60_000);
+    expect(at).toBeGreaterThanOrEqual(WATCH_WARMUP_MS + WATCH_WINDOW_MS * WATCH_SLOW_WINDOWS);
+    expect(at).toBeLessThan(WATCH_WARMUP_MS + WATCH_WINDOW_MS * WATCH_SLOW_WINDOWS + 1000);
+  });
+
+  it('ignores the warm-up and low plans', () => {
+    const watch = createRateWatch();
+    watch.reset(0);
+    // A stall at start-up (shader compile) followed by a normal rate.
+    expect(feed(watch, 20, 2, 0, WATCH_WARMUP_MS - 1)).toBeUndefined();
+    expect(feed(watch, 20, 20, WATCH_WARMUP_MS, 30_000)).toBeUndefined();
+    expect(feed(watch, RATES.idle, 1, 30_000, 90_000)).toBeUndefined();
+  });
+
+  it('treats throttled rAF as a stall, not a slow GPU', () => {
+    const watch = createRateWatch();
+    watch.reset(0);
+    // Headless Chrome and long tasks can hold rAF to about one frame a second.
+    expect(feed(watch, 20, 1, 0, 60_000)).toBeUndefined();
+    // CPU rendering delivers late but steady frames.
+    expect(feed(watch, 20, 4, 60_000, 90_000)).toBeDefined();
+  });
+
+  it('needs the slow windows to be consecutive', () => {
+    const watch = createRateWatch();
+    watch.reset(0);
+    let at = WATCH_WARMUP_MS;
+    for (let round = 0; round < 5; round++) {
+      expect(feed(watch, 20, 7, at, at + WATCH_WINDOW_MS + 200)).toBeUndefined();
+      at += WATCH_WINDOW_MS + 200;
+      expect(feed(watch, 20, 20, at, at + WATCH_WINDOW_MS + 200)).toBeUndefined();
+      at += WATCH_WINDOW_MS + 200;
+    }
+  });
+
+  it('starts over on reset', () => {
+    const watch = createRateWatch();
+    watch.reset(0);
+    expect(feed(watch, 20, 7, 0, WATCH_WARMUP_MS + WATCH_WINDOW_MS * 1.5)).toBeUndefined();
+    watch.reset(10_000);
+    expect(feed(watch, 20, 7, 10_000, 10_000 + WATCH_WARMUP_MS + WATCH_WINDOW_MS)).toBeUndefined();
   });
 });

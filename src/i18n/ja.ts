@@ -89,6 +89,11 @@ export const ja: Messages = {
   motionStill: '静か',
   motionSoft: 'やわらか',
   motionLively: '活発',
+  stillReducedMotion: 'システムで動きを減らす設定がオンのため、背景は静止画で表示しています。',
+  stillSoftware:
+    'Chrome が GPU を使わずに描画しているため、CPU の負荷を抑えるよう背景は静止画で表示しています。Chrome の設定 → システムで「グラフィック アクセラレーションが使用可能な場合は使用する」をオンにし、Chrome を再起動してください。',
+  stillSlow: '一部の背景はこのデバイスでは重すぎたため、静止画に切り替えました。',
+  stillRetry: '再チェック',
   pinVariant: 'この背景を固定',
   unpinVariant: '固定を解除',
   pinnedVariant: '固定中の背景',

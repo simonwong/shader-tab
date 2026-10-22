@@ -1,9 +1,11 @@
+import { useSyncExternalStore } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Tick02Icon } from '@hugeicons/core-free-icons';
 import { useI18n } from '../../i18n/react';
 import { isLanguage, LOCALES, LANGUAGE_NAMES } from '../../i18n/core';
 import type { MessageKey } from '../../i18n/en';
 import { MOTIONS, type Motion } from '../../effects/motion';
+import { renderLimits } from '../../effects/render-limits';
 import { EFFECT_VARIANTS, getVariant } from '../../effects/variants';
 import { EFFECTS, getEffect, type EffectId } from '../../effects/presets';
 import { BOOKMARK_SORTS, isBookmarkSort, type BookmarkSort } from '../bookmarks/sorting';
@@ -36,6 +38,28 @@ const MOTION_LABELS: Record<Motion, MessageKey> = {
   soft: 'motionSoft',
   lively: 'motionLively',
 };
+
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)');
+function subscribeReducedMotion(listener: () => void) {
+  const query = reducedMotion();
+  query.addEventListener('change', listener);
+  return () => query.removeEventListener('change', listener);
+}
+
+/** Why the background shows a still frame, if it does; reduced motion covers every scene, so it comes first. */
+function useStillReason(): 'reduced-motion' | 'software' | 'slow' | undefined {
+  const reduced = useSyncExternalStore(subscribeReducedMotion, () => reducedMotion().matches);
+  const limits = useSyncExternalStore(renderLimits.subscribe, renderLimits.get);
+  if (reduced) return 'reduced-motion';
+  if (limits.software) return 'software';
+  return limits.slow.length ? 'slow' : undefined;
+}
+
+const STILL_NOTES = {
+  'reduced-motion': 'stillReducedMotion',
+  software: 'stillSoftware',
+  slow: 'stillSlow',
+} as const satisfies Record<string, MessageKey>;
 
 /** "Family · Variant" for a stored variant key. */
 function pinnedLabel(key: string | null): string | undefined {
@@ -107,6 +131,7 @@ export function AppearanceSettings(props: Props) {
   const { preferences, disabled, onChange } = props;
   const { t } = useI18n();
   const pinned = pinnedLabel(preferences.pinnedVariant);
+  const still = useStillReason();
   return (
     <section className="settings-column appearance-settings" aria-labelledby="background-heading">
       <section className="settings-section background-settings">
@@ -159,6 +184,16 @@ export function AppearanceSettings(props: Props) {
             ))}
           </div>
         </div>
+        {still && (
+          <p className="setting-note still-note">
+            {t(STILL_NOTES[still])}
+            {still === 'slow' && (
+              <button className="small-button" onClick={renderLimits.clear}>
+                {t('stillRetry')}
+              </button>
+            )}
+          </p>
+        )}
         {pinned && (
           <div className="setting-row">
             <span className="setting-label">

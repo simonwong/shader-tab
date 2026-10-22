@@ -2,7 +2,8 @@ import type { Theme } from './presets';
 import type { VariantDef } from './variants';
 import { breathingTime, MOTION_SPEED, type Motion } from './motion';
 import { createFrameLoop } from './frame-loop';
-import { createRateMonitor } from './rate-policy';
+import { createRateMonitor, createRateWatch } from './rate-policy';
+import { isSoftwareRenderer, rendererName } from './render-limits';
 import { pixelDensity } from './drivers/surface';
 import type { EffectDriver, Pointer } from './drivers/types';
 
@@ -11,6 +12,11 @@ import type { EffectDriver, Pointer } from './drivers/types';
  * for another tab); the scene can be rebuilt. `error`: the driver failed.
  */
 export type AmbientFailure = 'error' | 'lost';
+/**
+ * `software`: WebGL runs on the CPU. `slow`: the real frame rate stayed far
+ * below plan. The scene has already frozen on its current frame.
+ */
+export type AmbientLimit = 'software' | 'slow';
 
 export interface AmbientController {
   /** The element that holds this scene's canvas; it gets `.ready` once the first frame is drawn. */
@@ -23,6 +29,8 @@ export interface AmbientController {
   setPointerBlocked: (blocked: boolean) => void;
   /** Motion level: clock speed, base frame rate, and (unless still) pointer reactions. */
   setMotion: (motion: Motion) => void;
+  /** While frozen the scene shows one frame, redrawn only when its size changes, and ignores the pointer. */
+  setFrozen: (frozen: boolean) => void;
 }
 
 const clamp = (value: number) => Math.max(-1, Math.min(1, value));
@@ -33,6 +41,7 @@ export function mountAmbient(
   theme: Theme,
   onReady: () => void,
   onFailure: (reason: AmbientFailure) => void,
+  onLimit: (limit: AmbientLimit) => void,
 ): AmbientController {
   const layer = document.createElement('div');
   layer.className = 'effect-layer';
@@ -41,7 +50,8 @@ export function mountAmbient(
   let driver: EffectDriver | undefined;
   let disposed = false,
     paused = document.hidden,
-    pointerBlocked = false;
+    pointerBlocked = false,
+    frozen = false;
   let motion: Motion = 'soft';
   let lastFrame = 0,
     seconds = 0,
@@ -53,8 +63,10 @@ export function mountAmbient(
     height: Math.max(1, host.clientHeight),
   });
 
+  const watch = createRateWatch();
   const monitor = createRateMonitor(plan => {
     loop.setFps(plan.fps);
+    watch.reset(performance.now());
     if (plan.densityCap !== appliedDensityCap && driver && !paused) resizeAndDraw();
   });
   let appliedDensityCap = monitor.plan.densityCap;
@@ -74,6 +86,13 @@ export function mountAmbient(
     resize();
     render(performance.now());
   };
+  /** Resizes, and redraws only if that changed the canvas (which clears it). */
+  const resizeIfNeeded = () => {
+    if (!driver) return;
+    const { width, height } = driver.canvas;
+    resize();
+    if (driver.canvas.width !== width || driver.canvas.height !== height) render(performance.now());
+  };
   const requestResize = () => {
     clearTimeout(resizeTimer);
     if (!paused) resizeTimer = window.setTimeout(resizeAndDraw, 100);
@@ -87,6 +106,7 @@ export function mountAmbient(
   // Still motion ignores the pointer entirely, like the open settings dialog.
   const overControls = (event: PointerEvent) =>
     pointerBlocked ||
+    frozen ||
     motion === 'still' ||
     (event.target instanceof Element && event.target.closest('.ui-surface') !== null);
   const normalize = (event: PointerEvent): Pointer => {
@@ -127,7 +147,28 @@ export function mountAmbient(
       fail('error');
     }
   };
-  const loop = createFrameLoop(render, monitor.plan.fps);
+  const loop = createFrameLoop(now => {
+    render(now);
+    if (!paused && !document.hidden && watch.frame(now, monitor.plan.fps)) {
+      freeze();
+      onLimit('slow');
+    }
+  }, monitor.plan.fps);
+  const startLoop = (drawnAt?: number) => {
+    if (frozen || !driver) return;
+    watch.reset(performance.now());
+    loop.start(drawnAt);
+  };
+  const freeze = () => {
+    if (frozen || disposed) return;
+    frozen = true;
+    loop.stop();
+    resetPointer();
+    pointer.x = pointer.y = 0;
+    lastFrame = 0;
+    // Redraw without the pointer offset; the canvas then holds this frame.
+    render(performance.now());
+  };
 
   const dispose = () => {
     if (disposed) return;
@@ -170,6 +211,12 @@ export function mountAmbient(
         return;
       }
       driver = next;
+      const renderer = rendererName(driver.canvas);
+      if (renderer && isSoftwareRenderer(renderer)) {
+        frozen = true;
+        onLimit('software');
+        if (disposed) return;
+      }
       resize();
       driver.canvas.addEventListener('webglcontextlost', lost);
       window.addEventListener('resize', requestResize);
@@ -181,7 +228,7 @@ export function mountAmbient(
       if (!paused && !document.hidden) {
         const now = performance.now();
         render(now);
-        if (!disposed) loop.start(now);
+        if (!disposed) startLoop(now);
       }
       if (disposed) return;
       layer.classList.add('ready');
@@ -204,9 +251,12 @@ export function mountAmbient(
     resume() {
       if (disposed || document.hidden || !paused) return;
       paused = false;
-      resize();
       lastFrame = 0;
-      if (driver) loop.start();
+      if (frozen) resizeIfNeeded();
+      else {
+        resize();
+        startLoop();
+      }
     },
     setPointerBlocked(blocked) {
       pointerBlocked = blocked;
@@ -217,6 +267,16 @@ export function mountAmbient(
       motion = next;
       monitor.setMotion(next);
       if (next === 'still') resetPointer();
+    },
+    setFrozen(next) {
+      if (next === frozen) return;
+      if (next) {
+        freeze();
+        return;
+      }
+      frozen = false;
+      lastFrame = 0;
+      if (!paused && !document.hidden) startLoop();
     },
   };
 }

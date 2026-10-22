@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { resolveVariant, type VariantDef } from './variants';
 import type { EffectId, Theme } from './presets';
-import type { AmbientController, AmbientFailure } from './ambient';
+import type { AmbientController, AmbientFailure, AmbientLimit } from './ambient';
 import type { Motion } from './motion';
+import { renderLimits } from './render-limits';
 
 interface Props {
   effect: EffectId;
@@ -32,9 +33,14 @@ interface Scene {
 }
 interface Layer {
   key: string;
+  /** `effect/variant`, the key of slow marks. */
+  variant: string;
   controller?: AmbientController;
   paused: boolean;
 }
+
+/** Why scenes show one still frame, or undefined while they animate. */
+export type StillReason = 'reduced-motion' | AmbientLimit;
 
 interface Stage {
   show: (scene: Scene) => void;
@@ -63,6 +69,8 @@ function fadeDuration(element: HTMLElement): number {
  * the current one keeps drawing, then fades in above it; the old scene is
  * frozen during the fade and disposed afterwards, so at most two WebGL
  * contexts exist at once. If the new scene fails, the old one stays.
+ * Under reduced motion, CPU rendering or a slow mark, scenes still mount but
+ * hold one frame.
  */
 function createStage(host: HTMLElement, report: (renderer: Renderer) => void): Stage {
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -99,9 +107,26 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     drop(incoming);
     incoming = undefined;
   };
+  const stillReason = (variant: string): StillReason | undefined =>
+    motion.matches
+      ? 'reduced-motion'
+      : renderLimits.get().software
+        ? 'software'
+        : renderLimits.isSlow(variant)
+          ? 'slow'
+          : undefined;
+  const applyStill = () => {
+    for (const layer of [live, incoming]) {
+      layer?.controller?.setFrozen(stillReason(layer.variant) !== undefined);
+    }
+    publish();
+  };
   const publish = () => {
     if (disposed) return;
     setTransitioning(Boolean(incoming || outgoing));
+    const still = live && stillReason(live.variant);
+    if (still) host.dataset.still = still;
+    else delete host.dataset.still;
     if (document.hidden || !desired) report(live ? 'paused' : suspended ? 'suspended' : 'static');
     else if (
       live &&
@@ -136,6 +161,13 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     publish();
   };
 
+  const onLimit = (layer: Layer, limit: AmbientLimit) => {
+    if (disposed) return;
+    // The store notifies applyStill, which freezes the other layers as well.
+    if (limit === 'software') renderLimits.noteSoftware();
+    else renderLimits.markSlow(layer.variant);
+  };
+
   const onFailure = (layer: Layer, reason: AmbientFailure) => {
     if (disposed) return;
     const wasPaused = layer.paused || document.hidden;
@@ -166,7 +198,11 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
   const mount = (scene: Scene) => {
     finishOutgoing();
     cancelIncoming();
-    const layer: Layer = { key: scene.key, paused: false };
+    const layer: Layer = {
+      key: scene.key,
+      variant: `${scene.definition.effect}/${scene.definition.id}`,
+      paused: false,
+    };
     incoming = layer;
     performance.mark('ambient:start', { detail: scene.key });
     // Fetch the controller and the driver chunk in parallel.
@@ -179,9 +215,11 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
           scene.theme,
           () => onReady(layer),
           reason => onFailure(layer, reason),
+          limit => onLimit(layer, limit),
         );
         layer.controller.setPointerBlocked(pointerBlocked);
         layer.controller.setMotion(motionLevel);
+        layer.controller.setFrozen(stillReason(layer.variant) !== undefined);
         // Lets CSS give a crossfade over a previous scene a different duration than the first fade-in.
         layer.controller.layer.dataset.enter = live ? 'crossfade' : 'fade';
       })
@@ -192,14 +230,6 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
 
   const sync = () => {
     if (disposed || !desired) return;
-    if (motion.matches) {
-      finishOutgoing();
-      cancelIncoming();
-      drop(live);
-      live = undefined;
-      publish();
-      return;
-    }
     if (document.hidden) {
       finishOutgoing();
       cancelIncoming();
@@ -249,7 +279,8 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     }
     sync();
   };
-  motion.addEventListener('change', sync);
+  motion.addEventListener('change', applyStill);
+  const unsubscribe = renderLimits.subscribe(applyStill);
   document.addEventListener('visibilitychange', onVisibility);
   setTransitioning(false);
 
@@ -271,7 +302,8 @@ function createStage(host: HTMLElement, report: (renderer: Renderer) => void): S
     },
     dispose() {
       disposed = true;
-      motion.removeEventListener('change', sync);
+      motion.removeEventListener('change', applyStill);
+      unsubscribe();
       document.removeEventListener('visibilitychange', onVisibility);
       window.clearTimeout(releaseTimer);
       window.clearTimeout(retryTimer);
