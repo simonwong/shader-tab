@@ -1,3 +1,30 @@
+# 0.7.1 发布检查
+
+检查日期：2026-10-22。已生成安装包 `.output/shader-tab-0.7.1-chrome.zip`，尚未上传。0.7.1 针对 Windows 上卸载偏多的排查结果。
+
+## 自 0.7.0 的变更
+
+- 没有显卡加速时（SwiftShader，或 Windows 的 Microsoft Basic Render Driver）背景只画一帧，不再持续占用多核 CPU。实际帧率长期低于计划 60% 的变体在本机冻结 3 天，设置里可“重新检测”。
+- 系统减少动态效果（含 Windows 关闭“动画效果”）时显示一帧着色器画面，不再退成纯色。设置的动效一行下方说明静止原因。
+- 文件名含单独 `%` 的 file:// 书签不再让书签列表出错。
+- 帧循环按实测刷新周期用定时器休眠：20 fps 时每帧 rAF 唤醒 60 Hz 从 3 次降到 2 次，144 Hz 从 7.2 次降到 4 次。
+- Dithering 点阵格在 125%、150% 等缩放下取整到整数设备像素。
+- 中日韩文字按页面语言选系统字体，日文和繁体在 Windows 上不再用简体字形。
+
+## 当前验证
+
+- `pnpm check` 通过：21 个文件共 204 项测试、生产构建及产物校验。
+- 安装包 438,574 字节、103 个文件，与生产目录逐文件一致；首屏 JS 260,496 字节（入口 238,494 字节，预算 265 KB）。SHA-256 见 `artifacts/release-0.7.1.json`。
+- manifest 版本 0.7.1，权限仍为 bookmarks/storage/favicon，CSP 未变。
+- `pnpm review:variants`：84 组 live 渲染通过，减少动态效果下保留 1 个画布、1.5 秒内 0 次 rAF。`review-effects` 通过。
+- 生产包在 `--disable-gpu --enable-unsafe-swiftshader` 下：5 个变体均判定为软件渲染并停在一帧，CPU 1–6%（改前 Grain Gradient 684%、Smoke Ring 738%、Fluted Glass 741%）。硬件 GPU 下不冻结；预置慢标记后变体停在一帧，设置里点“重新检测”后恢复动画。
+- `review-settings` 在点击书签文件夹“工作”时被设置底栏挡住而失败，0.7.0 同样失败，与本版改动无关，尚未修。
+- 未覆盖：真实 Windows 设备、`perf:measure`。
+
+## 提交 0.7.1 前
+
+- 上传安装包。商店描述只需按[商店提交资料](store-submission.md)更新减少动态效果那一句；截图与隐私权实践披露无需变更。
+
 # 0.7.0 发布检查
 
 检查日期：2026-10-22。已生成安装包 `.output/shader-tab-0.7.0-chrome.zip`，尚未上传。
