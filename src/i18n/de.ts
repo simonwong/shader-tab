@@ -105,16 +105,17 @@ export const de: Messages = {
   layoutDockHint: 'Mit einem Klick öffnen',
   layoutTray: 'Hinter dem Stern',
   layoutTrayHint: 'Ein schlankeres Dock',
-  onboardingLayout: 'Wo sollen deine Favoriten liegen?',
+  onboardingLayout: 'Wo sollen Ihre Favoriten liegen?',
   onboardingImport: 'Mit der Lesezeichenleiste beginnen?',
   importFromBar: 'Diese {count} hinzufügen',
-  chooseLater: 'Später in den Einstellungen wählen',
+  importFromBarOne: 'Dieses hinzufügen',
+  chooseLater: 'Später wählen',
   barEmpty:
-    'Deine Lesezeichenleiste enthält noch keine Links. Favoriten kannst du jederzeit in den Einstellungen wählen.',
+    'Ihre Lesezeichenleiste enthält noch keine Links. Favoriten können Sie jederzeit in den Einstellungen auswählen.',
   next: 'Weiter',
   skip: 'Überspringen',
   restoreDefault:
-    'Um Chromes Standard-Tab zurückzubekommen, deaktiviere Shader Tab unter chrome://extensions.',
+    'Um den Standard-Tab von Chrome wiederherzustellen, deaktivieren Sie Shader Tab unter chrome://extensions.',
   openFailed:
     'Chrome konnte diesen Link nicht öffnen. Für Dateilinks muss in den Erweiterungsdetails „Zugriff auf Datei-URLs zulassen“ aktiviert sein.',
   'effect.grain-gradient': 'Feine Körnung und langsam fließende Farben',

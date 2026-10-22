@@ -107,6 +107,7 @@ export const en = {
   onboardingLayout: 'Where should your favorites go?',
   onboardingImport: 'Start with your bookmarks bar?',
   importFromBar: 'Add these {count}',
+  importFromBarOne: 'Add this one',
   chooseLater: 'Choose later in settings',
   barEmpty: 'Your bookmarks bar has no links yet. You can pick favorites in settings at any time.',
   next: 'Continue',

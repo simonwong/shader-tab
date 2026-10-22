@@ -110,9 +110,10 @@ export const fr: Messages = {
   onboardingLayout: 'Où placer vos favoris ?',
   onboardingImport: 'Commencer avec la barre de favoris ?',
   importFromBar: 'Ajouter ces {count}',
-  chooseLater: 'Choisir plus tard dans les paramètres',
+  importFromBarOne: 'Ajouter celui-ci',
+  chooseLater: 'Plus tard',
   barEmpty:
-    'Votre barre de favoris ne contient pas encore de liens. Vous pouvez choisir vos favoris dans les paramètres à tout moment.',
+    'La barre de favoris de Chrome ne contient pas encore de liens. Vous pouvez épingler des pages dans les paramètres à tout moment.',
   next: 'Continuer',
   skip: 'Passer',
   restoreDefault:

@@ -105,6 +105,7 @@ export const zhTW: Messages = {
   onboardingLayout: '常用書籤要放在哪裡？',
   onboardingImport: '從書籤列開始？',
   importFromBar: '加入這 {count} 個',
+  importFromBarOne: '加入這 1 個',
   chooseLater: '稍後在設定裡選',
   barEmpty: '書籤列裡還沒有網頁。隨時可以在設定裡挑選常用書籤。',
   next: '繼續',

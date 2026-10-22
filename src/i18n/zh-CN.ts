@@ -104,6 +104,7 @@ export const zhCN: Messages = {
   onboardingLayout: '常用书签放在哪里？',
   onboardingImport: '从书签栏开始？',
   importFromBar: '添加这 {count} 个',
+  importFromBarOne: '添加这 1 个',
   chooseLater: '稍后在设置里选',
   barEmpty: '书签栏里还没有网页。随时可以在设置里挑选常用书签。',
   next: '继续',

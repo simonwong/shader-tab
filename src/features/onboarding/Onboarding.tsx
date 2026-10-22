@@ -68,6 +68,8 @@ export function Onboarding({ tree, empty, hidden, onPreferenceChange, onFavorite
   const [failed, setFailed] = useState(false);
   const picks = useMemo(() => bookmarkBarPicks(tree), [tree]);
   const primary = useRef<HTMLButtonElement>(null);
+  // The layout is saved with the end of onboarding: on a fresh install any saved
+  // preference would read as onboarding done and take the second step away.
   const finish = (patch: { favoritesLayout?: FavoritesLayout } = {}) =>
     onPreferenceChange({ ...patch, onboarding: false });
 
@@ -81,7 +83,7 @@ export function Onboarding({ tree, empty, hidden, onPreferenceChange, onFavorite
     setFailed(false);
     const saved = await onFavoriteChange({ type: 'import', ids: picks.map(pick => pick.id) });
     setSaving(false);
-    if (saved) finish();
+    if (saved) finish({ favoritesLayout: layout });
     else setFailed(true);
   };
 
@@ -120,12 +122,11 @@ export function Onboarding({ tree, empty, hidden, onPreferenceChange, onFavorite
           <button
             className="small-button primary-button"
             onClick={() => {
-              if (!empty) return finish({ favoritesLayout: layout });
-              onPreferenceChange({ favoritesLayout: layout });
-              setStep('import');
+              if (empty) setStep('import');
+              else finish({ favoritesLayout: layout });
             }}
           >
-            {t('next')}
+            {t(empty ? 'next' : 'gotIt')}
           </button>
         </div>
       </GlassPanel>
@@ -160,7 +161,7 @@ export function Onboarding({ tree, empty, hidden, onPreferenceChange, onFavorite
       <div className="onboarding-actions">
         {picks.length ? (
           <>
-            <button className="text-button" onClick={() => finish()}>
+            <button className="text-button" onClick={() => finish({ favoritesLayout: layout })}>
               {t('chooseLater')}
             </button>
             <button
@@ -169,11 +170,17 @@ export function Onboarding({ tree, empty, hidden, onPreferenceChange, onFavorite
               disabled={saving}
               onClick={() => void importPicks()}
             >
-              {t('importFromBar', { count: picks.length })}
+              {picks.length === 1
+                ? t('importFromBarOne')
+                : t('importFromBar', { count: picks.length })}
             </button>
           </>
         ) : (
-          <button ref={primary} className="small-button" onClick={() => finish()}>
+          <button
+            ref={primary}
+            className="small-button"
+            onClick={() => finish({ favoritesLayout: layout })}
+          >
             {t('gotIt')}
           </button>
         )}
