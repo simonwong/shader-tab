@@ -55,6 +55,9 @@ describe('bookmark projection', () => {
       { id: '3', title: 'report.pdf', url: 'file:///tmp/report.pdf', folder: [] },
     ]);
     expect(bookmarkHost('file:///Users/me/notes%20today.html')).toBe('notes today.html');
+    // A lone "%" is not an escape; the name shows as stored instead of throwing.
+    expect(bookmarkHost('file:///C:/50%.txt')).toBe('50%.txt');
+    expect(bookmarkHost('file:///D:/a%ZZb.html')).toBe('a%ZZb.html');
     expect(isWebUrl('https://example.com')).toBe(true);
     expect(isWebUrl('chrome://settings')).toBe(false);
     expect(isWebUrl('file:///tmp/a')).toBe(false);
