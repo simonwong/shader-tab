@@ -77,8 +77,12 @@ try {
     console.log(`${effect}: ${choices.length} variants, both themes passed`);
   }
   for (const [effect, choices] of Object.entries(variants)) {
-    // Without the known-families list the page reads this as an old pool and adds every newer family.
-    preference({ shuffle: true, effects: [effect], knownEffects: Object.keys(variants) });
+    // Without the removed list the page reads this as an old pool and adds every newer family.
+    preference({
+      shuffle: true,
+      effects: [effect],
+      removedEffects: Object.keys(variants).filter(id => id !== effect),
+    });
     run('reload');
     wait(
       `document.querySelector('main')?.dataset.effect===${JSON.stringify(effect)} && document.querySelector('.ambient-background')?.dataset.renderer==='live'`,

@@ -16,8 +16,19 @@ export const EFFECT_IDS = [
   'god-rays',
   'water',
 ] as const;
-/** The families of the first releases. Stored shuffle pools without a known-effects list only knew these. */
-export const FIRST_EFFECT_IDS: readonly EffectId[] = EFFECT_IDS.slice(0, 6);
+/**
+ * The families up to 0.6.0. Every version knows them, so a stored pool without
+ * one was saved without it on purpose; later families can be missing because
+ * the saving version predates them. Fixed: never add to this list.
+ */
+export const FIRST_EFFECT_IDS: readonly EffectId[] = [
+  'grain-gradient',
+  'shader-gradient',
+  'dithering',
+  'fluted-glass',
+  'pixel-blast',
+  'data-pixel-arc',
+];
 export type EffectId = (typeof EFFECT_IDS)[number];
 type Palette = readonly [string, string, string];
 export interface EffectPreset {

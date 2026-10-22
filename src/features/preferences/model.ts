@@ -12,11 +12,11 @@ import { getVariant, variantIds } from '../../effects/variants';
 import { isFavoriteKey } from '../favorites/model';
 export const PREFERENCE_PREFIX = 'preference:v1:';
 /**
- * The families that existed when the shuffle pool was last saved. A family
- * missing from it shipped later and joins a saved pool on read; a known family
- * missing from the pool was taken out by the user and stays out.
+ * Families the user took out of the shuffle pool, saved with every pool. On
+ * read, a later family that is neither in the saved pool nor in this list
+ * joins the pool: the version that saved it did not know the family yet.
  */
-export const KNOWN_EFFECTS_KEY = `${PREFERENCE_PREFIX}knownEffects`;
+export const REMOVED_EFFECTS_KEY = `${PREFERENCE_PREFIX}removedEffects`;
 export interface Preferences {
   language: Language;
   appearance: 'system' | 'day' | 'night';
@@ -66,11 +66,15 @@ export function readPreferences(data: Record<string, unknown>): Preferences {
   const saved = Array.isArray(effects)
     ? [...new Set(effects.map(migrateEffect).filter((id): id is EffectId => id !== undefined))]
     : [];
-  const stored = data[KNOWN_EFFECTS_KEY];
-  // Pools saved before the list existed knew only the first families.
-  const known = Array.isArray(stored) ? stored.filter(isEffect) : FIRST_EFFECT_IDS;
+  const removed = storedList(data[REMOVED_EFFECTS_KEY]);
+  // Every version saves its pool with the first families in view, so one left out was taken out.
   const ids = saved.length
-    ? [...saved, ...EFFECT_IDS.filter(id => !known.includes(id) && !saved.includes(id))]
+    ? [
+        ...saved,
+        ...EFFECT_IDS.filter(
+          id => !saved.includes(id) && !removed.includes(id) && !FIRST_EFFECT_IDS.includes(id),
+        ),
+      ]
     : [];
   const activeEffect = get('activeEffect');
   const delay = get('idleDelay');
@@ -104,12 +108,27 @@ export function readPreferences(data: Record<string, unknown>): Preferences {
         : Object.keys(data).every(key => !key.startsWith(PREFERENCE_PREFIX) && !isFavoriteKey(key)),
   };
 }
-/** Storage entries for a resolved preference patch. */
-export function preferenceEntries(patch: Partial<Preferences>): Record<string, unknown> {
+const storedList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+/**
+ * Storage entries for a resolved preference patch over the stored `data`. A new
+ * pool also saves the families it leaves out, keeping ones from later versions.
+ */
+export function preferenceEntries(
+  patch: Partial<Preferences>,
+  data: Record<string, unknown> = {},
+): Record<string, unknown> {
   const entries = Object.fromEntries(
     Object.entries(patch).map(([key, value]) => [PREFERENCE_PREFIX + key, value]),
   );
-  return 'effects' in patch ? { ...entries, [KNOWN_EFFECTS_KEY]: [...EFFECT_IDS] } : entries;
+  const pool = patch.effects;
+  if (!pool) return entries;
+  const later = storedList(data[REMOVED_EFFECTS_KEY]).filter(id => !isEffect(id));
+  return {
+    ...entries,
+    [REMOVED_EFFECTS_KEY]: [...EFFECT_IDS.filter(id => !pool.includes(id)), ...later],
+  };
 }
 /** Resolves an update against `current`, dropping fields that would not change. */
 export function resolvePreferenceUpdate(

@@ -2,7 +2,11 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { BookmarkNode } from '../features/bookmarks/model';
 import { FAVORITES_KEY, MAX_FAVORITES } from '../features/favorites/model';
 import { EFFECT_IDS } from '../effects/presets';
-import { KNOWN_EFFECTS_KEY, PREFERENCE_PREFIX, toggleEffect } from '../features/preferences/model';
+import {
+  PREFERENCE_PREFIX,
+  REMOVED_EFFECTS_KEY,
+  toggleEffect,
+} from '../features/preferences/model';
 import { variantShuffleKey } from '../features/preferences/variant-shuffle';
 import { createStorage, type Store, type StorageOptions } from './storage';
 
@@ -142,7 +146,7 @@ it('shows sample favorites until one is saved, without ending onboarding', async
 it('applies functional preference updates to the latest stored value', async () => {
   const store = memoryStore({
     [PREFERENCE_PREFIX + 'effects']: ['dithering'],
-    [KNOWN_EFFECTS_KEY]: [...EFFECT_IDS],
+    [REMOVED_EFFECTS_KEY]: EFFECT_IDS.filter(id => id !== 'dithering'),
   });
   const platform = storage(store);
   await Promise.all([
@@ -166,7 +170,27 @@ it('keeps a family the user took out of an old pool out after the next read', as
   const { effects } = await platform.getPreferences();
   expect(effects).not.toContain('water');
   expect(effects).toContain('warp');
-  expect(store.items[KNOWN_EFFECTS_KEY]).toEqual([...EFFECT_IDS]);
+  expect(store.items[REMOVED_EFFECTS_KEY]).toEqual([
+    'shader-gradient',
+    'fluted-glass',
+    'pixel-blast',
+    'data-pixel-arc',
+    'water',
+  ]);
+});
+
+it('adds new families back after an old tab saves its pool over a newer one', async () => {
+  const store = memoryStore();
+  const platform = storage(store);
+  await platform.updatePreferences(current => ({
+    effects: toggleEffect(toggleEffect(current.effects, 'water'), 'dithering'),
+  }));
+  // A 0.6.0 tab knows only the first families and writes the pool alone.
+  await store.set({ [PREFERENCE_PREFIX + 'effects']: ['grain-gradient', 'pixel-blast'] });
+  const { effects } = await platform.getPreferences();
+  expect(effects).toContain('warp');
+  expect(effects).not.toContain('water');
+  expect(effects).not.toContain('dithering');
 });
 
 it('notifies favorites and preferences watchers only of their own keys', async () => {

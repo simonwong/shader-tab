@@ -108,8 +108,9 @@ export function createStorage({
     getPreferences: async () => readPreferences(await readAll()),
     updatePreferences: update =>
       lock('preferences', async () => {
-        const patch = resolvePreferenceUpdate(readPreferences(await store.get(null)), update);
-        if (Object.keys(patch).length) await store.set(preferenceEntries(patch));
+        const data = await store.get(null);
+        const patch = resolvePreferenceUpdate(readPreferences(data), update);
+        if (Object.keys(patch).length) await store.set(preferenceEntries(patch, data));
       }),
     watchFavorites: listener => store.watch(isFavoriteKey, listener),
     watchPreferences: listener => store.watch(key => key.startsWith(PREFERENCE_PREFIX), listener),

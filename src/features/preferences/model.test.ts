@@ -4,7 +4,7 @@ import {
   chooseEffect,
   DEFAULT_PREFERENCES,
   drawableVariants,
-  KNOWN_EFFECTS_KEY,
+  REMOVED_EFFECTS_KEY,
   effectWeights,
   parseVariantKey,
   variantKey,
@@ -119,38 +119,51 @@ it('replaces retired backgrounds without changing the retained choices or fixed 
 });
 
 it('adds families shipped after a pool was saved, but not ones the user took out', () => {
-  // Saved before the known-effects list: every later family joins.
+  // Saved by 0.6.0, before the removed list: every later family joins, a first family left out stays out.
   expect(readPreferences(data({ effects: ['dithering', 'grain-gradient'] })).effects).toEqual([
     'dithering',
     'grain-gradient',
     ...LATER,
   ]);
-  // Saved with every current family known: the pool stays as the user left it.
+  // Saved with later families taken out: they stay out.
   expect(
-    readPreferences(data({ effects: ['warp', 'dithering'], knownEffects: [...EFFECT_IDS] }))
-      .effects,
+    readPreferences(
+      data({ effects: ['warp', 'dithering'], removedEffects: LATER.filter(id => id !== 'warp') }),
+    ).effects,
   ).toEqual(['warp', 'dithering']);
-  // Saved when only some later families existed: only the newer ones join.
+  // A 0.6.0 tab saved its pool over a newer one: the list still says which later families were taken out.
   expect(
-    readPreferences(data({ effects: ['dithering'], knownEffects: [...FIRST_EFFECT_IDS, 'warp'] }))
+    readPreferences(data({ effects: ['grain-gradient'], removedEffects: ['dithering', 'water'] }))
       .effects,
-  ).toEqual(['dithering', ...LATER.filter(id => id !== 'warp')]);
-  // Unknown names in the list are ignored; a pool that is already complete gains nothing twice.
+  ).toEqual(['grain-gradient', ...LATER.filter(id => id !== 'water')]);
+  // Names of families from later versions or junk entries change nothing.
   expect(
-    readPreferences(data({ effects: [...EFFECT_IDS], knownEffects: ['retired', 'dithering'] }))
+    readPreferences(data({ effects: [...EFFECT_IDS], removedEffects: ['future', 3, 'water'] }))
       .effects,
   ).toEqual([...EFFECT_IDS]);
   expect(readPreferences({}).effects).toEqual([...EFFECT_IDS]);
 });
 
-it('records the known families with every pool write and only then', () => {
-  expect(preferenceEntries({ effects: ['dithering'] })).toEqual({
-    [`${PREFERENCE_PREFIX}effects`]: ['dithering'],
-    [KNOWN_EFFECTS_KEY]: [...EFFECT_IDS],
+it('records the families left out with every pool write and only then', () => {
+  const pool: EffectId[] = [...FIRST_EFFECT_IDS, 'warp'];
+  expect(preferenceEntries({ effects: pool })).toEqual({
+    [`${PREFERENCE_PREFIX}effects`]: pool,
+    [REMOVED_EFFECTS_KEY]: LATER.filter(id => id !== 'warp'),
+  });
+  // Families a later version took out are kept, so they stay out when it reads the pool again.
+  expect(
+    preferenceEntries({ effects: [...EFFECT_IDS] }, data({ removedEffects: ['future', 'warp'] })),
+  ).toEqual({
+    [`${PREFERENCE_PREFIX}effects`]: [...EFFECT_IDS],
+    [REMOVED_EFFECTS_KEY]: ['future'],
   });
   expect(preferenceEntries({ motion: 'still' })).toEqual({
     [`${PREFERENCE_PREFIX}motion`]: 'still',
   });
+});
+
+it('keeps the first families fixed', () => {
+  expect(FIRST_EFFECT_IDS).toEqual(EFFECT_IDS.slice(0, 6));
 });
 
 it('defaults navigation entries to visible and preserves independent opt-outs', () => {
