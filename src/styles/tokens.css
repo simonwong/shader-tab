@@ -8,8 +8,9 @@
  * text and dark glass.
  */
 :root {
-  /* Type */
-  --font-ui: 'Space Grotesk Variable', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  /* Type. Latin uses the bundled face; CJK falls back to system fonts per page language (below). */
+  --font-ui:
+    'Space Grotesk Variable', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
   --text-xs: 11px;
   --text-sm: 12px;
   --text-md: 13px;
@@ -48,6 +49,27 @@
    */
   --u: clamp(1px, 100vw / 1800, 1.25px);
   --dock-bottom: calc(36 * var(--u));
+}
+
+/*
+ * Han characters differ in shape between Chinese, Japanese and Korean, and the
+ * first fallback that has a glyph wins, so each page language lists its own
+ * system fonts first: macOS, then Windows.
+ */
+:root:lang(zh-TW) {
+  --font-ui:
+    'Space Grotesk Variable', 'PingFang TC', 'Microsoft JhengHei UI', 'Microsoft JhengHei',
+    sans-serif;
+}
+
+:root:lang(ja) {
+  --font-ui:
+    'Space Grotesk Variable', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI',
+    'Meiryo UI', Meiryo, sans-serif;
+}
+
+:root:lang(ko) {
+  --font-ui: 'Space Grotesk Variable', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
 }
 
 :root,
