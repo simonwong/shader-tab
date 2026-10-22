@@ -10,6 +10,15 @@ const ids = [
   'fluted-glass',
   'pixel-blast',
   'data-pixel-arc',
+  'mesh-gradient',
+  'warp',
+  'simplex-noise',
+  'perlin-noise',
+  'neuro-noise',
+  'dot-orbit',
+  'smoke-ring',
+  'god-rays',
+  'water',
 ];
 const names = [
   'Grain Gradient',
@@ -18,6 +27,15 @@ const names = [
   'Fluted Glass',
   'Pixel Field',
   'Data Pixel Arc',
+  'Mesh Gradient',
+  'Warp',
+  'Simplex Noise',
+  'Perlin Noise',
+  'Neuro Noise',
+  'Dot Orbit',
+  'Smoke Ring',
+  'God Rays',
+  'Water',
 ];
 /** Variant pinned for each capture, so screenshots and thumbnails stay comparable. */
 const pinned = {
@@ -27,6 +45,15 @@ const pinned = {
   'fluted-glass': 'default',
   'pixel-blast': 'square',
   'data-pixel-arc': 'data-pixel',
+  'mesh-gradient': 'tide',
+  warp: 'marble',
+  'simplex-noise': 'contour',
+  'perlin-noise': 'fog',
+  'neuro-noise': 'filament',
+  'dot-orbit': 'drift',
+  'smoke-ring': 'halo',
+  'god-rays': 'dawn',
+  water: 'pool',
 };
 const requested = process.argv.slice(2);
 const captureIds = requested.length ? ids.filter(id => requested.includes(id)) : ids;
@@ -83,7 +110,7 @@ try {
   }
   writeFileSync(
     resolve(output, 'index.html'),
-    `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Glass Tab · 6 组日夜背景</title><style>*{box-sizing:border-box}body{margin:0;padding:24px;background:#17181b;color:#eee;font:14px system-ui}h1{font-size:20px;margin:0 0 20px}.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}figure{margin:0}img{width:100%;aspect-ratio:1.6;display:block;border-radius:12px}figcaption{padding:8px 0;color:#ccc}</style><h1>Glass Tab · 6 组背景 / 白天与黑夜</h1><div class="grid">${['day', 'night'].flatMap(theme => ids.map((id, i) => `<figure><img src="${id}-${theme}.png" alt="${names[i]} ${theme}"><figcaption>${names[i]} · ${id} / ${theme === 'day' ? '白天' : '黑夜'}</figcaption></figure>`)).join('')}</div></html>`,
+    `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Glass Tab · ${ids.length} 组日夜背景</title><style>*{box-sizing:border-box}body{margin:0;padding:24px;background:#17181b;color:#eee;font:14px system-ui}h1{font-size:20px;margin:0 0 20px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}figure{margin:0}img{width:100%;aspect-ratio:1.6;display:block;border-radius:12px}figcaption{padding:8px 0;color:#ccc}</style><h1>Glass Tab · ${ids.length} 组背景 / 白天与黑夜</h1><div class="grid">${['day', 'night'].flatMap(theme => ids.map((id, i) => `<figure><img src="${id}-${theme}.png" alt="${names[i]} ${theme}"><figcaption>${names[i]} · ${id} / ${theme === 'day' ? '白天' : '黑夜'}</figcaption></figure>`)).join('')}</div></html>`,
   );
 } finally {
   close();

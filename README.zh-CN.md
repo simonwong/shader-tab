@@ -9,7 +9,7 @@
     <a href="docs/development.md">开发指南</a> ·
     <a href="https://github.com/simonwong/shader-tab/issues">问题反馈</a>
   </p>
-  <p><strong>6 类背景 · 28 种变体 · 8 种语言</strong></p>
+  <p><strong>15 类背景 · 42 种变体 · 8 种语言</strong></p>
 </div>
 
 ![Shader Tab：桃色与淡紫色颗粒渐变，底部显示玻璃书签控件](docs/images/grain-gradient.png)
@@ -104,7 +104,7 @@ pnpm zip
 | [开发指南](docs/development.md)     | 本地环境、构建产物、官网与验证 |
 | [架构](docs/architecture.md)        | 数据边界、存储与渲染生命周期   |
 | [背景实现](docs/shaders.md)         | Shader 接入与来源              |
-| [变体清单](docs/effect-variants.md) | 28 种变体与随机规则            |
+| [变体清单](docs/effect-variants.md) | 42 种变体与随机规则            |
 | [性能记录](docs/performance.md)     | 渲染预算与实测结果             |
 
 ## 致谢

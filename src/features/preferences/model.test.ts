@@ -4,6 +4,7 @@ import {
   chooseEffect,
   DEFAULT_PREFERENCES,
   drawableVariants,
+  KNOWN_EFFECTS_KEY,
   effectWeights,
   parseVariantKey,
   variantKey,
@@ -13,12 +14,14 @@ import {
   resolvePreferenceUpdate,
   toggleEffect,
 } from './model';
-import { EFFECTS, EFFECT_IDS, type EffectId } from '../../effects/presets';
+import { EFFECTS, EFFECT_IDS, FIRST_EFFECT_IDS, type EffectId } from '../../effects/presets';
 import { variantIds } from '../../effects/variants';
 const data = (values: Record<string, unknown>) =>
   Object.fromEntries(
     Object.entries(values).map(([key, value]) => [PREFERENCE_PREFIX + key, value]),
   );
+/** Families added after the first releases; pools saved without a known-effects list gain them. */
+const LATER = EFFECT_IDS.filter(id => !FIRST_EFFECT_IDS.includes(id));
 it('recovers invalid preferences without accepting an empty shader pool', () => {
   expect(
     readPreferences(
@@ -46,7 +49,7 @@ it('deduplicates known effects and preserves valid appearance settings', () => {
   ).toEqual({
     language: 'auto',
     appearance: 'night',
-    effects: ['dithering', 'grain-gradient'],
+    effects: ['dithering', 'grain-gradient', ...LATER],
     activeEffect: 'grain-gradient',
     idleDelay: 5000,
     shuffle: false,
@@ -75,7 +78,7 @@ it('chooses only enabled effects per opening and preserves a fixed selection', (
     chooseEffect({ ...DEFAULT_PREFERENCES, shuffle: false, activeEffect: 'dithering' }, 0.8),
   ).toBe('dithering');
 });
-it('has six unique effects with complete day and night palettes', () => {
+it('has unique effects with complete day and night palettes', () => {
   expect(EFFECTS.map(effect => effect.id)).toEqual([...EFFECT_IDS]);
   for (const effect of EFFECTS)
     for (const color of [...effect.day, ...effect.night]) expect(color).toMatch(/^#[0-9a-f]{6}$/);
@@ -91,7 +94,7 @@ it('maps old effect selections while preserving fixed mode and deduplicating the
       }),
     ),
   ).toMatchObject({
-    effects: ['pixel-blast', 'grain-gradient', 'dithering', 'data-pixel-arc'],
+    effects: ['pixel-blast', 'grain-gradient', 'dithering', 'data-pixel-arc', ...LATER],
     activeEffect: 'dithering',
     shuffle: false,
   });
@@ -109,9 +112,44 @@ it('replaces retired backgrounds without changing the retained choices or fixed 
       }),
     ),
   ).toMatchObject({
-    effects: ['grain-gradient', 'dithering', 'data-pixel-arc', 'pixel-blast'],
+    effects: ['grain-gradient', 'dithering', 'data-pixel-arc', 'pixel-blast', ...LATER],
     activeEffect: 'pixel-blast',
     shuffle: false,
+  });
+});
+
+it('adds families shipped after a pool was saved, but not ones the user took out', () => {
+  // Saved before the known-effects list: every later family joins.
+  expect(readPreferences(data({ effects: ['dithering', 'grain-gradient'] })).effects).toEqual([
+    'dithering',
+    'grain-gradient',
+    ...LATER,
+  ]);
+  // Saved with every current family known: the pool stays as the user left it.
+  expect(
+    readPreferences(data({ effects: ['warp', 'dithering'], knownEffects: [...EFFECT_IDS] }))
+      .effects,
+  ).toEqual(['warp', 'dithering']);
+  // Saved when only some later families existed: only the newer ones join.
+  expect(
+    readPreferences(data({ effects: ['dithering'], knownEffects: [...FIRST_EFFECT_IDS, 'warp'] }))
+      .effects,
+  ).toEqual(['dithering', ...LATER.filter(id => id !== 'warp')]);
+  // Unknown names in the list are ignored; a pool that is already complete gains nothing twice.
+  expect(
+    readPreferences(data({ effects: [...EFFECT_IDS], knownEffects: ['retired', 'dithering'] }))
+      .effects,
+  ).toEqual([...EFFECT_IDS]);
+  expect(readPreferences({}).effects).toEqual([...EFFECT_IDS]);
+});
+
+it('records the known families with every pool write and only then', () => {
+  expect(preferenceEntries({ effects: ['dithering'] })).toEqual({
+    [`${PREFERENCE_PREFIX}effects`]: ['dithering'],
+    [KNOWN_EFFECTS_KEY]: [...EFFECT_IDS],
+  });
+  expect(preferenceEntries({ motion: 'still' })).toEqual({
+    [`${PREFERENCE_PREFIX}motion`]: 'still',
   });
 });
 
@@ -225,7 +263,12 @@ it('moves retired CRT selections to the closest remaining family', () => {
       activeEffect: 'crt-terminal',
     }),
   );
-  expect(preferences.effects).toEqual(['data-pixel-arc', 'shader-gradient', 'grain-gradient']);
+  expect(preferences.effects).toEqual([
+    'data-pixel-arc',
+    'shader-gradient',
+    'grain-gradient',
+    ...LATER,
+  ]);
   expect(preferences.activeEffect).toBe('data-pixel-arc');
 });
 

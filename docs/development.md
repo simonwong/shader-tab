@@ -43,7 +43,7 @@ pnpm dev
 
 生产目录为 `.output/chrome-mv3`，ZIP 为 `.output/shader-tab-<version>-chrome.zip`。开发截图、设计素材和官网不进入扩展包。
 
-构建校验检查 manifest、权限、生产环境隔离、首屏 JS 预算、动态加载的设置与渲染器、随包图片（12 张设置缩略图合计小于 100 KB，另加一张小于 80 KB 的 Fluted Glass 照片），以及实际打包依赖的许可声明；three.js 及 ShaderGradient 的 React 包不得出现在依赖清单中。测试范围和运行环境限制见[验证记录](verification.md)与[性能记录](performance.md)。
+构建校验检查 manifest、权限、生产环境隔离、首屏 JS 预算、动态加载的设置与渲染器、随包图片（每个背景类别日夜各一张设置缩略图，合计小于 100 KB，另加一张小于 80 KB 的 Fluted Glass 照片），以及实际打包依赖的许可声明；three.js 及 ShaderGradient 的 React 包不得出现在依赖清单中。测试范围和运行环境限制见[验证记录](verification.md)与[性能记录](performance.md)。
 
 ## 更新本地安装
 
@@ -65,7 +65,7 @@ pnpm dev
 
 ## 官网
 
-官网包含中英文首页、六类实时背景预览、常见问题，以及八种语言的隐私政策和第三方许可。公开页面不能读取 Chrome 书签。
+官网包含中英文首页、15 类实时背景预览、常见问题，以及八种语言的隐私政策和第三方许可。公开页面不能读取 Chrome 书签。
 
 ```sh
 pnpm site:build
@@ -99,7 +99,7 @@ agent-browser install
 
 | 命令                                    | 前提     | 覆盖范围                                                                                      |
 | --------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
-| `pnpm capture:effects [id…]`            | 开发服务 | 六类背景日夜、横竖屏截图                                                                      |
+| `pnpm capture:effects [id…]`            | 开发服务 | 全部背景类别日夜、横竖屏截图                                                                  |
 | `pnpm review:effects`                   | 开发服务 | 动画、指针交互、快速切换、静态回退、上下文丢失                                                |
 | `pnpm review:motion [id…]`              | 开发服务 | 每个变体静止、指针、点击时一秒内的画面变化，超出动效上限时退出码为 1；`--theme night` 测夜间  |
 | `pnpm review:variants [id…]`            | 自动构建 | 每个变体的日夜渲染、单类随机、窄屏设置                                                        |

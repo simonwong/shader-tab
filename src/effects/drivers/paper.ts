@@ -5,11 +5,29 @@ import {
   ditheringFragmentShader,
   DitheringShapes,
   DitheringTypes,
+  dotOrbitFragmentShader,
+  emptyPixel,
   getShaderColorFromString,
+  godRaysFragmentShader,
+  meshGradientFragmentShader,
+  neuroNoiseFragmentShader,
+  perlinNoiseFragmentShader,
+  simplexNoiseFragmentShader,
+  smokeRingFragmentShader,
+  warpFragmentShader,
+  waterFragmentShader,
   getShaderNoiseTexture,
   type ShaderMountUniforms,
 } from '@paper-design/shaders';
-import { DITHERING_ORB, getEffect, THEME_BRIGHTNESS, type EffectId, type Theme } from '../presets';
+import {
+  DITHERING_ORB,
+  getEffect,
+  PAPER_PALETTES,
+  THEME_BRIGHTNESS,
+  type EffectId,
+  type Theme,
+  type VariantPalette,
+} from '../presets';
 import { MAX_RENDER_PIXELS } from './surface';
 import { loseContext } from './webgl';
 import type { DriverFactory } from './types';
@@ -34,6 +52,8 @@ export interface PaperShader {
   parallax: number;
   /** Samples Paper's noise texture as `u_noiseTexture`. */
   noise?: boolean;
+  /** Image loaded as `u_image` before the first draw. */
+  image?: string;
 }
 
 /** Cover the screen, centred. Shaders set their own `u_scale`. */
@@ -51,6 +71,32 @@ const SIZING = {
 
 const GRAIN = getEffect('grain-gradient');
 const DITHERING = getEffect('dithering');
+
+/*
+ * Pattern shaders size their pattern in CSS pixels from the canvas origin
+ * (Paper's own default for them). Cover fit would scale the pattern with the
+ * screen and shrink it to a few pixels.
+ */
+const PATTERN = { u_fit: 0 };
+
+/** A variant's palette from `PAPER_PALETTES`, with its colours parsed and dimmed. */
+function paletteOf(effect: EffectId, { theme, variant, color }: ShaderParams) {
+  const { back, colors }: VariantPalette = PAPER_PALETTES[effect]![variant]![theme];
+  return { back: color(back), colors: colors.map(color) };
+}
+
+/** Warp's pattern per variant: stripes (marble), edge (silk) or checks. */
+const WARP_SHAPES: Record<string, ShaderMountUniforms> = {
+  marble: {
+    u_shape: 1,
+    u_shapeScale: 0.12,
+    u_distortion: 0.2,
+    u_swirl: 0.6,
+    u_swirlIterations: 10,
+  },
+  silk: { u_shape: 2, u_shapeScale: 0.2, u_distortion: 0.25, u_swirl: 0.45, u_swirlIterations: 8 },
+  check: { u_shape: 0, u_shapeScale: 0.1, u_distortion: 0.15, u_swirl: 0.7, u_swirlIterations: 10 },
+};
 
 /** Every effect this driver renders, one Paper shader each. */
 export const PAPER_SHADERS: Partial<Record<EffectId, PaperShader>> = {
@@ -95,6 +141,185 @@ export const PAPER_SHADERS: Partial<Record<EffectId, PaperShader>> = {
       };
     },
   },
+  // Rates and shapes below were tuned on the candidate page (design/shader-candidates) to stay
+  // under the motion budget: at most 2.5% of the screen changing per second at rest.
+  'mesh-gradient': {
+    fragmentShader: meshGradientFragmentShader,
+    rate: 1500,
+    parallax: 1,
+    uniforms: params => {
+      const { colors } = paletteOf('mesh-gradient', params);
+      return {
+        u_colors: colors,
+        u_colorsCount: colors.length,
+        u_distortion: 0.6,
+        u_swirl: 0.08,
+        // No grain: per-pixel grain on a drifting field shimmers.
+        u_grainMixer: 0,
+        u_grainOverlay: 0,
+      };
+    },
+  },
+  warp: {
+    fragmentShader: warpFragmentShader,
+    rate: 2500,
+    parallax: 0.5,
+    noise: true,
+    uniforms: params => {
+      const { colors } = paletteOf('warp', params);
+      const shape = WARP_SHAPES[params.variant] ?? WARP_SHAPES.marble!;
+      return {
+        ...PATTERN,
+        u_colors: colors,
+        u_colorsCount: colors.length,
+        u_proportion: 0.45,
+        u_softness: 1,
+        ...shape,
+      };
+    },
+  },
+  'simplex-noise': {
+    fragmentShader: simplexNoiseFragmentShader,
+    rate: 700,
+    parallax: 0.3,
+    uniforms: params => {
+      const { colors } = paletteOf('simplex-noise', params);
+      // Contour: three hard steps per colour, so the noise reads as terraced bands.
+      return {
+        ...PATTERN,
+        u_scale: 0.5,
+        u_colors: colors,
+        u_colorsCount: colors.length,
+        u_stepsPerColor: 3,
+        u_softness: 0,
+      };
+    },
+  },
+  'perlin-noise': {
+    fragmentShader: perlinNoiseFragmentShader,
+    // Perlin's base frequency of 10 also applies to time, so its clock runs slow.
+    rate: 500,
+    parallax: 1,
+    uniforms: params => {
+      const { back, colors } = paletteOf('perlin-noise', params);
+      return {
+        ...PATTERN,
+        u_scale: 12,
+        u_colorBack: back,
+        u_colorFront: colors[0]!,
+        u_proportion: 0.45,
+        u_softness: 1,
+        u_octaveCount: 3,
+        u_persistence: 0.6,
+        u_lacunarity: 2,
+      };
+    },
+  },
+  'neuro-noise': {
+    fragmentShader: neuroNoiseFragmentShader,
+    rate: 900,
+    parallax: 0.5,
+    uniforms: params => {
+      const { back, colors } = paletteOf('neuro-noise', params);
+      const nebula = params.variant === 'nebula';
+      return {
+        ...PATTERN,
+        u_scale: nebula ? 0.55 : 1,
+        u_colorBack: back,
+        u_colorMid: colors[0]!,
+        u_colorFront: colors[1]!,
+        u_brightness: nebula ? 0.02 : 0.05,
+        u_contrast: nebula ? 0.15 : 0.3,
+      };
+    },
+  },
+  'dot-orbit': {
+    fragmentShader: dotOrbitFragmentShader,
+    rate: 1500,
+    // Hundreds of small dots: shifting the grid moves every one of them at once.
+    parallax: 0,
+    noise: true,
+    uniforms: params => {
+      const { back, colors } = paletteOf('dot-orbit', params);
+      return {
+        ...PATTERN,
+        u_colorBack: back,
+        u_colors: colors,
+        u_colorsCount: colors.length,
+        u_stepsPerColor: 2,
+        u_size: 0.4,
+        u_sizeRange: 0.5,
+        u_spreading: 0.3,
+      };
+    },
+  },
+  'smoke-ring': {
+    fragmentShader: smokeRingFragmentShader,
+    rate: 500,
+    // Half the shift: the ring's ragged edge is detailed enough that a full one goes over budget at night.
+    parallax: 0.5,
+    noise: true,
+    uniforms: params => {
+      const { back, colors } = paletteOf('smoke-ring', params);
+      // A wide ring framing the page, its middle left clear for the bookmarks.
+      return {
+        u_scale: 1.25,
+        u_colorBack: back,
+        u_colors: colors,
+        u_colorsCount: colors.length,
+        u_thickness: 0.5,
+        u_radius: 0.45,
+        u_innerShape: 0.6,
+        u_noiseIterations: 5,
+        u_noiseScale: 2.5,
+      };
+    },
+  },
+  'god-rays': {
+    fragmentShader: godRaysFragmentShader,
+    rate: 1500,
+    // Thin bright rays from a fixed light: any shift or turn sweeps them across the page.
+    parallax: 0,
+    noise: true,
+    uniforms: params => {
+      const { back, colors } = paletteOf('god-rays', params);
+      const [bloom, ...rays] = colors;
+      // The light source sits above the top edge, so no glow lands behind the bookmarks.
+      return {
+        u_offsetY: 0.9,
+        u_colorBack: back,
+        u_colorBloom: bloom!,
+        u_colors: rays,
+        u_colorsCount: rays.length,
+        u_bloom: 0.4,
+        u_intensity: 0.55,
+        u_density: 0.25,
+        u_spotty: 0.25,
+        u_midSize: 0.2,
+        u_midIntensity: 0.25,
+      };
+    },
+  },
+  water: {
+    fragmentShader: waterFragmentShader,
+    rate: 150,
+    parallax: 0.5,
+    // Water distorts an image; an empty one leaves only the caustic light on the ground colour.
+    image: emptyPixel,
+    uniforms: params => {
+      const { back, colors } = paletteOf('water', params);
+      return {
+        u_colorBack: back,
+        u_colorHighlight: colors[0]!,
+        u_highlights: 0.4,
+        u_layering: 0.5,
+        u_edges: 0,
+        u_waves: 0.3,
+        u_caustic: 0,
+        u_size: 1,
+      };
+    },
+  },
 };
 
 export const createDriver: DriverFactory = async (host, { effect, theme, variant }) => {
@@ -107,7 +332,9 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
     return [r * brightness, g * brightness, b * brightness, a];
   };
   const noise = shader.noise ? getShaderNoiseTexture() : undefined;
-  if (noise) await noise.decode();
+  const image = shader.image === undefined ? undefined : new Image();
+  if (image) image.src = shader.image!;
+  await Promise.all([noise?.decode(), image?.decode()]);
   const mount = new ShaderMount(
     host,
     shader.fragmentShader,
@@ -115,6 +342,7 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
       ...SIZING,
       ...shader.uniforms({ theme, variant, color }),
       ...(noise ? { u_noiseTexture: noise } : {}),
+      ...(image ? { u_image: image } : {}),
     },
     { antialias: false, alpha: false, powerPreference: 'low-power' },
     0,

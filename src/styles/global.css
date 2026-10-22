@@ -1341,17 +1341,11 @@ small {
   color: var(--fg-muted);
 }
 
+/* Every family stays in view; the settings column scrolls, not the grid. */
 .effect-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  max-height: 190px;
-  padding: var(--space-1);
-  margin: calc(-1 * var(--space-1));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--on) transparent;
 }
 
 .effect-card {
@@ -1706,7 +1700,6 @@ details[open] > .picker-folder .folder-chevron {
 
   .effect-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-height: none;
   }
 
   .settings-footer {

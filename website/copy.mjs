@@ -28,8 +28,8 @@ export const copy = {
     static: '静态预览',
     source: '背景来源',
     facts: [
-      ['06', '种背景效果'],
-      ['28', '种变体组合'],
+      ['15', '种背景效果'],
+      ['42', '种变体组合'],
       ['08', '种界面语言'],
     ],
     detailLabel: '少一点打扰',
@@ -44,7 +44,7 @@ export const copy = {
       [
         '02',
         '每次打开，都有新意。',
-        '从细腻颗粒到像素涟漪，六类背景随机出现。动效缓慢起伏，鼠标移开后，控件也轻轻隐去。',
+        '从细腻颗粒到像素涟漪，十五类背景随机出现。动效缓慢起伏，鼠标移开后，控件也轻轻隐去。',
         'motion',
       ],
       [
@@ -131,8 +131,8 @@ export const copy = {
     static: 'Still preview',
     source: 'Background source',
     facts: [
-      ['06', 'background effects'],
-      ['28', 'variant combinations'],
+      ['15', 'background effects'],
+      ['42', 'variant combinations'],
       ['08', 'interface languages'],
     ],
     detailLabel: 'LESS IN THE WAY',
@@ -147,7 +147,7 @@ export const copy = {
       [
         '02',
         'A new view, every time.',
-        'From fine grain to pixel ripples, six background families bring a little variety. Motion stays slow. Controls gently disappear when you step away.',
+        'From fine grain to pixel ripples, 15 background families bring a little variety. Motion stays slow. Controls gently disappear when you step away.',
         'motion',
       ],
       [

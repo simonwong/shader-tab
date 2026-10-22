@@ -1,10 +1,22 @@
 import { isLanguage, type Language } from '../../i18n/core';
 import { isBookmarkSort, type BookmarkSort } from '../bookmarks/sorting';
-import { EFFECT_IDS, isEffect, migrateEffect, type EffectId } from '../../effects/presets';
+import {
+  EFFECT_IDS,
+  FIRST_EFFECT_IDS,
+  isEffect,
+  migrateEffect,
+  type EffectId,
+} from '../../effects/presets';
 import { isMotion, type Motion } from '../../effects/motion';
 import { getVariant, variantIds } from '../../effects/variants';
 import { isFavoriteKey } from '../favorites/model';
 export const PREFERENCE_PREFIX = 'preference:v1:';
+/**
+ * The families that existed when the shuffle pool was last saved. A family
+ * missing from it shipped later and joins a saved pool on read; a known family
+ * missing from the pool was taken out by the user and stays out.
+ */
+export const KNOWN_EFFECTS_KEY = `${PREFERENCE_PREFIX}knownEffects`;
 export interface Preferences {
   language: Language;
   appearance: 'system' | 'day' | 'night';
@@ -51,8 +63,14 @@ export function readPreferences(data: Record<string, unknown>): Preferences {
   const get = (key: keyof Preferences) => data[PREFERENCE_PREFIX + key];
   const appearance = get('appearance');
   const effects = get('effects');
-  const ids = Array.isArray(effects)
+  const saved = Array.isArray(effects)
     ? [...new Set(effects.map(migrateEffect).filter((id): id is EffectId => id !== undefined))]
+    : [];
+  const stored = data[KNOWN_EFFECTS_KEY];
+  // Pools saved before the list existed knew only the first families.
+  const known = Array.isArray(stored) ? stored.filter(isEffect) : FIRST_EFFECT_IDS;
+  const ids = saved.length
+    ? [...saved, ...EFFECT_IDS.filter(id => !known.includes(id) && !saved.includes(id))]
     : [];
   const activeEffect = get('activeEffect');
   const delay = get('idleDelay');
@@ -88,9 +106,10 @@ export function readPreferences(data: Record<string, unknown>): Preferences {
 }
 /** Storage entries for a resolved preference patch. */
 export function preferenceEntries(patch: Partial<Preferences>): Record<string, unknown> {
-  return Object.fromEntries(
+  const entries = Object.fromEntries(
     Object.entries(patch).map(([key, value]) => [PREFERENCE_PREFIX + key, value]),
   );
+  return 'effects' in patch ? { ...entries, [KNOWN_EFFECTS_KEY]: [...EFFECT_IDS] } : entries;
 }
 /** Resolves an update against `current`, dropping fields that would not change. */
 export function resolvePreferenceUpdate(

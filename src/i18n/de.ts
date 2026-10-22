@@ -123,4 +123,13 @@ export const de: Messages = {
   'effect.fluted-glass': 'Riffelglas, das langsam treibende Farben bricht',
   'effect.pixel-blast': 'Pixel mit dem Zeiger bewegen; für Wellen auf den Hintergrund klicken',
   'effect.data-pixel-arc': 'Originalstile mit Datenpixeln, Partikeln, Bändern und Rastern',
+  'effect.mesh-gradient': 'Weiche Farbflächen, die langsam treiben und ineinander übergehen',
+  'effect.warp': 'Marmor, Seide und Karos, die sich langsam biegen',
+  'effect.simplex-noise': 'Abgestufte Farbflächen wie auf einer Höhenkarte',
+  'effect.perlin-noise': 'Sanfter zweifarbiger Nebel, der langsam vorbeizieht',
+  'effect.neuro-noise': 'Feine leuchtende Fäden wie ein Netz aus Licht',
+  'effect.dot-orbit': 'Kleine Punkte, die jeweils um ihren Platz kreisen',
+  'effect.smoke-ring': 'Ein Rauchring rahmt die Seite, die Mitte bleibt frei',
+  'effect.god-rays': 'Weiches Licht, das in langsamen Strahlen von oben fällt',
+  'effect.water': 'Bewegtes Licht auf dem Grund eines Pools',
 };

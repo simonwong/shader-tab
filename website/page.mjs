@@ -36,10 +36,19 @@ export function page(c, lang) {
    ['fluted-glass', 'Fluted Glass'],
    ['pixel-blast', 'Pixel Field'],
    ['data-pixel-arc', 'Predictive Arc'],
+   ['mesh-gradient', 'Mesh Gradient'],
+   ['warp', 'Warp'],
+   ['simplex-noise', 'Simplex Noise'],
+   ['perlin-noise', 'Perlin Noise'],
+   ['neuro-noise', 'Neuro Noise'],
+   ['dot-orbit', 'Dot Orbit'],
+   ['smoke-ring', 'Smoke Ring'],
+   ['god-rays', 'God Rays'],
+   ['water', 'Water'],
  ]
    .map(
      ([id, name], i) =>
-       `<button data-effect="${id}" aria-pressed="${i === 0}"><span class="effect-index">0${i + 1}</span>${name}</button>`,
+       `<button data-effect="${id}" aria-pressed="${i === 0}"><span class="effect-index">${String(i + 1).padStart(2, '0')}</span>${name}</button>`,
    )
    .join('')}</div><p class="preview-hint">${c.try}<span>↗</span></p></section>
  <section class="facts wrap" aria-label="${lang === 'en' ? 'At a glance' : '一览'}">${c.facts.map(([number, label]) => `<div><strong>${number}</strong><span>${label}</span></div>`).join('')}<span class="facts-note">MADE FOR<br>YOUR EVERYDAY.</span></section>

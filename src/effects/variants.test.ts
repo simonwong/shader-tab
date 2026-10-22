@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { EFFECT_IDS, effectBackground } from './presets';
+import { EFFECT_IDS, effectBackground, PAPER_PALETTES, paletteBackground } from './presets';
 import { EFFECT_VARIANTS, getVariant, resolveVariant, variantIdsByEffect } from './variants';
 
 it('registers every effect with unique, non-empty variant ids', () => {
@@ -36,6 +36,15 @@ it('keeps the live variant set', () => {
       'void-field',
       'amber-halftone',
     ],
+    'mesh-gradient': ['tide', 'orchard', 'mist'],
+    warp: ['marble', 'silk', 'check'],
+    'simplex-noise': ['contour'],
+    'perlin-noise': ['fog'],
+    'neuro-noise': ['filament', 'nebula'],
+    'dot-orbit': ['drift'],
+    'smoke-ring': ['halo'],
+    'god-rays': ['dawn'],
+    water: ['pool'],
   });
 });
 
@@ -48,7 +57,7 @@ it('describes every variant completely for both themes', () => {
       expect(variant.density ?? 1).toBeGreaterThan(0);
       // Only soft gradients lower their density; pixel, dot and dither patterns keep the full budget.
       expect(variant.density === undefined).toBe(
-        effect !== 'grain-gradient' && effect !== 'shader-gradient',
+        !['grain-gradient', 'shader-gradient', 'mesh-gradient', 'perlin-noise'].includes(effect),
       );
       for (const theme of ['day', 'night'] as const) {
         expect(variant.background(theme)).not.toBe('');
@@ -83,4 +92,16 @@ it('falls back to the first variant for unknown or missing ids', () => {
   expect(resolveVariant('grain-gradient', undefined).background('day')).toBe(
     effectBackground('grain-gradient', 'day'),
   );
+});
+
+it('paints each palette variant from its own colours, not the family colours', () => {
+  const orchard = resolveVariant('mesh-gradient', 'orchard');
+  expect(orchard.background('night')).toBe(
+    paletteBackground(PAPER_PALETTES['mesh-gradient']!.orchard!.night),
+  );
+  expect(orchard.background('night')).not.toBe(
+    resolveVariant('mesh-gradient', 'tide').background('night'),
+  );
+  expect(resolveVariant('god-rays', 'dawn').source).toBe('https://shaders.paper.design/god-rays');
+  expect(resolveVariant('warp', 'silk').label).toBe('Silk');
 });

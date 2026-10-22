@@ -116,4 +116,13 @@ export const zhCN: Messages = {
   'effect.fluted-glass': '棱纹玻璃折射缓慢漂移的色块',
   'effect.pixel-blast': '移动鼠标拨动像素，点击空白处激起涟漪',
   'effect.data-pixel-arc': 'Data Pixel、粒子、光带与半色调样式',
+  'effect.mesh-gradient': '色块缓慢漂移、彼此交融的柔和渐变',
+  'effect.warp': '缓慢弯折的大理石、丝绸与格纹',
+  'effect.simplex-noise': '像等高线地图的分层色阶',
+  'effect.perlin-noise': '柔和的双色雾气缓缓飘过',
+  'effect.neuro-noise': '细细发光的丝网',
+  'effect.dot-orbit': '小圆点各自绕着原位转动',
+  'effect.smoke-ring': '一圈烟雾框住页面，中间留空',
+  'effect.god-rays': '从上方缓缓照下的柔和光束',
+  'effect.water': '泳池底部晃动的水光',
 };
