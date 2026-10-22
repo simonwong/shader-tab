@@ -54,6 +54,12 @@ export interface PaperShader {
   noise?: boolean;
   /** Image loaded as `u_image` before the first draw. */
   image?: string;
+  /**
+   * CSS pixels per cell of a pixelated shader (`u_pxSize`). Each cell is
+   * rounded to whole device pixels, so a fractional scale such as 125% or
+   * 150% keeps an even grid.
+   */
+  pixelSize?: (variant: string) => number;
 }
 
 /** Cover the screen, centred. Shaders set their own `u_scale`. */
@@ -137,9 +143,9 @@ export const PAPER_SHADERS: Partial<Record<EffectId, PaperShader>> = {
         u_colorFront: color(orb ? DITHERING_ORB.front[theme] : DITHERING[theme][0]),
         u_shape: DitheringShapes[shape as keyof typeof DitheringShapes] ?? DitheringShapes.swirl,
         u_type: DitheringTypes[pattern as keyof typeof DitheringTypes] ?? DitheringTypes['8x8'],
-        u_pxSize: orb ? 2 : 3,
       };
     },
+    pixelSize: variant => (variant === 'sphere:4x4' ? 2 : 3),
   },
   // Rates and shapes below were tuned on the candidate page (design/shader-candidates) to stay
   // under the motion budget: at most 2.5% of the screen changing per second at rest.
@@ -335,11 +341,13 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
   const image = shader.image === undefined ? undefined : new Image();
   if (image) image.src = shader.image!;
   await Promise.all([noise?.decode(), image?.decode()]);
+  const pixelSize = shader.pixelSize?.(variant);
   const mount = new ShaderMount(
     host,
     shader.fragmentShader,
     {
       ...SIZING,
+      ...(pixelSize ? { u_pxSize: pixelSize } : {}),
       ...shader.uniforms({ theme, variant, color }),
       ...(noise ? { u_noiseTexture: noise } : {}),
       ...(image ? { u_image: image } : {}),
@@ -351,12 +359,19 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
     MAX_RENDER_PIXELS,
   );
   const { parallax, rate } = shader;
+  const setUniformValues = (mount as unknown as { setUniformValues: ShaderMount['setUniforms'] })
+    .setUniformValues;
   let previousX = 0,
     previousY = 0;
   return {
     canvas: mount.canvasElement,
     engine: 'paper-webgl2',
     resize(width, height, density) {
+      if (pixelSize) {
+        // Paper multiplies u_pxSize by its render scale, which equals `density` here.
+        const devicePixels = Math.max(1, Math.round(pixelSize * density));
+        setUniformValues({ u_pxSize: devicePixels / density });
+      }
       mount.setMaxPixelCount(Math.floor(width * height * density * density));
       mount.setMinPixelRatio(density);
     },
@@ -364,7 +379,7 @@ export const createDriver: DriverFactory = async (host, { effect, theme, variant
       if (parallax && Math.abs(pointer.x - previousX) + Math.abs(pointer.y - previousY) > 0.002) {
         // setUniforms() draws, and so does setFrame() below: write the values without
         // drawing so a moving pointer costs one draw per frame, not two.
-        (mount as unknown as { setUniformValues: ShaderMount['setUniforms'] }).setUniformValues({
+        setUniformValues({
           u_offsetX: pointer.x * 0.03 * parallax,
           u_offsetY: -pointer.y * 0.03 * parallax,
           u_rotation: pointer.x * 2.5 * parallax,

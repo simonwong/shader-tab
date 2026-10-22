@@ -12,6 +12,8 @@
 
 Paper 直接使用 npm 包导出的 shader；Grain Gradient、Dithering 和 9 个新增 Paper 类别通过 ShaderMount 渲染，Fluted Glass 使用自建宿主。Shader Gradient 的着色器移植到 `src/effects/drivers/shader-gradient.ts`，不加载 three.js 或 React Three Fiber。ThreeUI 复用官方渲染核心，文件位于 `src/effects/vendor/`；不安装它们整套组件集合。适配层负责生命周期、分辨率、时钟和指针，保持官方视觉算法。
 
+Dithering 的点阵格（`u_pxSize`）按渲染密度取整到整数设备像素，125%、150% 等缩放下格子大小一致（`PaperShader.pixelSize`）。
+
 ## Pixel Field
 
 2026-10-08 起替换原 React Bits Pixel Blast 移植版，为本项目从零编写的实现（`src/effects/drivers/pixel-blast.ts`，效果与变体 id 保持不变）。全屏三角形上的单个片元着色器把屏幕划为 8 CSS px 的格子；域扭曲梯度噪声给出每格密度，8×8 Bayer 有序抖动阈值决定亮灭，密集处连成实色，稀疏处散成单点。格子形状按变体为方形、圆形、三角形或菱形，边缘按 1 设备像素抗锯齿。指针移动产生弱涟漪，点击产生强涟漪；波峰点亮并外推格子，波后短暂清空。日夜亮度系数 0.94 / 0.8 写在输出颜色中。
