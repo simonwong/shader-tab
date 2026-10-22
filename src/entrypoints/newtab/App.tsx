@@ -276,22 +276,25 @@ export function App({ platform, boot }: Props) {
         ) : (
           <div className="ambient-background boot-background" aria-hidden="true" />
         )}
-        <Dock
-          showFavorites={preferences.showFavorites}
-          showBookmarks={preferences.showBookmarks}
-          favoritesLayout={preferences.favoritesLayout}
-          suspended={settings}
-          visible={controlsVisible}
-          panel={dock.panel}
-          onPanelChange={setPanel}
-          onEnter={dock.enter}
-          onLeave={dock.leave}
-          favorites={favorites}
-          menu={menu}
-          favoritesButton={favoritesButton}
-          onOpenSettings={openSettings}
-          onOpenUrl={onOpenUrl}
-        />
+        {/* Its width depends on the layout, entries and favorites; showing defaults first would jump. */}
+        {(ready || readError) && (
+          <Dock
+            showFavorites={preferences.showFavorites}
+            showBookmarks={preferences.showBookmarks}
+            favoritesLayout={preferences.favoritesLayout}
+            suspended={settings}
+            visible={controlsVisible}
+            panel={dock.panel}
+            onPanelChange={setPanel}
+            onEnter={dock.enter}
+            onLeave={dock.leave}
+            favorites={favorites}
+            menu={menu}
+            favoritesButton={favoritesButton}
+            onOpenSettings={openSettings}
+            onOpenUrl={onOpenUrl}
+          />
+        )}
         <SettingsDock
           visible={controlsVisible}
           onEnter={dock.enter}
