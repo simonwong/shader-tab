@@ -39,9 +39,18 @@ export function bookmarkHost(value: string): string {
   if (url.hostname) return url.hostname;
   if (url.protocol === 'file:') {
     const name = url.pathname.split('/').filter(Boolean).pop();
-    return name ? decodeURIComponent(name) : 'file://';
+    return name ? decodeName(name) : 'file://';
   }
   return url.protocol;
+}
+
+/** A path segment as text. A lone "%" (as in "50%.txt") stays escaped in file URLs, so it is kept as is. */
+function decodeName(name: string): string {
+  try {
+    return decodeURIComponent(name);
+  } catch {
+    return name;
+  }
 }
 
 export function flattenBookmarks(nodes: BookmarkNode[], path: string[] = []): Bookmark[] {
