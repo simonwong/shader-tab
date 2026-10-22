@@ -155,3 +155,22 @@ describe('re-matching favorites after Chrome changes bookmark ids', () => {
     ).toEqual([{ id: 'new-a', url: 'https://a.example/' }]);
   });
 });
+
+describe('importing favorites', () => {
+  it('imports after the current favorites, skipping duplicates and deleted bookmarks', () => {
+    const all = [bookmark('a'), bookmark('b'), bookmark('c')];
+    expect(
+      changeFavorites([{ id: 'b' }], { type: 'import', ids: ['a', 'b', 'gone', 'c', 'a'] }, all),
+    ).toEqual([
+      { id: 'b', url: 'https://b.example/' },
+      { id: 'a', url: 'https://a.example/' },
+      { id: 'c', url: 'https://c.example/' },
+    ]);
+  });
+  it('imports only into free slots instead of failing at the limit', () => {
+    const all = Array.from({ length: 12 }, (_, index) => bookmark(String(index)));
+    const existing = all.slice(0, 8).map(item => ({ id: item.id }));
+    const next = changeFavorites(existing, { type: 'import', ids: ['8', '9', '10', '11'] }, all);
+    expect(ids(next)).toEqual(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+  });
+});

@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type Dispatch,
   type KeyboardEvent,
   type MouseEvent,
@@ -17,6 +18,7 @@ import { GlassPanel } from '../../components/GlassPanel';
 import { LiquidGlassPanel } from '../../components/LiquidGlassPanel';
 import { SiteMark } from '../../components/SiteMark';
 import type { Bookmark, MenuEntry } from '../bookmarks/model';
+import type { FavoritesLayout } from '../preferences/model';
 import { bookmarkClick, type OpenUrl } from './open-bookmark';
 import type { DockPanel } from './use-dock-panels';
 
@@ -33,6 +35,51 @@ const loadBookmarkMenu = () =>
  */
 const HOVER_OPEN_DELAY = 140;
 
+/**
+ * Narrowest window that fits favorites tiled in the dock: each icon and the
+ * menu button take 36 px, and 300 px stay clear on each side of the centered
+ * dock for the settings button and the source pill, which widens on hover.
+ */
+const tiledQuery = (count: number) => `(min-width: ${(count + 1) * 36 + 16 + 600}px)`;
+
+function useMediaQuery(query: string) {
+  return useSyncExternalStore(
+    useCallback(
+      (change: () => void) => {
+        const list = matchMedia(query);
+        list.addEventListener('change', change);
+        return () => list.removeEventListener('change', change);
+      },
+      [query],
+    ),
+    () => matchMedia(query).matches,
+  );
+}
+
+// Tab moves through the tiled icons as usual; Left/Right, Home and End move too.
+function moveFocus(event: KeyboardEvent<HTMLDivElement>) {
+  const items = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>(':scope > a, :scope > button'),
+  );
+  const from = items.indexOf(event.target as HTMLElement);
+  // Keys from the menu popup bubble here through the portal; only the dock's own items move.
+  if (from < 0) return;
+  const to =
+    event.key === 'ArrowLeft'
+      ? from - 1
+      : event.key === 'ArrowRight'
+        ? from + 1
+        : event.key === 'Home'
+          ? 0
+          : event.key === 'End'
+            ? items.length - 1
+            : -1;
+  const target = items[to];
+  if (!target) return;
+  event.preventDefault();
+  target.focus();
+}
+
 interface HoverZone {
   /** Whether the zone is shown (controls are awake and no modal is open). */
   visible: boolean;
@@ -43,6 +90,7 @@ interface HoverZone {
 interface DockProps extends HoverZone {
   showFavorites: boolean;
   showBookmarks: boolean;
+  favoritesLayout: FavoritesLayout;
   /** True while the settings dialog is open; panels stay closed meanwhile. */
   suspended: boolean;
   panel: DockPanel | null;
@@ -54,18 +102,24 @@ interface DockProps extends HoverZone {
   onOpenUrl: OpenUrl;
 }
 
-/** Bottom dock with the favorites tray and the full bookmark menu. */
+/**
+ * Bottom dock with the favorites and the full bookmark menu. Favorites sit in
+ * a tray behind the star, or as icons in the dock itself when that layout is
+ * chosen and the window is wide enough; with no favorites the star stays.
+ */
 export function Dock(props: DockProps) {
   const { showFavorites, showBookmarks, suspended, panel, onPanelChange, onEnter, onLeave } = props;
   const { visible, favorites, menu, favoritesButton, onOpenSettings, onOpenUrl } = props;
   const { t } = useI18n();
+  const fits = useMediaQuery(tiledQuery(favorites.length));
+  const tiled = showFavorites && props.favoritesLayout === 'dock' && favorites.length > 0 && fits;
   const allButton = useRef<HTMLButtonElement>(null);
   const tray = useRef<HTMLDivElement>(null);
   const focusTray = useRef(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [BookmarkMenu, setBookmarkMenu] = useState<BookmarkMenuComponent>();
   const menuOpen = showBookmarks && panel === 'all' && !suspended;
-  const trayOpen = showFavorites && panel === 'favorites' && !suspended;
+  const trayOpen = showFavorites && !tiled && panel === 'favorites' && !suspended;
   const wantMenu = useCallback(() => {
     void loadBookmarkMenu().then(
       component => setBookmarkMenu(() => component),
@@ -131,8 +185,23 @@ export function Dock(props: DockProps) {
         className="dock ui-surface"
         role="navigation"
         aria-label={t('bookmarkNavigation')}
+        data-layout={tiled ? 'dock' : 'tray'}
+        onKeyDown={tiled ? moveFocus : undefined}
       >
-        {showFavorites && (
+        {tiled &&
+          favorites.map(bookmark => (
+            <a
+              key={bookmark.id}
+              className="dock-button dock-favorite"
+              href={bookmark.url}
+              aria-label={bookmark.title}
+              {...bookmarkClick(bookmark.url, onOpenUrl)}
+            >
+              <SiteMark bookmark={bookmark} size="dock" />
+            </a>
+          ))}
+        {tiled && showBookmarks && <span className="dock-divider" aria-hidden="true" />}
+        {showFavorites && !tiled && (
           <button
             ref={favoritesButton}
             className="dock-button"

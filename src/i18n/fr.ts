@@ -30,7 +30,8 @@ export const fr: Messages = {
   noBookmarks: 'Aucun favori',
   untitledFolder: 'Dossier sans titre',
   showMore: 'Afficher plus · {count} restants',
-  favoritesHint: 'Ouvrez-les depuis l’étoile du dock. Glissez pour les trier, jusqu’à 10.',
+  favoritesHint:
+    'Directement dans le dock ou derrière l’étoile. Glissez pour les trier, jusqu’à 10.',
   dragLabel: 'Déplacer {title}',
   removeLabel: 'Retirer {title}',
   dragInstructions:
@@ -100,9 +101,20 @@ export const fr: Messages = {
   restoreHidden: 'Tout rétablir',
   selectedCount: '{count}/{total} sélectionnés',
   openSettings: 'Ouvrir les paramètres',
-  firstRunHint:
-    'Vos favoris sont sous l’étoile, tous les favoris Chrome sous la grille. Les paramètres sont en bas à gauche.',
   gotIt: 'Compris',
+  favoritesLayout: 'Disposition',
+  layoutDock: 'Dans le dock',
+  layoutDockHint: 'En un clic',
+  layoutTray: 'Derrière l’étoile',
+  layoutTrayHint: 'Un dock plus sobre',
+  onboardingLayout: 'Où placer vos favoris ?',
+  onboardingImport: 'Commencer avec la barre de favoris ?',
+  importFromBar: 'Ajouter ces {count}',
+  chooseLater: 'Choisir plus tard dans les paramètres',
+  barEmpty:
+    'Votre barre de favoris ne contient pas encore de liens. Vous pouvez choisir vos favoris dans les paramètres à tout moment.',
+  next: 'Continuer',
+  skip: 'Passer',
   restoreDefault:
     'Pour retrouver le nouvel onglet par défaut de Chrome, désactivez Shader Tab dans chrome://extensions.',
   openFailed:

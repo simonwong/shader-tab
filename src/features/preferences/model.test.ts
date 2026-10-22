@@ -53,6 +53,7 @@ it('deduplicates known effects and preserves valid appearance settings', () => {
     bookmarkSort: 'chrome',
     showFavorites: true,
     showBookmarks: true,
+    favoritesLayout: 'tray',
     motion: 'soft',
     hiddenVariants: [],
     pinnedVariant: null,
@@ -131,6 +132,18 @@ it('defaults navigation entries to visible and preserves independent opt-outs', 
   expect(readPreferences(data({ showFavorites: 'false', showBookmarks: null }))).toMatchObject({
     showFavorites: true,
     showBookmarks: true,
+  });
+});
+
+it('keeps existing installs on the favorites tray and drops unknown layouts', () => {
+  expect(readPreferences({}).favoritesLayout).toBe('tray');
+  expect(readPreferences({ 'favorites:v2': ['3'] }).favoritesLayout).toBe('tray');
+  expect(readPreferences(data({ favoritesLayout: 'dock' })).favoritesLayout).toBe('dock');
+  expect(readPreferences(data({ favoritesLayout: 'tray' })).favoritesLayout).toBe('tray');
+  for (const value of ['grid', 'DOCK', true, null, 1])
+    expect(readPreferences(data({ favoritesLayout: value })).favoritesLayout).toBe('tray');
+  expect(preferenceEntries({ favoritesLayout: 'dock' })).toEqual({
+    [`${PREFERENCE_PREFIX}favoritesLayout`]: 'dock',
   });
 });
 

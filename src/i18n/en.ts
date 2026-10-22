@@ -29,7 +29,7 @@ export const en = {
   noBookmarks: 'No bookmarks yet',
   untitledFolder: 'Untitled folder',
   showMore: 'Show more · {count} remaining',
-  favoritesHint: 'Open them from the star in the dock. Drag to reorder, up to 10.',
+  favoritesHint: 'Shown in the dock or behind its star. Drag to reorder, up to 10.',
   dragLabel: 'Reorder {title}',
   removeLabel: 'Remove {title}',
   dragInstructions:
@@ -98,9 +98,19 @@ export const en = {
   restoreHidden: 'Restore all',
   selectedCount: '{count}/{total} selected',
   openSettings: 'Open settings',
-  firstRunHint:
-    'Favorites are under the star and all bookmarks under the grid. Settings are in the bottom-left corner.',
   gotIt: 'Got it',
+  favoritesLayout: 'Layout',
+  layoutDock: 'In the dock',
+  layoutDockHint: 'One click to open',
+  layoutTray: 'Behind the star',
+  layoutTrayHint: 'A smaller dock',
+  onboardingLayout: 'Where should your favorites go?',
+  onboardingImport: 'Start with your bookmarks bar?',
+  importFromBar: 'Add these {count}',
+  chooseLater: 'Choose later in settings',
+  barEmpty: 'Your bookmarks bar has no links yet. You can pick favorites in settings at any time.',
+  next: 'Continue',
+  skip: 'Skip',
   restoreDefault:
     'To get Chrome’s default new tab back, turn off Shader Tab at chrome://extensions.',
   openFailed:

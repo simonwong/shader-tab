@@ -29,7 +29,7 @@ export function SiteMark({
   size = 'large',
 }: {
   bookmark: Bookmark;
-  size?: 'large' | 'small' | 'menu';
+  size?: 'large' | 'small' | 'menu' | 'dock';
 }) {
   const source = faviconUrl(bookmark.url);
   const [loaded, setLoaded] = useState<string>();

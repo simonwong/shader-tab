@@ -30,7 +30,7 @@ export const de: Messages = {
   noBookmarks: 'Keine Lesezeichen vorhanden',
   untitledFolder: 'Unbenannter Ordner',
   showMore: 'Mehr anzeigen · {count} verbleibend',
-  favoritesHint: 'Über den Stern im Dock öffnen. Zum Sortieren ziehen, maximal 10.',
+  favoritesHint: 'Direkt im Dock oder hinter dem Stern. Zum Sortieren ziehen, maximal 10.',
   dragLabel: '{title} verschieben',
   removeLabel: '{title} entfernen',
   dragInstructions:
@@ -99,9 +99,20 @@ export const de: Messages = {
   restoreHidden: 'Alle wiederherstellen',
   selectedCount: '{count}/{total} ausgewählt',
   openSettings: 'Einstellungen öffnen',
-  firstRunHint:
-    'Favoriten liegen unter dem Stern, alle Lesezeichen unter dem Raster. Die Einstellungen sind unten links.',
   gotIt: 'Verstanden',
+  favoritesLayout: 'Anordnung',
+  layoutDock: 'Im Dock',
+  layoutDockHint: 'Mit einem Klick öffnen',
+  layoutTray: 'Hinter dem Stern',
+  layoutTrayHint: 'Ein schlankeres Dock',
+  onboardingLayout: 'Wo sollen deine Favoriten liegen?',
+  onboardingImport: 'Mit der Lesezeichenleiste beginnen?',
+  importFromBar: 'Diese {count} hinzufügen',
+  chooseLater: 'Später in den Einstellungen wählen',
+  barEmpty:
+    'Deine Lesezeichenleiste enthält noch keine Links. Favoriten kannst du jederzeit in den Einstellungen wählen.',
+  next: 'Weiter',
+  skip: 'Überspringen',
   restoreDefault:
     'Um Chromes Standard-Tab zurückzubekommen, deaktiviere Shader Tab unter chrome://extensions.',
   openFailed:

@@ -29,7 +29,7 @@ export const ja: Messages = {
   noBookmarks: 'ブックマークはありません',
   untitledFolder: '無題のフォルダ',
   showMore: 'さらに表示 · 残り {count} 件',
-  favoritesHint: 'ドックの星から開きます。ドラッグで並べ替え。最大 10 件。',
+  favoritesHint: 'ドックに並べるか、星の中にまとめます。ドラッグで並べ替え。最大 10 件。',
   dragLabel: '{title} を並べ替え',
   removeLabel: '{title} を削除',
   dragInstructions:
@@ -97,9 +97,19 @@ export const ja: Messages = {
   restoreHidden: 'すべて戻す',
   selectedCount: '{count}/{total} 件を選択中',
   openSettings: '設定を開く',
-  firstRunHint:
-    'お気に入りは星、すべてのブックマークはグリッドから開けます。設定は左下にあります。',
   gotIt: 'OK',
+  favoritesLayout: 'レイアウト',
+  layoutDock: 'ドックに並べる',
+  layoutDockHint: 'ワンクリックで開く',
+  layoutTray: '星の中にまとめる',
+  layoutTrayHint: 'ドックをすっきり',
+  onboardingLayout: 'お気に入りをどこに置きますか？',
+  onboardingImport: 'ブックマークバーから始めますか？',
+  importFromBar: 'この {count} 件を追加',
+  chooseLater: 'あとで設定で選ぶ',
+  barEmpty: 'ブックマークバーにはまだページがありません。お気に入りはいつでも設定で選べます。',
+  next: '次へ',
+  skip: 'スキップ',
   restoreDefault:
     'Chrome 標準の新しいタブに戻すには、chrome://extensions で Shader Tab をオフにしてください。',
   openFailed:

@@ -8,8 +8,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { I18nContext, useLanguage } from '../../i18n/react';
 import { errorMessage, MessageError } from '../../i18n/core';
 import { GlassPanel } from '../../components/GlassPanel';
@@ -49,6 +47,8 @@ const loadSettings = () =>
       default: module.SettingsDialog,
     })),
   );
+
+type OnboardingComponent = typeof import('../../features/onboarding/Onboarding').Onboarding;
 
 const NO_FAVORITES: FavoriteRef[] = [];
 
@@ -99,6 +99,7 @@ export function App({ platform, boot }: Props) {
   const [settingsAttempt, setSettingsAttempt] = useState(0);
   const settingsFailed = useRef(false);
   const [notice, setNotice] = useState<Error>();
+  const [Onboarding, setOnboarding] = useState<OnboardingComponent>();
   const settingsButton = useRef<HTMLButtonElement>(null);
   const favoritesButton = useRef<HTMLButtonElement>(null);
   const settingsReturnFocus = useRef<HTMLElement | null>(null);
@@ -133,6 +134,8 @@ export function App({ platform, boot }: Props) {
   const readError = tree.error || savedFavorites.error || savedPreferences.error;
   const ready = tree.data !== undefined && savedFavorites.data !== undefined && preferencesReady;
   const shownError = readError || saves.error;
+  // Shown once the data it decides from (favorites, the bookmarks bar) has loaded.
+  const showOnboarding = ready && preferences.onboarding;
   const tone = selection
     ? resolveVariant(selection.effect, selection.variant).tone(theme)
     : (boot.tone?.[theme] ?? defaultTone(theme));
@@ -142,6 +145,19 @@ export function App({ platform, boot }: Props) {
   useLayoutEffect(() => {
     latest.current = { preferences, favoriteRefs };
   });
+
+  // The onboarding card stays out of the entry chunk; only a fresh install loads it.
+  useEffect(() => {
+    if (!showOnboarding || Onboarding) return;
+    let current = true;
+    import('../../features/onboarding/Onboarding').then(
+      module => current && setOnboarding(() => module.Onboarding),
+      (error: unknown) => console.warn('Could not load onboarding.', error),
+    );
+    return () => {
+      current = false;
+    };
+  }, [showOnboarding, Onboarding]);
 
   useEffect(() => {
     document.title = platform.mode === 'preview' ? t('previewTitle') : t('newTab');
@@ -263,6 +279,7 @@ export function App({ platform, boot }: Props) {
         <Dock
           showFavorites={preferences.showFavorites}
           showBookmarks={preferences.showBookmarks}
+          favoritesLayout={preferences.favoritesLayout}
           suspended={settings}
           visible={controlsVisible}
           panel={dock.panel}
@@ -295,22 +312,14 @@ export function App({ platform, boot }: Props) {
             onHide={pageBackground.canHide ? pageBackground.hide : undefined}
           />
         )}
-        {onboarding && dock.panel === null && (
-          <GlassPanel className="first-run ui-surface" role="status">
-            <HugeiconsIcon
-              aria-hidden="true"
-              icon={InformationCircleIcon}
-              size={16}
-              strokeWidth={1.8}
-            />
-            <p>{t('firstRunHint')}</p>
-            <button
-              className="small-button"
-              onClick={() => onPreferenceChange({ onboarding: false })}
-            >
-              {t('gotIt')}
-            </button>
-          </GlassPanel>
+        {showOnboarding && Onboarding && tree.data && (
+          <Onboarding
+            tree={tree.data}
+            empty={!favorites.length}
+            hidden={settings || dock.panel !== null}
+            onPreferenceChange={onPreferenceChange}
+            onFavoriteChange={onFavoriteChange}
+          />
         )}
         {settingsLoaded && (
           <SettingsBoundary

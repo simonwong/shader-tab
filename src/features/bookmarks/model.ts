@@ -86,9 +86,15 @@ function menuEntries(
   });
 }
 
-export function rootMenu(tree: BookmarkNode[], untitledFolder = 'Untitled folder'): MenuEntry[] {
+/** Chrome's top-level folders, and among them the bookmarks bar if there is one. */
+export function bookmarkRoots(tree: BookmarkNode[]) {
   const roots = tree.length === 1 && tree[0]?.id === '0' ? (tree[0].children ?? []) : tree;
   const bar = roots.find(node => node.id === '1' || node.folderType === 'bookmarks-bar');
+  return { roots, bar };
+}
+
+export function rootMenu(tree: BookmarkNode[], untitledFolder = 'Untitled folder'): MenuEntry[] {
+  const { roots, bar } = bookmarkRoots(tree);
   if (!bar) return menuEntries(roots, untitledFolder);
   const primary = menuEntries(bar.children ?? [], untitledFolder);
   const secondary = menuEntries(

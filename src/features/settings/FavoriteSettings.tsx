@@ -22,6 +22,7 @@ import { useI18n } from '../../i18n/react';
 import { SiteMark } from '../../components/SiteMark';
 import type { Bookmark, BookmarkNode } from '../bookmarks/model';
 import { MAX_FAVORITES, type FavoriteAction } from '../favorites/model';
+import type { FavoritesLayout } from '../preferences/model';
 import { BookmarkPicker } from './BookmarkPicker';
 import { bookmarkPickerTree } from './bookmark-tree';
 
@@ -30,10 +31,17 @@ interface Props {
   tree: BookmarkNode[];
   /** Favorites in display order; already reflects edits that are still saving. */
   favorites: Bookmark[];
+  layout: FavoritesLayout;
   disabled: boolean;
   /** Resolves false when the save failed and the edit was rolled back. */
   onChange: (action: FavoriteAction) => Promise<boolean>;
+  onLayoutChange: (layout: FavoritesLayout) => void;
 }
+
+const LAYOUTS = [
+  ['dock', 'layoutDock'],
+  ['tray', 'layoutTray'],
+] as const;
 
 function SortableRow({
   bookmark,
@@ -83,7 +91,15 @@ function SortableRow({
   );
 }
 
-export function FavoriteSettings({ bookmarks, tree, favorites, disabled, onChange }: Props) {
+export function FavoriteSettings({
+  bookmarks,
+  tree,
+  favorites,
+  layout,
+  disabled,
+  onChange,
+  onLayoutChange,
+}: Props) {
   const { t } = useI18n();
   const [query, setQuery] = useState('');
   const ids = useMemo(() => favorites.map(bookmark => bookmark.id), [favorites]);
@@ -125,6 +141,21 @@ export function FavoriteSettings({ bookmarks, tree, favorites, disabled, onChang
         <h2 id="favorites-heading">{t('favorites')}</h2>
         <p>{t('favoritesHint')}</p>
       </header>
+      <div className="setting-row">
+        <span className="setting-label">{t('favoritesLayout')}</span>
+        <div className="segmented" role="group" aria-label={t('favoritesLayout')}>
+          {LAYOUTS.map(([value, label]) => (
+            <button
+              key={value}
+              disabled={disabled}
+              aria-pressed={layout === value}
+              onClick={() => onLayoutChange(value)}
+            >
+              {t(label)}
+            </button>
+          ))}
+        </div>
+      </div>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

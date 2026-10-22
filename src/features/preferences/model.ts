@@ -14,15 +14,18 @@ export interface Preferences {
   bookmarkSort: BookmarkSort;
   showFavorites: boolean;
   showBookmarks: boolean;
+  /** Favorites as icons in the dock itself, or in a tray behind the star. */
+  favoritesLayout: FavoritesLayout;
   idleDelay: 1000 | 2000 | 5000;
   motion: Motion;
   /** Variants left out of every draw, as `variantKey`s. */
   hiddenVariants: string[];
   /** A variant shown on every page instead of drawing one, as a `variantKey`. */
   pinnedVariant: string | null;
-  /** Whether the first-run hint is still pending. Only a fresh install starts with it. */
+  /** Whether first-run onboarding is still pending. Only a fresh install starts with it. */
   onboarding: boolean;
 }
+export type FavoritesLayout = 'tray' | 'dock';
 export const DEFAULT_PREFERENCES: Preferences = {
   language: 'auto',
   appearance: 'system',
@@ -32,6 +35,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   bookmarkSort: 'chrome',
   showFavorites: true,
   showBookmarks: true,
+  favoritesLayout: 'tray',
   idleDelay: 2000,
   motion: 'soft',
   hiddenVariants: [],
@@ -66,6 +70,8 @@ export function readPreferences(data: Record<string, unknown>): Preferences {
       : 'chrome',
     showFavorites: get('showFavorites') !== false,
     showBookmarks: get('showBookmarks') !== false,
+    // Installs from before the dock layout keep the tray; onboarding asks new users.
+    favoritesLayout: get('favoritesLayout') === 'dock' ? 'dock' : 'tray',
     idleDelay: delay === 1000 || delay === 5000 ? delay : 2000,
     motion: isMotion(get('motion')) ? (get('motion') as Motion) : 'soft',
     // Keys of retired variants drop out, so they never hide or pin a variant that no longer exists.
