@@ -12,6 +12,15 @@ const ids = [
   'fluted-glass',
   'pixel-blast',
   'data-pixel-arc',
+  'mesh-gradient',
+  'warp',
+  'simplex-noise',
+  'perlin-noise',
+  'neuro-noise',
+  'dot-orbit',
+  'smoke-ring',
+  'god-rays',
+  'water',
 ];
 const { run, evaluate, sleep: wait, close } = browserSession('glass-framework-review');
 const preference = values =>
@@ -29,7 +38,7 @@ try {
   run('open', '--init-script', fromRoot('scripts/shader-probe.js'), url);
   run('set', 'viewport', '1440', '900', '2');
   evaluate(`(() => {
-    const variants = { 'grain-gradient': 'blob', 'shader-gradient': 'dusk', dithering: 'swirl:8x8', 'fluted-glass': 'default', 'pixel-blast': 'square', 'data-pixel-arc': 'data-pixel' };
+    const variants = { 'grain-gradient': 'blob', 'shader-gradient': 'dusk', dithering: 'swirl:8x8', 'fluted-glass': 'default', 'pixel-blast': 'square', 'data-pixel-arc': 'data-pixel', 'mesh-gradient': 'tide', 'warp': 'marble', 'simplex-noise': 'contour', 'perlin-noise': 'fog', 'neuro-noise': 'filament', 'dot-orbit': 'drift', 'smoke-ring': 'halo', 'god-rays': 'dawn', 'water': 'pool' };
     for (const [id, variant] of Object.entries(variants)) localStorage.setItem('glass-tab-preview:effect-variant:shuffle:v1:' + id, JSON.stringify({ remaining: [variant] }));
   })()`);
   preference({ appearance: 'night', shuffle: false, activeEffect: ids[0] });
@@ -83,6 +92,20 @@ try {
         'Pixel Field must start a ripple on click',
       );
       assert.ok(right.draws - before.draws > 0);
+    } else if (id === 'dot-orbit' || id === 'god-rays') {
+      assert.ok(right.uniforms.u_time > before.uniforms.u_time);
+      // Shifting would slide every dot or sweep every ray at once, so these ignore the pointer.
+      assert.ok(
+        left.uniforms.u_offsetX === 0 && right.uniforms.u_offsetX === 0,
+        `${id} must not follow the pointer`,
+      );
+    } else if (id !== 'data-pixel-arc') {
+      // The other Paper families follow the pointer, each by its own share of Dithering's offset.
+      assert.ok(right.uniforms.u_time > before.uniforms.u_time);
+      assert.ok(
+        left.uniforms.u_offsetX < 0 && right.uniforms.u_offsetX > 0,
+        `${id} must follow both pointer directions`,
+      );
     } else {
       assert.ok(right.uniforms.uTime > before.uniforms.uTime);
       assert.ok(right.draws - before.draws > 0);

@@ -9,6 +9,8 @@ import {
   EFFECT_IDS,
   effectBackground,
   getEffect,
+  PAPER_PALETTES,
+  paletteBackground,
   type EffectId,
   type Theme,
 } from './presets';
@@ -93,6 +95,22 @@ const GRAIN_DENSITY = 1.25;
 const DITHERING_SHAPES = ['simplex', 'warp', 'wave', 'ripple', 'swirl', 'sphere'];
 const DITHERING_IDS = [...DITHERING_SHAPES.map(shape => `${shape}:8x8`), 'sphere:4x4'];
 
+/*
+ * Paper families with their own palette per variant (`PAPER_PALETTES`): the
+ * static background is drawn from that palette, so the first frame and a
+ * fallback match the variant rather than the family. Mesh gradients and Perlin
+ * fog are soft fields with no fine detail, so they render at density 1 like
+ * Shader Gradient.
+ */
+function paperPalette(effect: EffectId, density?: number): VariantDef[] {
+  const palettes = PAPER_PALETTES[effect]!;
+  return define(effect, Object.keys(palettes), id => ({
+    background: theme => paletteBackground(palettes[id]![theme]),
+    ...(density === undefined ? {} : { density }),
+    load: paper,
+  }));
+}
+
 const arcSource = (id: string) => `https://threeui.com/backgrounds/predictive-arc/${id}`;
 const arcSurface = (theme: Theme) => ARC_SURFACE[theme];
 const ARC_VARIANTS: Record<string, VariantSpec> = {
@@ -163,6 +181,15 @@ export const EFFECT_VARIANTS: Record<EffectId, readonly VariantDef[]> = {
     source: arcSource(id),
     ...ARC_VARIANTS[id]!,
   })),
+  'mesh-gradient': paperPalette('mesh-gradient', 1),
+  warp: paperPalette('warp'),
+  'simplex-noise': paperPalette('simplex-noise'),
+  'perlin-noise': paperPalette('perlin-noise', 1),
+  'neuro-noise': paperPalette('neuro-noise'),
+  'dot-orbit': paperPalette('dot-orbit'),
+  'smoke-ring': paperPalette('smoke-ring'),
+  'god-rays': paperPalette('god-rays'),
+  water: paperPalette('water'),
 };
 
 /** Variant ids of one effect, in registry order. */

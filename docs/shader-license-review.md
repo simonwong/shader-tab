@@ -1,19 +1,19 @@
 # Shader 与商店发布许可核对
 
-核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换和发布状态；2026-10-14 移除 CRT，Shader Gradient 改为原生 WebGL 移植，新增 Paper Fluted Glass。范围：Shader Tab 0.5.0 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。0.4.1 已在 [Chrome 网上应用店](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)发布。本记录是许可证文本与实现核对，不是律师意见。
+核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换和发布状态；2026-10-14 移除 CRT，Shader Gradient 改为原生 WebGL 移植，新增 Paper Fluted Glass；2026-10-22 新增 9 个 Paper shader（Mesh Gradient、Warp、Simplex Noise、Perlin Noise、Neuro Noise、Dot Orbit、Smoke Ring、God Rays、Water）。范围：Shader Tab 0.5.0 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。0.4.1 已在 [Chrome 网上应用店](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)发布。本记录是许可证文本与实现核对，不是律师意见。
 
 ## 结论
 
 按核对到的条款，当前作为完整新标签页应用使用这些效果，具有发布及商业使用的许可基础，不要求将整个扩展开源。代码许可不等于商标授权，也不能代替商店隐私披露。
 
-| 实际使用                                        | 版本或来源                                                                      | 许可证     | 主要要求                                                                           |
-| ----------------------------------------------- | ------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------- |
-| Paper Grain Gradient / Dithering / Fluted Glass | @paper-design/shaders 0.0.81                                                    | Apache-2.0 | 随包保留 LICENSE、NOTICE 与适用署名；修改原文件时标明修改；不授予品牌商标权        |
-| Paper Fluted Glass 示例照片                     | paper-design/shaders 仓库 `docs/public/images/image-filters/0018.webp`          | Apache-2.0 | 与 Paper 代码同一许可；随包许可与 NOTICE 一并覆盖                                  |
-| ShaderGradient plane / waterPlane 着色器        | @shadergradient/react 着色器源码，移植到 src/effects/drivers/shader-gradient.ts | MIT        | 保留 ruucm 与 stone-skipper 的版权与完整许可文本（`licenses/shader-gradient.txt`） |
-| ThreeUI Predictive Arc 系列                     | 存入 src/effects/vendor 的上游代码                                              | MIT        | 保留 Meng To 的版权与完整许可文本；修改后仍保留声明                                |
-| GLSL noise                                      | 本地许可证                                                                      | MIT        | 保留各自版权与许可声明                                                             |
-| Space Grotesk                                   | @fontsource-variable/space-grotesk 5.3.0                                        | OFL-1.1    | 可随应用分发；保留字体许可；字体本身不能单独售卖，修改字体需遵守保留字体名条件     |
+| 实际使用                                                                                                                                                                          | 版本或来源                                                                      | 许可证     | 主要要求                                                                           |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------- |
+| Paper Grain Gradient / Dithering / Fluted Glass / Mesh Gradient / Warp / Simplex Noise / Perlin Noise / Neuro Noise / Dot Orbit / Smoke Ring / God Rays / Water（含包内噪声纹理） | @paper-design/shaders 0.0.81                                                    | Apache-2.0 | 随包保留 LICENSE、NOTICE 与适用署名；修改原文件时标明修改；不授予品牌商标权        |
+| Paper Fluted Glass 示例照片                                                                                                                                                       | paper-design/shaders 仓库 `docs/public/images/image-filters/0018.webp`          | Apache-2.0 | 与 Paper 代码同一许可；随包许可与 NOTICE 一并覆盖                                  |
+| ShaderGradient plane / waterPlane 着色器                                                                                                                                          | @shadergradient/react 着色器源码，移植到 src/effects/drivers/shader-gradient.ts | MIT        | 保留 ruucm 与 stone-skipper 的版权与完整许可文本（`licenses/shader-gradient.txt`） |
+| ThreeUI Predictive Arc 系列                                                                                                                                                       | 存入 src/effects/vendor 的上游代码                                              | MIT        | 保留 Meng To 的版权与完整许可文本；修改后仍保留声明                                |
+| GLSL noise                                                                                                                                                                        | 本地许可证                                                                      | MIT        | 保留各自版权与许可声明                                                             |
+| Space Grotesk                                                                                                                                                                     | @fontsource-variable/space-grotesk 5.3.0                                        | OFL-1.1    | 可随应用分发；保留字体许可；字体本身不能单独售卖，修改字体需遵守保留字体名条件     |
 
 当前产品提供书签导航、收藏与背景显示，不提供组件下载、代码导出或素材包。若将产品改为 shader 组件库、付费代码导出器或移植素材合集，应重新核对各上游许可。
 
@@ -27,8 +27,8 @@ React Bits 的 PixelBlast 使用 MIT + Commons Clause 自定义许可，禁止�
 - 构建从实际渲染的打包模块识别运行时依赖，生成 `licenses/dependencies.txt` 完整版权和许可文本，以及含版本与文本 SHA-256 的 `dependencies.json`。缺少许可文本时构建失败。
 - 主要 shader、GLSL noise、字体的完整许可及 Paper NOTICE 随包提供。许可页从设置底部进入；来源链接用于署名导航，不替代完整许可文本。
 - CRT 已于 2026-10-14 移除。同日 Shader Gradient 改为移植 ShaderGradient 着色器的原生 WebGL1 实现，`@shadergradient/react`、`@react-three/fiber`、`three`、`camera-controls` 及其许可声明不再随包分发；`check-build.mjs` 断言这些包不在依赖清单中，并检查 `licenses/shader-gradient.txt` 存在。
-- Fluted Glass 的示例照片是除 12 张设置缩略图外唯一随包分发的图片，`check-build.mjs` 限制其小于 80 KB。
-- 当前共 28 种变体；旧随机队列中的已移除变体会自动丢弃。
+- Fluted Glass 的示例照片是除 30 张设置缩略图外唯一随包分发的图片，`check-build.mjs` 限制其小于 80 KB。
+- 当前共 15 个类别、42 种变体；旧随机队列中的已移除变体会自动丢弃。
 
 ## Chrome 商店
 

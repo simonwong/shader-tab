@@ -31,6 +31,15 @@ const variants: Record<EffectId, string> = {
   'fluted-glass': 'default',
   'pixel-blast': 'square',
   'data-pixel-arc': 'predictive',
+  'mesh-gradient': 'tide',
+  warp: 'marble',
+  'simplex-noise': 'contour',
+  'perlin-noise': 'fog',
+  'neuro-noise': 'filament',
+  'dot-orbit': 'drift',
+  'smoke-ring': 'halo',
+  'god-rays': 'dawn',
+  water: 'pool',
 };
 let effect: EffectId = 'grain-gradient',
   theme: Theme = 'day';

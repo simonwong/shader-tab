@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile, access, readdir, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { loadVariants } from './lib/variants.mjs';
 
 const root = new URL('../.output/chrome-mv3/', import.meta.url);
 // Raw entry size after the Base UI migration was 240 KB; the budget leaves about 10% headroom.
@@ -106,7 +107,8 @@ assert.equal(photos.length, 1, 'Fluted Glass must ship its photo as a separate a
 const photoBytes = (await stat(new URL(`assets/${photos[0]}`, root))).size;
 assert.ok(photoBytes < 80_000, 'The Fluted Glass photo exceeds its 80 KB budget');
 const images = assets.filter(file => file.endsWith('.webp') && !photos.includes(file));
-assert.equal(images.length, 12, 'One day and one night thumbnail per background family');
+const families = Object.keys((await loadVariants()).variantIds).length;
+assert.equal(images.length, families * 2, 'One day and one night thumbnail per background family');
 assert.ok(
   images.every(file => file.startsWith('thumb-')),
   'Only small settings thumbnails and the Fluted Glass photo may ship',
@@ -123,7 +125,7 @@ assert.ok(
   'Retired backgrounds must not ship',
 );
 console.log(
-  'Six framework effects, small settings thumbnails, lazy drivers and license notices verified.',
+  `${families} background families, small settings thumbnails, lazy drivers and license notices verified.`,
 );
 
 const dependencies = JSON.parse(

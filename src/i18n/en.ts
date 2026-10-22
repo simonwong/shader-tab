@@ -121,6 +121,15 @@ export const en = {
   'effect.fluted-glass': 'Ribbed glass refracting slowly drifting color',
   'effect.pixel-blast': 'Move your pointer to stir the pixels; click the background for ripples',
   'effect.data-pixel-arc': 'Original styles with data pixels, particles, ribbons and halftones',
+  'effect.mesh-gradient': 'Soft patches of color drifting and blending into each other',
+  'effect.warp': 'Marble, silk and checks bending slowly',
+  'effect.simplex-noise': 'Terraced bands of color, like a contour map',
+  'effect.perlin-noise': 'A soft two-tone fog drifting past',
+  'effect.neuro-noise': 'Fine glowing filaments, like a web of light',
+  'effect.dot-orbit': 'Small dots, each circling its own spot',
+  'effect.smoke-ring': 'A ring of smoke framing the page, clear in the middle',
+  'effect.god-rays': 'Soft light falling from above in slow rays',
+  'effect.water': 'Rippling light on the floor of a pool',
 } as const;
 export type MessageKey = keyof typeof en;
 export type Messages = { [Key in MessageKey]: string };

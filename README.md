@@ -9,7 +9,7 @@
     <a href="docs/development.md">Development</a> ·
     <a href="https://github.com/simonwong/shader-tab/issues">Feedback</a>
   </p>
-  <p><strong>6 background families · 28 variants · 8 languages</strong></p>
+  <p><strong>15 background families · 42 variants · 8 languages</strong></p>
 </div>
 
 ![Shader Tab showing a peach and lavender grain gradient with glass bookmark controls](docs/images/grain-gradient.png)
@@ -104,7 +104,7 @@ Built with **WXT, React, TypeScript, Base UI, and Hugeicons**. The [development 
 | [Development](docs/development.md)   | Local setup, build outputs, website, and QA       |
 | [Architecture](docs/architecture.md) | Data boundaries, storage, and rendering lifecycle |
 | [Backgrounds](docs/shaders.md)       | Shader integrations and sources                   |
-| [Variants](docs/effect-variants.md)  | All 28 variants and shuffle behavior              |
+| [Variants](docs/effect-variants.md)  | All 42 variants and shuffle behavior              |
 | [Performance](docs/performance.md)   | Rendering budgets and measurement results         |
 
 Technical reference documents are currently in Chinese.

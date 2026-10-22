@@ -118,4 +118,13 @@ export const zhTW: Messages = {
   'effect.fluted-glass': '稜紋玻璃折射緩慢漂移的色塊',
   'effect.pixel-blast': '移動游標撥動像素，點擊空白處激起漣漪',
   'effect.data-pixel-arc': 'Data Pixel、粒子、光帶與半色調樣式',
+  'effect.mesh-gradient': '色塊緩慢漂移、彼此交融的柔和漸層',
+  'effect.warp': '緩慢彎折的大理石、絲綢與格紋',
+  'effect.simplex-noise': '像等高線地圖的分層色階',
+  'effect.perlin-noise': '柔和的雙色霧氣緩緩飄過',
+  'effect.neuro-noise': '細細發光的絲網',
+  'effect.dot-orbit': '小圓點各自繞著原位轉動',
+  'effect.smoke-ring': '一圈煙霧框住頁面，中間留空',
+  'effect.god-rays': '從上方緩緩照下的柔和光束',
+  'effect.water': '泳池底部晃動的水光',
 };

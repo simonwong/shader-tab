@@ -120,4 +120,13 @@ export const ja: Messages = {
   'effect.fluted-glass': 'ゆっくり漂う色を映すリブガラス',
   'effect.pixel-blast': 'ポインターでピクセルを動かし、背景をクリックして波紋を表示',
   'effect.data-pixel-arc': 'データピクセル、粒子、リボン、ハーフトーンのスタイル',
+  'effect.mesh-gradient': '色がゆっくり漂い、混ざり合うやわらかなグラデーション',
+  'effect.warp': 'ゆっくりとたわむ大理石、シルク、チェックの模様',
+  'effect.simplex-noise': '等高線地図のような段々の色',
+  'effect.perlin-noise': 'やわらかな二色の霧がゆっくり流れる',
+  'effect.neuro-noise': '細く光る糸の網',
+  'effect.dot-orbit': '小さな点がそれぞれの場所で円を描く',
+  'effect.smoke-ring': 'ページを囲む煙の輪、中央は空けたまま',
+  'effect.god-rays': '上から差し込むやわらかな光の筋',
+  'effect.water': 'プールの底で揺れる水の光',
 };

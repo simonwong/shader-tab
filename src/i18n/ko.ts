@@ -119,4 +119,13 @@ export const ko: Messages = {
   'effect.fluted-glass': '천천히 흐르는 색을 굴절시키는 골유리',
   'effect.pixel-blast': '포인터로 픽셀을 움직이고 배경을 클릭해 물결을 만드세요',
   'effect.data-pixel-arc': '데이터 픽셀, 입자, 리본, 하프톤 스타일',
+  'effect.mesh-gradient': '색이 천천히 흐르며 섞이는 부드러운 그라데이션',
+  'effect.warp': '천천히 휘어지는 대리석, 실크, 체크 무늬',
+  'effect.simplex-noise': '등고선 지도처럼 층진 색',
+  'effect.perlin-noise': '부드러운 두 가지 색의 안개가 천천히 흐름',
+  'effect.neuro-noise': '가늘게 빛나는 실의 그물',
+  'effect.dot-orbit': '작은 점들이 저마다 제자리를 맴돎',
+  'effect.smoke-ring': '페이지를 둘러싼 연기 고리, 가운데는 비워 둠',
+  'effect.god-rays': '위에서 천천히 비치는 부드러운 빛줄기',
+  'effect.water': '수영장 바닥에서 일렁이는 물빛',
 };

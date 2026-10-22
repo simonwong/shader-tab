@@ -10,20 +10,32 @@
 | Fluted Glass        | 官方页面提供多个预设，含 Default、Abstract、Waves                                                                                         | 3 种：`default`、`abstract`、`waves`                          | 使用对应预设的参数和 Paper 的示例照片，见 [背景实现](shaders.md#fluted-glass)                                 |
 | Pixel Field         | `square`、`circle`、`triangle`、`diamond`，共 4 种                                                                                        | 全部 4 种                                                     | 自研 shader 的格子形状参数                                                                                    |
 | Predictive Arc 系列 | `predictive`、`data-pixel`、`signal-particles`、`override-grid`；合集另含 `ribbon-field`、`void-field`、`halftone-flow`、`amber-halftone` | 7 种，排除 `halftone-flow`                                    | 官方绘制核心按需加载，接入统一时钟、尺寸预算和销毁                                                            |
+| Mesh Gradient       | 官方为单一 shader，配色与扭曲参数自定                                                                                                     | 3 种：`tide`、`orchard`、`mist`                               | 每个变体一套日夜配色                                                                                          |
+| Warp                | `checks`、`stripes`、`edge` 三种形状                                                                                                      | 3 种：`marble`、`silk`、`check`                               | 每个变体一种形状、一套扭曲参数和一套日夜配色                                                                  |
+| Simplex Noise       | 单一 shader，按 `stepsPerColor` 分层                                                                                                      | 1 种：`contour`                                               | 3 层硬边色带，像等高线图                                                                                      |
+| Perlin Noise        | 单一 shader，八度与持续度可调                                                                                                             | 1 种：`fog`                                                   | 双色软边，u_scale 12，时钟放慢到 500                                                                          |
+| Neuro Noise         | 单一 shader，三色加亮度、对比度                                                                                                           | 2 种：`filament`、`nebula`                                    | 两组缩放与对比度                                                                                              |
+| Dot Orbit           | 单一 shader                                                                                                                               | 1 种：`drift`                                                 | 三色点，不跟随指针                                                                                            |
+| Smoke Ring          | 单一 shader                                                                                                                               | 1 种：`halo`                                                  | 圆环居中，中间留空                                                                                            |
+| God Rays            | 单一 shader                                                                                                                               | 1 种：`dawn`                                                  | 光源在画面上方                                                                                                |
+| Water               | 官方叠加在图片上                                                                                                                          | 1 种：`pool`                                                  | 传入透明像素作底图，只保留水面光纹                                                                            |
 
-合计 28 种变体：Grain Gradient 4、Shader Gradient 3、Dithering 7、Fluted Glass 3、Pixel Field 4、Predictive Arc 7。Dithering 的形状变体只用 8×8 Bayer 点阵：`random` 在画面漂移时闪烁，`2x2`、`4x4` 颗粒过粗。唯一例外是 `sphere:4x4`（Orb），对应 Paper Dithering 的 Default 预设：4×4 Bayer 点阵、缩放 0.42 的较小球体、像素尺寸 2。它是唯一使用自有配色的 Dithering 变体，夜间为黑底上的 `#00b2ff` 蓝色，日间为浅色 `#e4ebf0` 底上的 `#0a84c0`。Dithering 的 id 仍为 `形状:点阵` 格式（如 `swirl:8x8`），已保存的洗牌袋可继续使用。
+合计 42 种变体：Grain Gradient 4、Shader Gradient 3、Dithering 7、Fluted Glass 3、Pixel Field 4、Predictive Arc 7、Mesh Gradient 3、Warp 3、Simplex Noise 1、Perlin Noise 1、Neuro Noise 2、Dot Orbit 1、Smoke Ring 1、God Rays 1、Water 1。Dithering 的形状变体只用 8×8 Bayer 点阵：`random` 在画面漂移时闪烁，`2x2`、`4x4` 颗粒过粗。唯一例外是 `sphere:4x4`（Orb），对应 Paper Dithering 的 Default 预设：4×4 Bayer 点阵、缩放 0.42 的较小球体、像素尺寸 2。它是唯一使用自有配色的 Dithering 变体，夜间为黑底上的 `#00b2ff` 蓝色，日间为浅色 `#e4ebf0` 底上的 `#0a84c0`。Dithering 的 id 仍为 `形状:点阵` 格式（如 `swirl:8x8`），已保存的洗牌袋可继续使用。
 
 变体在当前页面内保持不变，切换主题、展开设置和后台恢复不重新抽取。跨标签页通过 Web Locks 串行取号；每个背景有独立存储，互不消耗轮次。旧队列中的已移除变体自动丢弃。CRT 已移除，已保存的 `crt-terminal` 类别偏好改为 Predictive Arc。Shader Gradient 换成原生 WebGL 实现后，旧的 `plane`、`sphere`、`waterPlane` 形态从洗牌袋丢弃，类别偏好保留。
 
+0.6.0 之后新增 9 个 Paper 类别（Mesh Gradient 到 Water）。每次保存随机池时同时写入 `preference:v1:knownEffects`，记下当时已有的全部类别；读取时把不在这份清单里的类别补进已保存的随机池，所以改过随机池的用户也会拿到新类别，而用户移出过的类别仍在清单里，不会被加回。没有这份清单的旧随机池按最早的 6 个类别处理。已知限制：更新后仍开着的旧版本标签页不认识新类别，它保存随机池时写入的列表不含新类别，也不改清单；如果清单已由新版本写成完整列表，新类别就会从这位用户的随机池里消失，需要在设置里重新勾选。
+
 Predictive Arc 新增渲染器使用 ThreeUI 的官方 GLSL 与 Canvas 绘制核心，提取到本地模块，不加载原站 iframe、HTML 页面或 CDN 脚本。适配调度、分辨率、资源销毁及鼠标缓动；Amber 使用官方密度修正并覆盖宽屏。Ribbon Field 日间使用浅色底与青蓝色点带，夜间保留官方暗色；Void Field 保留官方暗色画面，其余支持日夜配色。全部通过统一呼吸时钟驱动，没有额外动画循环。
 
-设置显示六个背景类别，不新增高清备用图；首次加载和降级使用对应颜色的 HTML/CSS。右下角来源链接标明当前变体。
+设置显示 15 个背景类别，不新增高清备用图；首次加载和降级使用对应颜色的 HTML/CSS。右下角来源链接标明当前变体。
 
 官方来源：
 
 - [Paper Grain Gradient 源码](https://github.com/paper-design/shaders/blob/main/packages/shaders/src/shaders/grain-gradient.ts)
 - [Paper Dithering 源码](https://github.com/paper-design/shaders/blob/main/packages/shaders/src/shaders/dithering.ts)
 - [Paper Fluted Glass](https://shaders.paper.design/fluted-glass)
+- Paper [Mesh Gradient](https://shaders.paper.design/mesh-gradient)、[Warp](https://shaders.paper.design/warp)、[Simplex Noise](https://shaders.paper.design/simplex-noise)、[Perlin Noise](https://shaders.paper.design/perlin-noise)、[Neuro Noise](https://shaders.paper.design/neuro-noise)、[Dot Orbit](https://shaders.paper.design/dot-orbit)、[Smoke Ring](https://shaders.paper.design/smoke-ring)、[God Rays](https://shaders.paper.design/god-rays)、[Water](https://shaders.paper.design/water)
 - [ShaderGradient](https://shadergradient.co/)
 - [ThreeUI Predictive Arc 组件](https://github.com/MengTo/threeui/blob/main/src/shaders/predictive-arc/PredictiveArcCanvas.tsx)
 - [ThreeUI Predictive Arc 合集](https://github.com/MengTo/threeui/blob/main/src/shaders/predictive-arc/PredictiveArcCollection.tsx)

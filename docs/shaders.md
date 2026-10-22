@@ -1,15 +1,16 @@
 # 框架背景
 
-| 效果            | 来源                                                                 | 引擎                    | 交互                                   |
-| --------------- | -------------------------------------------------------------------- | ----------------------- | -------------------------------------- |
-| Grain Gradient  | [Paper Shaders](https://shaders.paper.design/grain-gradient) 0.0.81  | ShaderMount / WebGL2    | 渐变偏移与轻微旋转                     |
-| Shader Gradient | [ShaderGradient](https://shadergradient.co/) 着色器移植              | 自建 WebGL1 宿主        | 无指针交互；噪声褶皱随呼吸时钟起伏     |
-| Dithering       | [Paper Shaders](https://shaders.paper.design/dithering) 0.0.81       | ShaderMount / WebGL2    | 点阵漩涡偏移                           |
-| Fluted Glass    | [Paper Shaders](https://shaders.paper.design/fluted-glass) 0.0.81    | 自建 WebGL2 宿主        | 无指针交互；棱纹网格随呼吸时钟往复滑动 |
-| Pixel Field     | 本项目原创                                                           | 单 pass WebGL2 / WebGL1 | 指针拨动像素，移动与点击产生涟漪       |
-| Predictive Arc  | [ThreeUI](https://threeui.com/backgrounds/predictive-arc/data-pixel) | WebGL 片元着色器        | 7 种变体，弧线、点阵或光带轻微跟随鼠标 |
+| 效果                                                                                                  | 来源                                                                 | 引擎                    | 交互                                                                                 |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------ |
+| Grain Gradient                                                                                        | [Paper Shaders](https://shaders.paper.design/grain-gradient) 0.0.81  | ShaderMount / WebGL2    | 渐变偏移与轻微旋转                                                                   |
+| Shader Gradient                                                                                       | [ShaderGradient](https://shadergradient.co/) 着色器移植              | 自建 WebGL1 宿主        | 无指针交互；噪声褶皱随呼吸时钟起伏                                                   |
+| Dithering                                                                                             | [Paper Shaders](https://shaders.paper.design/dithering) 0.0.81       | ShaderMount / WebGL2    | 点阵漩涡偏移                                                                         |
+| Fluted Glass                                                                                          | [Paper Shaders](https://shaders.paper.design/fluted-glass) 0.0.81    | 自建 WebGL2 宿主        | 无指针交互；棱纹网格随呼吸时钟往复滑动                                               |
+| Pixel Field                                                                                           | 本项目原创                                                           | 单 pass WebGL2 / WebGL1 | 指针拨动像素，移动与点击产生涟漪                                                     |
+| Predictive Arc                                                                                        | [ThreeUI](https://threeui.com/backgrounds/predictive-arc/data-pixel) | WebGL 片元着色器        | 7 种变体，弧线、点阵或光带轻微跟随鼠标                                               |
+| Mesh Gradient、Warp、Simplex Noise、Perlin Noise、Neuro Noise、Dot Orbit、Smoke Ring、God Rays、Water | [Paper Shaders](https://shaders.paper.design/) 0.0.81                | ShaderMount / WebGL2    | 偏移与轻微旋转，幅度按类别为 Dithering 的 0.3–1 倍；Dot Orbit 与 God Rays 不跟随指针 |
 
-Paper 直接使用 npm 包导出的 shader；Grain Gradient 与 Dithering 通过 ShaderMount 渲染，Fluted Glass 使用自建宿主。Shader Gradient 的着色器移植到 `src/effects/drivers/shader-gradient.ts`，不加载 three.js 或 React Three Fiber。ThreeUI 复用官方渲染核心，文件位于 `src/effects/vendor/`；不安装它们整套组件集合。适配层负责生命周期、分辨率、时钟和指针，保持官方视觉算法。
+Paper 直接使用 npm 包导出的 shader；Grain Gradient、Dithering 和 9 个新增 Paper 类别通过 ShaderMount 渲染，Fluted Glass 使用自建宿主。Shader Gradient 的着色器移植到 `src/effects/drivers/shader-gradient.ts`，不加载 three.js 或 React Three Fiber。ThreeUI 复用官方渲染核心，文件位于 `src/effects/vendor/`；不安装它们整套组件集合。适配层负责生命周期、分辨率、时钟和指针，保持官方视觉算法。
 
 ## Pixel Field
 
@@ -26,6 +27,16 @@ Paper 直接使用 npm 包导出的 shader；Grain Gradient 与 Dithering 通过
 - Sage：plane，灰绿配色，Halo 构图的镜像对角。
 
 噪声起始时间为 0.5：整数时间让所有顶点落在噪声格点平面上，褶皱最平。片元输出叠加 ±0.5/255 的静态抖动（按像素位置计算，不随时间变化），消除低对比渐变的 8 位色带。渲染密度上限为 1；宽屏会放大视角，保证画面四角始终被网格覆盖。每帧一次 draw。
+
+## Paper 新增类别
+
+2026-10-22 新增 9 个类别，全部经 `src/effects/drivers/paper.ts` 的 `PAPER_SHADERS` 表渲染：每个类别一条，给出 fragment shader、uniforms、时钟倍率（Paper 毫秒 / 呼吸秒）、指针幅度，以及是否需要 Paper 的噪声纹理。参数在候选页（`design/shader-candidates/`，不入库）上调定，配色在 `presets.ts` 的 `PAPER_PALETTES`，每个变体一套日夜配色。
+
+- Warp、Simplex Noise、Perlin Noise、Neuro Noise、Dot Orbit 是铺满画面的图案，`u_fit` 设为 0；其余沿用默认的 cover。
+- Perlin Noise 的基频为 10，同样作用在时间上，所以 `u_scale` 为 12，时钟放慢到 500。
+- Water 官方叠加在图片上，这里传一个透明像素作 `u_image`，只保留水面光纹。
+- Warp、Dot Orbit、Smoke Ring、God Rays 需要噪声纹理；驱动在第一帧前解码纹理和图片。
+- Mesh Gradient 与 Perlin Noise 是大面积软渐变，渲染密度上限为 1。
 
 ## Fluted Glass
 
@@ -59,10 +70,10 @@ Paper Shaders（含 Fluted Glass 示例照片）为 Apache-2.0；ShaderGradient�
 
 `node scripts/capture-effects.mjs` 从真实渲染器生成日夜、横竖屏共 24 张截图。截图隐藏界面控件，不注入固定 shader 时间。`scripts/build-effect-thumbnails.py` 生成 12 张 192 × 120 设置缩略图（共约 10.4 KB）和总览。截图仅作开发证据，不进入生产包；新标签页加载中、减少动态效果或渲染失败时只显示 HTML/CSS 配色。
 
-`node scripts/review-effects.mjs` 检查真实动画与指针输入、点击涟漪、快速切换、单画布、六张设置卡、固定选择持久化、减少动态效果、窄屏与上下文丢失。Shader Gradient 检查噪声时间和 draw 次数推进；Fluted Glass 没有 Paper 时钟，脚本检查 draw 次数增加、`u_shift` 变化且照片只上传一次。`node scripts/review-motion.mjs` 测量每个变体静止、指针移动、点击时一秒内变化像素的比例，上限分别为 2.5%、1.5%、1.5%。2026-10-14 日间实测 28 种变体均在上限内；静止时 Shader Gradient 的 dusk、ocean、sage 分别为 0.6%、1.2%、0.5%，Fluted Glass 的 default、abstract、waves 分别为 1.7%、1.7%、1.5%，Orb 为 0.1%。同日夜间复测 Fluted Glass 三种变体，静止均不超过 0.2%。`node scripts/measure-performance.mjs` 验证生产扩展的帧率和后台资源释放；结果位于 `artifacts/`。
+`node scripts/review-effects.mjs` 检查真实动画与指针输入、点击涟漪、快速切换、单画布、15 张设置卡、固定选择持久化、减少动态效果、窄屏与上下文丢失。Shader Gradient 检查噪声时间和 draw 次数推进；Fluted Glass 没有 Paper 时钟，脚本检查 draw 次数增加、`u_shift` 变化且照片只上传一次。`node scripts/review-motion.mjs` 测量每个变体静止、指针移动、点击时一秒内变化像素的比例，上限分别为 2.5%、1.5%、1.5%。2026-10-14 日间实测 28 种变体均在上限内；静止时 Shader Gradient 的 dusk、ocean、sage 分别为 0.6%、1.2%、0.5%，Fluted Glass 的 default、abstract、waves 分别为 1.7%、1.7%、1.5%，Orb 为 0.1%。同日夜间复测 Fluted Glass 三种变体，静止均不超过 0.2%。`node scripts/measure-performance.mjs` 验证生产扩展的帧率和后台资源释放；结果位于 `artifacts/`。
 
 ## 变体随机
 
-六类背景共 28 种变体，完整清单见 [变体范围](effect-variants.md)。先按勾选的类别抽取，再使用每类独立的持久洗牌袋抽取变体；类别概率不随变体数量增加。关闭类别随机只固定类别，仍会在新标签页中随机变体。当前页面切换主题、设置和后台恢复不重新抽取。来源链接显示变体名并链接对应官方页面。
+15 类背景共 42 种变体，完整清单见 [变体范围](effect-variants.md)。先按勾选的类别抽取，再使用每类独立的持久洗牌袋抽取变体；类别概率不随变体数量增加。关闭类别随机只固定类别，仍会在新标签页中随机变体。当前页面切换主题、设置和后台恢复不重新抽取。来源链接显示变体名并链接对应官方页面。
 
-`node scripts/review-variants.mjs` 在独立生产扩展配置中逐个检查 28 种变体的日夜渲染、单画布、类别内随机、窄屏设置与减少动态效果。
+`node scripts/review-variants.mjs` 在独立生产扩展配置中逐个检查全部变体的日夜渲染、单画布、类别内随机、窄屏设置与减少动态效果。

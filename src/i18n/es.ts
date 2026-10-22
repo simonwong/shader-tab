@@ -126,4 +126,13 @@ export const es: Messages = {
     'Mueve el puntero para agitar los píxeles; haz clic en el fondo para crear ondas',
   'effect.data-pixel-arc':
     'Estilos originales con píxeles de datos, partículas, cintas y semitonos',
+  'effect.mesh-gradient': 'Manchas de color suaves que se desplazan y se mezclan',
+  'effect.warp': 'Mármol, seda y cuadros que se curvan despacio',
+  'effect.simplex-noise': 'Bandas de color escalonadas, como un mapa topográfico',
+  'effect.perlin-noise': 'Una niebla suave de dos tonos que pasa despacio',
+  'effect.neuro-noise': 'Finos filamentos luminosos, como una red de luz',
+  'effect.dot-orbit': 'Pequeños puntos que giran cada uno en su sitio',
+  'effect.smoke-ring': 'Un anillo de humo enmarca la página y deja libre el centro',
+  'effect.god-rays': 'Luz suave que cae desde arriba en rayos lentos',
+  'effect.water': 'Luz ondulante en el fondo de una piscina',
 };

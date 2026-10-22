@@ -88,6 +88,15 @@ try {
     'pixel-blast': 'https://github.com/simonwong/shader-tab',
     // Arc variants each link their own page; the variant is picked from the shuffle bag.
     'data-pixel-arc': 'https://threeui.com/backgrounds/predictive-arc/',
+    'mesh-gradient': 'https://shaders.paper.design/mesh-gradient',
+    warp: 'https://shaders.paper.design/warp',
+    'simplex-noise': 'https://shaders.paper.design/simplex-noise',
+    'perlin-noise': 'https://shaders.paper.design/perlin-noise',
+    'neuro-noise': 'https://shaders.paper.design/neuro-noise',
+    'dot-orbit': 'https://shaders.paper.design/dot-orbit',
+    'smoke-ring': 'https://shaders.paper.design/smoke-ring',
+    'god-rays': 'https://shaders.paper.design/god-rays',
+    water: 'https://shaders.paper.design/water',
   };
   for (const [id, url] of Object.entries(sources)) {
     evaluate(

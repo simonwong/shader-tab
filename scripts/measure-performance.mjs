@@ -136,6 +136,15 @@ try {
       'fluted-glass',
       'pixel-blast',
       'data-pixel-arc',
+      'mesh-gradient',
+      'warp',
+      'simplex-noise',
+      'perlin-noise',
+      'neuro-noise',
+      'dot-orbit',
+      'smoke-ring',
+      'god-rays',
+      'water',
     ]) {
       evaluate(
         `chrome.storage.local.set({'preference:v1:appearance':${JSON.stringify(theme)},'preference:v1:activeEffect':${JSON.stringify(id)}})`,

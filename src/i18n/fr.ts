@@ -126,4 +126,13 @@ export const fr: Messages = {
   'effect.pixel-blast':
     'Déplacez le pointeur pour agiter les pixels ; cliquez sur le fond pour créer des ondes',
   'effect.data-pixel-arc': 'Styles originaux avec pixels de données, particules, rubans et trames',
+  'effect.mesh-gradient': 'Des taches de couleur douces qui dérivent et se mêlent',
+  'effect.warp': 'Marbre, soie et carreaux qui se courbent lentement',
+  'effect.simplex-noise': 'Des aplats de couleur étagés, comme une carte topographique',
+  'effect.perlin-noise': 'Un brouillard doux à deux tons qui passe lentement',
+  'effect.neuro-noise': 'De fins filaments lumineux, comme une toile de lumière',
+  'effect.dot-orbit': 'De petits points qui tournent chacun autour de leur place',
+  'effect.smoke-ring': 'Un anneau de fumée encadre la page et laisse le centre libre',
+  'effect.god-rays': 'Une lumière douce qui tombe d’en haut en rayons lents',
+  'effect.water': 'La lumière qui ondule au fond d’une piscine',
 };

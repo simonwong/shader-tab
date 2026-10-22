@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { BookmarkNode } from '../features/bookmarks/model';
 import { FAVORITES_KEY, MAX_FAVORITES } from '../features/favorites/model';
-import { PREFERENCE_PREFIX } from '../features/preferences/model';
+import { EFFECT_IDS } from '../effects/presets';
+import { KNOWN_EFFECTS_KEY, PREFERENCE_PREFIX, toggleEffect } from '../features/preferences/model';
 import { variantShuffleKey } from '../features/preferences/variant-shuffle';
 import { createStorage, type Store, type StorageOptions } from './storage';
 
@@ -139,7 +140,10 @@ it('shows sample favorites until one is saved, without ending onboarding', async
 });
 
 it('applies functional preference updates to the latest stored value', async () => {
-  const store = memoryStore({ [PREFERENCE_PREFIX + 'effects']: ['dithering'] });
+  const store = memoryStore({
+    [PREFERENCE_PREFIX + 'effects']: ['dithering'],
+    [KNOWN_EFFECTS_KEY]: [...EFFECT_IDS],
+  });
   const platform = storage(store);
   await Promise.all([
     platform.updatePreferences(current => ({ effects: [...current.effects, 'pixel-blast'] })),
@@ -150,6 +154,19 @@ it('applies functional preference updates to the latest stored value', async () 
     'pixel-blast',
     'data-pixel-arc',
   ]);
+});
+
+it('keeps a family the user took out of an old pool out after the next read', async () => {
+  const store = memoryStore({ [PREFERENCE_PREFIX + 'effects']: ['grain-gradient', 'dithering'] });
+  const platform = storage(store);
+  expect((await platform.getPreferences()).effects).toContain('water');
+  await platform.updatePreferences(current => ({
+    effects: toggleEffect(current.effects, 'water'),
+  }));
+  const { effects } = await platform.getPreferences();
+  expect(effects).not.toContain('water');
+  expect(effects).toContain('warp');
+  expect(store.items[KNOWN_EFFECTS_KEY]).toEqual([...EFFECT_IDS]);
 });
 
 it('notifies favorites and preferences watchers only of their own keys', async () => {
