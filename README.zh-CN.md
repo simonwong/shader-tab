@@ -20,7 +20,7 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 
 - **像呼吸一样的动效。** 缓慢起伏的动画、明暗主题与轻柔的鼠标交互。
 - **每次都有一点新意。** 自选参与随机的背景类别，各类变体每轮不重复；当前标签页保持原来的画面。
-- **书签就在手边。** 按 Chrome 文件夹浏览、搜索书签，收藏最多 10 个常用网站，拖动调整顺序。图标读取 Chrome 已有缓存。
+- **书签就在手边。** 按 Chrome 文件夹浏览、搜索书签，最多 10 个常用书签可平铺在底栏或收在星标里，拖动调整顺序。图标读取 Chrome 已有缓存。
 - **自己决定显示什么。** 收藏和系统书签入口可独立隐藏，支持书签排序与控件隐藏延迟设置。
 - **按需使用资源。** 渲染器按需加载，标签页隐藏后停绘，10 秒后释放 GPU 上下文；系统减少动态效果时使用静态背景。
 - **八种界面语言。** 简体中文、繁體中文、English、日本語、한국어、Français、Deutsch、Español，支持跟随浏览器或手动选择。
@@ -44,6 +44,15 @@ Shader Tab 用动态背景和本地书签导航替换 Chrome 新标签页。移�
 | Fluted Glass    | 棱纹玻璃在花卉照片上缓慢滑动 | Paper Shaders     |
 | Pixel Field     | 缓慢胀缩的抖动像素网格       | 原创 WebGL shader |
 | Predictive Arc  | 弧线、粒子、丝带与场景变体   | ThreeUI           |
+| Mesh Gradient   | 色块缓慢漂移、彼此交融       | Paper Shaders     |
+| Warp            | 缓慢弯折的大理石、丝绸与格纹 | Paper Shaders     |
+| Simplex Noise   | 像等高线地图的分层色阶       | Paper Shaders     |
+| Perlin Noise    | 柔和的双色雾气缓缓飘过       | Paper Shaders     |
+| Neuro Noise     | 细细发光的丝网               | Paper Shaders     |
+| Dot Orbit       | 小圆点各自绕着原位转动       | Paper Shaders     |
+| Smoke Ring      | 一圈烟雾框住页面，中间留空   | Paper Shaders     |
+| God Rays        | 从上方缓缓照下的柔和光束     | Paper Shaders     |
+| Water           | 泳池底部晃动的水光           | Paper Shaders     |
 
 以上为实际扩展截图。前往[官网体验动态背景](https://shadertab.moonunder.app/#effects)，或查看[完整变体清单](docs/effect-variants.md)。
 

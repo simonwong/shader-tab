@@ -20,7 +20,7 @@ Shader Tab replaces Chrome’s new tab page with animated backgrounds and local 
 
 - **Motion that takes its time.** Breathing-paced animation, light and dark themes, and gentle pointer interactions.
 - **A different view each time.** Choose the background families in your random pool. Variants shuffle without repeats within each family’s cycle; the current tab keeps its view.
-- **Your bookmarks, close by.** Browse and search Chrome’s bookmark folders, pin up to 10 favorites, and drag to reorder them. Icons use Chrome’s existing favicon cache.
+- **Your bookmarks, close by.** Browse and search Chrome’s bookmark folders, keep up to 10 favorites in the dock or behind the star, and drag to reorder them. Icons use Chrome’s existing favicon cache.
 - **Controls on your terms.** Show or hide favorites and bookmark navigation independently. Choose sorting and how quickly idle controls disappear.
 - **Considered rendering.** Drivers load on demand. Hidden tabs stop rendering and release their GPU context after 10 seconds. Reduced-motion settings use static backgrounds.
 - **Eight languages.** English, 简体中文, 繁體中文, 日本語, 한국어, Français, Deutsch, and Español. Follow your browser’s language or choose one in Settings.
@@ -36,14 +36,23 @@ Shader Tab replaces Chrome’s new tab page with animated backgrounds and local 
   </tr>
 </table>
 
-| Background      | Character                                 | Built with            |
-| --------------- | ----------------------------------------- | --------------------- |
-| Grain Gradient  | Soft color fields and fine grain          | Paper Shaders         |
-| Shader Gradient | Slow folds of muted color                 | ShaderGradient        |
-| Dithering       | Patterned gradients and retro texture     | Paper Shaders         |
-| Fluted Glass    | Sliding ribbed glass over a flower photo  | Paper Shaders         |
-| Pixel Field     | Dithered pixel grid that swells and fades | Original WebGL shader |
-| Predictive Arc  | Arcs, particles, ribbons, and fields      | ThreeUI               |
+| Background      | Character                                   | Built with            |
+| --------------- | ------------------------------------------- | --------------------- |
+| Grain Gradient  | Soft color fields and fine grain            | Paper Shaders         |
+| Shader Gradient | Slow folds of muted color                   | ShaderGradient        |
+| Dithering       | Patterned gradients and retro texture       | Paper Shaders         |
+| Fluted Glass    | Sliding ribbed glass over a flower photo    | Paper Shaders         |
+| Pixel Field     | Dithered pixel grid that swells and fades   | Original WebGL shader |
+| Predictive Arc  | Arcs, particles, ribbons, and fields        | ThreeUI               |
+| Mesh Gradient   | Soft patches of color drifting and blending | Paper Shaders         |
+| Warp            | Marble, silk and checks bending slowly      | Paper Shaders         |
+| Simplex Noise   | Terraced bands of color, like a contour map | Paper Shaders         |
+| Perlin Noise    | A soft two-tone fog drifting past           | Paper Shaders         |
+| Neuro Noise     | Fine glowing filaments, like a web of light | Paper Shaders         |
+| Dot Orbit       | Small dots, each circling its own spot      | Paper Shaders         |
+| Smoke Ring      | A ring of smoke framing the page            | Paper Shaders         |
+| God Rays        | Soft light falling from above in slow rays  | Paper Shaders         |
+| Water           | Rippling light on the floor of a pool       | Paper Shaders         |
 
 These are actual extension screenshots. Explore the motion on the [live demo](https://shadertab.moonunder.app/en/#effects), or see the [full variant list](docs/effect-variants.md).
 

@@ -6,7 +6,7 @@
 - React / TypeScript 负责组件和交互状态。
 - Base UI（`@base-ui/react` 1.8.0）提供设置对话框与书签菜单的定位、键盘导航、弹层和模态焦点管理，替代原 Radix 组件；视觉由本项目 CSS 实现。
 - dnd-kit 支持指针与键盘收藏排序。
-- Paper Shaders、移植的 ShaderGradient 着色器、ThreeUI 官方渲染核心及自研 Pixel Field 着色器负责六种背景，CSS 自定义属性负责日夜玻璃材质。
+- Paper Shaders、移植的 ShaderGradient 着色器、ThreeUI 官方渲染核心及自研 Pixel Field 着色器负责 15 类背景，CSS 自定义属性负责日夜玻璃材质。
 - Hugeicons 官方免费包统一操作图标；Space Grotesk 字体随扩展本地打包。
 
 背景依赖按渲染器动态导入。Paper Shaders 来自 npm 包；Shader Gradient、Pixel Field 与 Predictive Arc 系列直接使用 WebGL，无额外依赖，不打包 three.js。Fluted Glass 的示例照片作为独立资源随渲染器加载。
@@ -19,17 +19,17 @@
 
 收藏变更有 `add`、`remove`、`move`、`import` 四种动作，都经 `changeFavorites` 计算、经 `updateFavorites` 在同一把锁内写入。`import` 供首次引导一次导入多个书签：按顺序追加仍存在且尚未收藏的书签，满 10 个即停止，不因上限报错。候选由 `src/features/onboarding/bar-picks.ts` 的 `bookmarkBarPicks` 从书签栏选出：先取直接位于书签栏的链接，再按深度优先取其子文件夹里的链接，只保留 HTTP/HTTPS，同一网址只取一次。
 
-设置按 `preference:v1:<field>` 分键保存，独立字段的跨标签修改互不覆盖。同一字段以最后写入为准。`favoritesLayout` 只有存值为 `'dock'` 时才平铺，缺失或未知值一律读作 `'tray'`，因此升级前的用户不受影响。`onboarding` 只在全新安装（没有偏好键和收藏键）时默认为 true。读取时迁移旧效果 ID 到新效果，再过滤未知效果、重复项和无效选项，随机池不能变成空集合。保存随机池时同时写入 `preference:v1:knownEffects`，记录当时已有的类别；读取时把这份清单之外的新类别补进已保存的随机池，清单里有、池里没有的类别视为用户移出，不再加回。没有清单的旧随机池按最早的 6 个类别处理。更新后仍开着的旧版本标签页若保存随机池，会写入不含新类别的池而清单不变，新类别需要在设置里重新勾选。
+设置按 `preference:v1:<field>` 分键保存，独立字段的跨标签修改互不覆盖。同一字段以最后写入为准。`favoritesLayout` 只有存值为 `'dock'` 时才平铺，缺失或未知值一律读作 `'tray'`，因此升级前的用户不受影响。`onboarding` 只在全新安装（没有偏好键和收藏键）时默认为 true。读取时迁移旧效果 ID 到新效果，再过滤未知效果、重复项和无效选项，随机池不能变成空集合。保存随机池时同时写入 `preference:v1:removedEffects`，记录池里没有的类别，其中本版本不认识的名称（更新版本移出的类别）原样保留。读取时，最早的 6 个类别（`FIRST_EFFECT_IDS`，固定不变）不在池里就视为用户移出；之后的类别只要既不在池里、也不在移出清单里，就补进随机池，因为保存这个池的版本还不认识它。这样 0.6.0 的旧随机池、更新后仍开着的旧版本标签页写入的池，都会补上新类别，用户移出过的类别不会被加回。已知限制：在旧版本标签页里移出的最早 6 类之一会保留移出，而在旧标签页里重新勾选的新类别无从记录。
 
 书签 ID 仅用于当前浏览器配置，数据存于 `chrome.storage.local`。源书签始终由 Chrome 管理，扩展没有写入书签的业务接口。
 
 ### 首屏缓存
 
-`chrome.storage` 是异步接口，直接等待会先画出默认主题、浏览器语言和默认背景。`src/entrypoints/newtab/boot.ts` 把最近一次解析出的外观、语言、实际语言包、日夜两套静态背景色及其明暗基调镜像到 localStorage 键 `shader-tab:boot:v1`。入口模块在 React 渲染前同步读取并应用（CSP 禁止内联脚本），语言包与平台初始化并行加载。缓存只影响首帧；设置读取完成后以存储为准并回写缓存。localStorage 不可用或内容损坏时忽略缓存。
+`chrome.storage` 是异步接口，直接等待会先画出默认主题、浏览器语言和默认背景。`src/entrypoints/newtab/boot.ts` 把最近一次解析出的外观、语言、实际语言包、日夜两套静态背景色及其明暗基调镜像到 localStorage 键 `shader-tab:boot:v1`。入口模块在 React 渲染前同步读取并应用（CSP 禁止内联脚本），语言包与平台初始化并行加载。缓存只影响首帧；设置读取完成后以存储为准并回写缓存。localStorage 不可用或内容损坏时忽略缓存。底栏不进缓存：它的宽度取决于收藏布局、入口开关和收藏数量，所以等偏好、收藏和书签树都读完才挂载，不先按默认值画出再跳变。
 
 ## 背景
 
-`presets.ts` 定义六种效果与配色，`drivers/` 连接框架，`vendor/` 保留官方渲染核心及来源说明。`ambient.ts` 管理单个场景的帧循环、12 秒呼吸时钟、指针与尺寸；React 层处理主题、效果、系统动态效果偏好和静态降级。
+`presets.ts` 定义全部背景类别与配色，9 个新 Paper 类别的逐变体配色在 `PAPER_PALETTES`，`drivers/` 连接框架，`vendor/` 保留官方渲染核心及来源说明。`ambient.ts` 管理单个场景的帧循环、12 秒呼吸时钟、指针与尺寸；React 层处理主题、效果、系统动态效果偏好和静态降级。
 
 ### 变体清单
 
@@ -75,7 +75,7 @@
 
 居中导航、常用书签条与左下角设置按钮使用自研圆角法线、折射截面和方向高光，小面积表面使用 SVG 单次位移。位移图和高光图最长边 1024、缓存上限 8，不逐帧生成图像或捕获 DOM。平铺布局下底栏宽度随收藏数变化；`LiquidGlassPanel` 用 ResizeObserver 等尺寸稳定 150 ms 后才按新尺寸生成贴图，期间拉伸旧贴图，贴图按尺寸缓存。详见 `liquid-glass-research.md`。
 
-设置与 dnd-kit 独立为懒加载分块，首次打开才加载。加载时可取消；分块不可用时可关闭提示或刷新恢复。书签菜单（含 Base UI Menu）也是独立分块：`Dock.tsx` 在空闲时（最迟 4 秒）通过 `import('./BookmarkMenu')` 预取，指针移入或聚焦底栏时立即加载。书签菜单每次显示 80 项，书签树每个展开分支每批显示 40 项，防止大量书签产生无界首屏 DOM。首次引导卡片（`src/features/onboarding/`）同样不进首屏：`App.tsx` 只在数据就绪且 `onboarding` 为 true 时通过 `import()` 加载，书签栏候选的计算也在该分块内。`check-build.mjs` 约束首屏 JS 小于 265 KB，并检查设置仍使用动态导入。
+设置与 dnd-kit 独立为懒加载分块，首次打开才加载。加载时可取消；分块不可用时可关闭提示或刷新恢复。书签菜单（含 Base UI Menu）也是独立分块：`Dock.tsx` 在空闲时（最迟 4 秒）通过 `import('./BookmarkMenu')` 预取，指针移入或聚焦底栏时立即加载。书签菜单每次显示 80 项，书签树每个展开分支每批显示 40 项，防止大量书签产生无界首屏 DOM。首次引导卡片（`src/features/onboarding/`）同样不进首屏：`App.tsx` 只在数据就绪且 `onboarding` 为 true 时通过 `import()` 加载，书签栏候选的计算也在该分块内。`check-build.mjs` 约束首屏 JS（入口及其静态导入的分块）小于 265 KB，并检查设置、书签菜单和首次引导仍使用动态导入。
 
 ## 权限与生产包
 

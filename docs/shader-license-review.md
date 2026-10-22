@@ -1,6 +1,6 @@
 # Shader 与商店发布许可核对
 
-核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换和发布状态；2026-10-14 移除 CRT，Shader Gradient 改为原生 WebGL 移植，新增 Paper Fluted Glass；2026-10-22 新增 9 个 Paper shader（Mesh Gradient、Warp、Simplex Noise、Perlin Noise、Neuro Noise、Dot Orbit、Smoke Ring、God Rays、Water）。范围：Shader Tab 0.5.0 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。0.4.1 已在 [Chrome 网上应用店](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)发布。本记录是许可证文本与实现核对，不是律师意见。
+核对日期：2026-09-21；2026-10-08 更新 Pixel Blast 替换和发布状态；2026-10-14 移除 CRT，Shader Gradient 改为原生 WebGL 移植，新增 Paper Fluted Glass；2026-10-22 新增 9 个 Paper shader（Mesh Gradient、Warp、Simplex Noise、Perlin Noise、Neuro Noise、Dot Orbit、Smoke Ring、God Rays、Water）。范围：Shader Tab 0.7.0 使用的 shader 框架、复制的绘制代码、现有许可证文件及 Chrome 商店相关政策。0.4.1 已在 [Chrome 网上应用店](https://chromewebstore.google.com/detail/shader-tab/behmbnoomagbbcdpmgpmabdaeajifhej)发布。本记录是许可证文本与实现核对，不是律师意见。
 
 ## 结论
 
