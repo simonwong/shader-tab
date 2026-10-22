@@ -1,6 +1,6 @@
 # Shader Tab 商店提交资料
 
-版本：0.6.0。支持邮箱：support@moonunder.app。
+版本：0.7.0。支持邮箱：support@moonunder.app。
 
 ## 单一用途
 
@@ -12,7 +12,7 @@
 
 ## 功能说明
 
-六类本地渲染背景共 28 种变体，支持日夜主题、指针交互、静 / 柔 / 活三档动效与新标签页随机变体；可在页面角落固定、隐藏或切换背景。查看 Chrome 书签文件夹、搜索并收藏常用书签、调整展示排序。系统开启减少动态效果时显示静态背景；页面隐藏时停止绘制。
+15 类本地渲染背景共 42 种变体，支持日夜主题、指针交互、静 / 柔 / 活三档动效与新标签页随机变体；可在页面角落固定、隐藏或切换背景。查看 Chrome 书签文件夹、搜索并收藏常用书签、调整展示排序；常用书签可平铺在底栏或收在星标里，首次安装可从书签栏一键导入。系统开启减少动态效果时显示静态背景；页面隐藏时停止绘制。
 
 ## 权限理由
 
@@ -35,19 +35,19 @@
 
 `public/privacy.html`、`public/legal.css`、`public/licenses.html` 及构建后的 `licenses/`、`icon/` 可作为静态网站托管。政策页面无需登录，不包含追踪脚本。商店字段填写托管后的完整 HTTPS 隐私政策 URL；`chrome-extension://` 地址不能作为公开网址。
 
-政策页面随官网托管在 https://shadertab.moonunder.app/ 。商店图标、截图和宣传文案需与 0.6.0 实际功能一致，不使用蓝屏或暗示其他品牌授权的素材。
+政策页面随官网托管在 https://shadertab.moonunder.app/ 。商店图标、截图和宣传文案需与 0.7.0 实际功能一致，不使用蓝屏或暗示其他品牌授权的素材。
 
 0.4.1 已在 Chrome 网上应用店发布；审核与发布状态以开发者后台为准。
 
 ## 商店描述
 
-全球通用的英文详细描述，0.6.0 起使用：
+全球通用的英文详细描述，0.7.0 起使用：
 
 ```text
 Shader Tab replaces Chrome's new tab page with an animated background and quick access to your bookmarks. The controls appear when you move the pointer near the bottom of the page and fade out when you stop.
 
 Backgrounds
-• Six background families with 28 variants: Grain Gradient, Shader Gradient, Dithering, Fluted Glass, Pixel Field and Predictive Arc.
+• 15 background families with 42 variants, including Grain Gradient, Shader Gradient, Dithering, Fluted Glass, Pixel Field, Predictive Arc, Mesh Gradient, Warp and Water.
 • Keep one family and get a different variant on each new tab, or shuffle across families.
 • Pin a background you like, hide variants you don't want, or switch to the next one from the corner of the page. Hidden variants can be restored in Settings.
 • Light, dark or system theme. Motion can be set to Still, Soft or Lively; backgrounds follow the pointer except in Still.
@@ -56,6 +56,7 @@ Bookmarks
 • Browse and search your Chrome bookmark folders.
 • Sort by Chrome's order, name, date added or recently opened.
 • Keep up to 10 favorites one click away and drag to reorder them.
+• Show favorites as icons right in the dock, or keep them behind the star. On first run, you can start with the links on your bookmarks bar.
 • Site icons come from Chrome's own favicon cache. No third-party icon service is used.
 • Show or hide the favorites and bookmarks buttons, and choose how long the controls stay visible.
 
@@ -78,7 +79,7 @@ Support: support@moonunder.app
 Shader Tab 把 Chrome 的新标签页换成动态背景，并提供书签的快速入口。鼠标移到页面底部附近时按钮出现，停下后自动隐去。
 
 背景
-• 六类背景共 28 种变体：Grain Gradient、Shader Gradient、Dithering、Fluted Glass、Pixel Field 和 Predictive Arc。
+• 15 类背景共 42 种变体，包括 Grain Gradient、Shader Gradient、Dithering、Fluted Glass、Pixel Field、Predictive Arc、Mesh Gradient、Warp、Water 等。
 • 可以固定一类背景，每次打开新标签页换一种变体；也可以开启随机轮播，在各类之间轮换。
 • 在页面右下角可以固定喜欢的背景、不再显示某种变体，或换一个背景。隐藏的变体可在设置中全部恢复。
 • 外观支持白天、黑夜和跟随系统。动效分静、柔、活三档；除“静”外，背景会随鼠标变化。
@@ -87,6 +88,7 @@ Shader Tab 把 Chrome 的新标签页换成动态背景，并提供书签的快�
 • 浏览和搜索 Chrome 书签文件夹。
 • 可按 Chrome 原顺序、名称、添加时间或最近打开排列。
 • 最多 10 个常用书签，一键打开，可拖动调整顺序。
+• 常用书签可平铺在底栏，也可收在星标里。首次安装时可直接从书签栏添加。
 • 网站图标来自 Chrome 本地的图标缓存，不使用第三方图标服务。
 • 可以分别隐藏常用书签和全部书签按钮，并设置按钮在鼠标静止多久后隐藏。
 

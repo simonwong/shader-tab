@@ -1,6 +1,14 @@
 # 验证记录
 
-各节记录对应版本当时的结果，数字不随后续版本更新。当前变体清单以 `src/effects/variants.ts` 的 `EFFECT_VARIANTS` 为准，共 28 种：Grain Gradient 4、Shader Gradient 3、Dithering 7、Fluted Glass 3、Pixel Field 4、Arc 7，详见[变体清单](effect-variants.md)。
+各节记录对应版本当时的结果，数字不随后续版本更新。当前变体清单以 `src/effects/variants.ts` 的 `EFFECT_VARIANTS` 为准，共 42 种，分属 15 个类别，详见[变体清单](effect-variants.md)。
+
+## 0.7.0 新背景类别、底栏平铺与首次引导
+
+- `pnpm check` 通过：20 个文件共 185 项测试、生产构建及产物校验。
+- ZIP 435,537 字节、103 个文件，与生产目录逐文件一致；首屏 JS（入口加预加载分块）258,555 字节，低于 265 KB 预算。0.6.0 的检查只量入口，按同口径 0.6.0 为 253,292 字节。校验和见 `artifacts/release-0.7.0.json`。
+- `pnpm review:variants`：15 类 42 种变体日夜 84 组通过。
+- 动效（柔档，1440 × 900，一秒内变化像素）：14 个新变体日间静止最高 Warp Marble 0.9%，夜间最高 Neuro Noise Filament 与 Water 1.4%；指针附加最高为夜间 Smoke Ring 1.2%；点击附加均为 0。
+- 生产包浏览器实测：全新安装默认路径进入第二步并导入；单个书签显示单数文案；平铺底栏首帧即为平铺；0.6.0 → 0.7.0 原地升级保留收藏，旧随机池加入 9 个新类别、保留用户移出的类别。证据在 `artifacts/release-qa/`。
 
 ## 0.6.0 背景精简与来源标签按钮
 
