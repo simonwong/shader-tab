@@ -10,7 +10,8 @@ const vsyncRaf =
     rafCalls++;
     const now = performance.now();
     const next = Math.floor(now / vsync + 1) * vsync;
-    return setTimeout(() => callback(next - lag), Math.max(0, next - now));
+    // Fake timers drop the fraction of a delay; rounding up keeps one callback per vsync.
+    return setTimeout(() => callback(next - lag), Math.max(0, Math.ceil(next - now)));
   };
 
 beforeEach(() => {
@@ -73,8 +74,25 @@ it('sleeps on a timer at low rates instead of waking every vsync', () => {
   vi.advanceTimersByTime(2000);
   loop.stop();
   expect(draw.mock.calls.length).toBeGreaterThanOrEqual(9);
-  // ~3 rAF callbacks per drawn frame (timer wakes ~25 ms early), not 12.
+  // ~2 rAF callbacks per drawn frame (the timer hands over a vsync plus slop early), not 12.
   expect(rafCalls).toBeLessThanOrEqual(draw.mock.calls.length * 3);
+});
+
+it.each([
+  [60, 2.2],
+  [144, 4.2],
+])('wakes at most a few vsyncs per frame at 20 fps on a %i Hz display', (hz, limit) => {
+  vi.stubGlobal('requestAnimationFrame', vsyncRaf(0, 1000 / hz));
+  const draw = vi.fn<(time: number) => void>();
+  const loop = createFrameLoop(draw, 20);
+  loop.start();
+  vi.advanceTimersByTime(1000);
+  const draws = draw.mock.calls.length,
+    wakes = rafCalls;
+  vi.advanceTimersByTime(5000);
+  loop.stop();
+  // Waking on every vsync would be 3 (60 Hz) or 7.2 (144 Hz) per frame.
+  expect((rafCalls - wakes) / (draw.mock.calls.length - draws)).toBeLessThanOrEqual(limit);
 });
 
 it('keeps one clock and stops all work when paused', () => {
