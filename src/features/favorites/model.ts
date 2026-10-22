@@ -19,7 +19,9 @@ export interface FavoriteRef {
 export type FavoriteAction =
   | { type: 'add'; id: string }
   | { type: 'remove'; id: string }
-  | { type: 'move'; id: string; toIndex: number };
+  | { type: 'move'; id: string; toIndex: number }
+  /** Appends bookmarks that still exist and are not favorites yet, up to the limit. */
+  | { type: 'import'; ids: string[] };
 
 function parseRef(value: unknown): FavoriteRef | undefined {
   if (typeof value === 'string') return value ? { id: value } : undefined;
@@ -99,6 +101,15 @@ export function changeFavorites(
 ): FavoriteRef[] {
   const next = resolveFavorites(current, bookmarks).map(toRef);
   if (action.type === 'remove') return next.filter(ref => ref.id !== action.id);
+  if (action.type === 'import') {
+    const byId = new Map(bookmarks.map(bookmark => [bookmark.id, bookmark]));
+    for (const id of action.ids) {
+      const bookmark = byId.get(id);
+      if (next.length >= MAX_FAVORITES) break;
+      if (bookmark && !next.some(ref => ref.id === id)) next.push(toRef(bookmark));
+    }
+    return next;
+  }
   const target = bookmarks.find(bookmark => bookmark.id === action.id);
   if (!target) throw new MessageError('bookmarkDeleted');
   if (action.type === 'add') {

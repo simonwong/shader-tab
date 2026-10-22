@@ -30,7 +30,7 @@ export const es: Messages = {
   noBookmarks: 'Todavía no hay marcadores',
   untitledFolder: 'Carpeta sin título',
   showMore: 'Mostrar más · Quedan {count}',
-  favoritesHint: 'Ábrelos desde la estrella del dock. Arrastra para ordenarlos, hasta 10.',
+  favoritesHint: 'En el dock o tras la estrella. Arrastra para ordenarlos, hasta 10.',
   dragLabel: 'Reordenar {title}',
   removeLabel: 'Quitar {title}',
   dragInstructions:
@@ -100,9 +100,20 @@ export const es: Messages = {
   restoreHidden: 'Restaurar todas',
   selectedCount: '{count}/{total} seleccionados',
   openSettings: 'Abrir ajustes',
-  firstRunHint:
-    'Tus favoritos están en la estrella y todos los marcadores en la cuadrícula. Los ajustes están abajo a la izquierda.',
   gotIt: 'Entendido',
+  favoritesLayout: 'Disposición',
+  layoutDock: 'En el dock',
+  layoutDockHint: 'Abre con un clic',
+  layoutTray: 'Tras la estrella',
+  layoutTrayHint: 'Un dock más limpio',
+  onboardingLayout: '¿Dónde quieres tus favoritos?',
+  onboardingImport: '¿Empezar con la barra de marcadores?',
+  importFromBar: 'Añadir estos {count}',
+  chooseLater: 'Elegir más tarde en ajustes',
+  barEmpty:
+    'Tu barra de marcadores aún no tiene enlaces. Puedes elegir favoritos en los ajustes cuando quieras.',
+  next: 'Continuar',
+  skip: 'Omitir',
   restoreDefault:
     'Para volver a la nueva pestaña predeterminada de Chrome, desactiva Shader Tab en chrome://extensions.',
   openFailed:

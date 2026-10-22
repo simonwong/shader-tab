@@ -117,6 +117,18 @@ it('lets only one of two concurrent adds take the last favorite slot', async () 
   expect(await platform.getFavorites()).toHaveLength(MAX_FAVORITES);
 });
 
+it('imports under the favorites lock, so a concurrent add keeps the total at the limit', async () => {
+  const store = memoryStore({ [FAVORITES_KEY]: ['a', 'b'] });
+  const platform = storage(store);
+  await Promise.all([
+    platform.updateFavorites({ type: 'add', id: 'l' }),
+    platform.updateFavorites({ type: 'import', ids: 'abcdefghijk'.split('') }),
+  ]);
+  const saved = await platform.getFavorites();
+  expect(saved.map(ref => ref.id)).toEqual('ablcdefghi'.split(''));
+  expect(saved).toHaveLength(MAX_FAVORITES);
+});
+
 it('shows sample favorites until one is saved, without ending onboarding', async () => {
   const store = memoryStore();
   const platform = storage(store, { sampleFavorites: [{ id: 'a' }, { id: 'b' }] });

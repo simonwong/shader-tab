@@ -56,8 +56,10 @@ export function SettingsDialog(props: Props) {
               tree={props.tree}
               bookmarks={props.bookmarks}
               favorites={props.favorites}
+              layout={props.preferences.favoritesLayout}
               disabled={props.unavailable}
               onChange={props.onFavoriteChange}
+              onLayoutChange={favoritesLayout => props.onPreferenceChange({ favoritesLayout })}
             />
             <AppearanceSettings
               preferences={props.preferences}
