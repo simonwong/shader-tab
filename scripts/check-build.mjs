@@ -4,7 +4,8 @@ import { createHash } from 'node:crypto';
 import { loadVariants } from './lib/variants.mjs';
 
 const root = new URL('../.output/chrome-mv3/', import.meta.url);
-// Raw entry size after the Base UI migration was 240 KB; the budget leaves about 10% headroom.
+// First-screen JS: the entry plus the chunks it imports statically, which newtab.html preloads.
+// The single 0.6.0 entry was 253 KB; the budget leaves about 5% headroom.
 const ENTRY_BUDGET = 265_000;
 const manifest = JSON.parse(await readFile(new URL('manifest.json', root), 'utf8'));
 assert.equal(manifest.manifest_version, 3);
@@ -56,12 +57,21 @@ const chunks = await readdir(new URL('chunks/', root));
 const entry = chunks.find(file => file.startsWith('newtab-'));
 const settings = chunks.find(file => file.startsWith('SettingsDialog-'));
 const bookmarkMenu = chunks.find(file => file.startsWith('BookmarkMenu-'));
+const onboarding = chunks.find(file => file.startsWith('Onboarding-'));
 assert.ok(entry && settings, 'Settings must remain a separate lazy chunk');
 assert.ok(bookmarkMenu, 'The bookmark menu must remain a separate lazy chunk');
+assert.ok(onboarding, 'Onboarding must remain a separate lazy chunk');
 const entryCode = await readFile(new URL(`chunks/${entry}`, root));
+const firstScreen = [...newtabHtml.matchAll(/(?:src|href)="\/(chunks\/[^"]+\.js)"/g)].map(
+  match => match[1],
+);
+assert.ok(firstScreen.includes(`chunks/${entry}`), 'newtab.html must load the entry chunk');
+const firstScreenBytes = (
+  await Promise.all(firstScreen.map(file => stat(new URL(file, root))))
+).reduce((sum, file) => sum + file.size, 0);
 assert.ok(
-  entryCode.byteLength < ENTRY_BUDGET,
-  `New-tab entry exceeds the ${ENTRY_BUDGET / 1000} KB raw JS budget`,
+  firstScreenBytes < ENTRY_BUDGET,
+  `First-screen JS (${firstScreen.length} files, ${firstScreenBytes} B) exceeds the ${ENTRY_BUDGET / 1000} KB raw budget`,
 );
 const lazyImport = chunk =>
   ['"', "'", '`'].some(quote =>
@@ -69,7 +79,12 @@ const lazyImport = chunk =>
   );
 assert.ok(lazyImport(settings), 'Settings must load through dynamic import');
 assert.ok(lazyImport(bookmarkMenu), 'The bookmark menu must load through dynamic import');
-console.log('Manifest V3, permissions, new-tab entry and production isolation verified.');
+assert.ok(lazyImport(onboarding), 'Onboarding must load through dynamic import');
+for (const lazy of [settings, bookmarkMenu, onboarding])
+  assert.ok(!firstScreen.includes(`chunks/${lazy}`), `${lazy} must not load with the first screen`);
+console.log(
+  `Manifest V3, permissions, ${firstScreenBytes} B of first-screen JS and production isolation verified.`,
+);
 
 for (const license of [
   'paper-shaders.txt',
@@ -107,8 +122,15 @@ assert.equal(photos.length, 1, 'Fluted Glass must ship its photo as a separate a
 const photoBytes = (await stat(new URL(`assets/${photos[0]}`, root))).size;
 assert.ok(photoBytes < 80_000, 'The Fluted Glass photo exceeds its 80 KB budget');
 const images = assets.filter(file => file.endsWith('.webp') && !photos.includes(file));
-const families = Object.keys((await loadVariants()).variantIds).length;
+const familyIds = Object.keys((await loadVariants()).variantIds);
+const families = familyIds.length;
 assert.equal(images.length, families * 2, 'One day and one night thumbnail per background family');
+for (const id of familyIds)
+  for (const theme of ['day', 'night'])
+    assert.ok(
+      images.some(file => file.startsWith(`thumb-${id}-${theme}-`)),
+      `Missing ${theme} thumbnail for ${id}`,
+    );
 assert.ok(
   images.every(file => file.startsWith('thumb-')),
   'Only small settings thumbnails and the Fluted Glass photo may ship',

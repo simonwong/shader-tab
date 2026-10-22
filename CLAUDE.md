@@ -38,7 +38,7 @@ Change and test these modules through their own interface; their callers are thi
 - Preview namespace: the `glass-tab-preview:` localStorage prefix and `glass-tab:preview-` lock names stay in `src/platform/preview.ts`. The review scripts write that prefix directly, and `check-build.mjs` fails if it reaches the production bundle.
 - First paint: `src/entrypoints/newtab/boot.ts` mirrors the resolved theme, locale, messages and static background colours into localStorage `shader-tab:boot:v1` and applies them synchronously before React renders (the CSP rules out inline scripts). Whatever shapes the first frame goes through this cache.
 - Offline: permissions are exactly `bookmarks`, `storage`, `favicon`, and the CSP sets `connect-src 'self'`. Fonts, shaders and images ship in the package; favicons come from Chrome's local `_favicon` cache.
-- Bundle budget: renderers, settings, the bookmark menu and non-English dictionaries load by dynamic import. `check-build.mjs` holds first-screen JS under 265 KB, asserts that settings and the bookmark menu stay dynamic imports, and fails if three.js or ShaderGradient's React package ships.
+- Bundle budget: renderers, settings, the bookmark menu and non-English dictionaries load by dynamic import. `check-build.mjs` holds first-screen JS under 265 KB, asserts that settings, the bookmark menu and onboarding stay dynamic imports, and fails if three.js or ShaderGradient's React package ships.
 
 ## Dependencies
 
